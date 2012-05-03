@@ -1,0 +1,26 @@
+{
+  "author": "Kevin O'Hara <kevnohara80@gmail.com> (http://kevinmohara.com)",
+  "name": "nforce",
+  "description": "nforce is a REST API wrapper for force.com, database.com, and salesforce.com",
+  "version": "0.0.0",
+  "keywords": ["salesforce", "force.com", "database.com", "sfdc", "forcedotcom"],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kevinohara80/nforce.git"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "request": "*"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "should": "*"
+  },
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  },
+  "bugs": {
+    "url": "http://github.com/kevinohara80/nforce/issues"
+  }
+}
