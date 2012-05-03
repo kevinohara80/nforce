@@ -293,27 +293,27 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
   apiRequest(opts, oauth, callback);
 }
 
-Connection.prototype.query = function(data, oauth, callback) {
-  if(typeof data !== 'string') {
+Connection.prototype.query = function(query, oauth, callback) {
+  if(typeof query !== 'string') {
     return callback(new Error('Query must be in string form'), null);
   }
   if(!oauth || !oauth.instance_url || !oauth.access_token) {
     return callback(new Error('Invalid oauth object argument'), null);
   }
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/query';
-  var opts = { uri: uri, method: 'GET', qs: { q: data } }
+  var opts = { uri: uri, method: 'GET', qs: { q: query } }
   apiRequest(opts, oauth, callback);
 }
 
-Connection.prototype.search = function(data, oauth, callback) {
-  if(typeof data !== 'string') {
+Connection.prototype.search = function(search, oauth, callback) {
+  if(typeof search !== 'string') {
     return callback(new Error('Search must be in string form'), null);
   }
   if(!oauth || !oauth.instance_url || !oauth.access_token) {
     return callback(new Error('Invalid oauth object argument'), null);
   }
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/search';
-  var opts = { uri: uri, method: 'GET', qs: { q: data } }
+  var opts = { uri: uri, method: 'GET', qs: { q: search } }
   apiRequest(opts, oauth, callback);
 }
 
