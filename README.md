@@ -35,12 +35,15 @@ var org = nforce.createConnection({
 
 ### Username/Password flow
 
-To request an access token using the username and password flow, use the `authenticate()` method and pass in your username and password in the options
+To request an access token and other oauth information using the username and password flow, use the `authenticate()` method and pass in your username and password in the options
 
 ```js
+var oauth;
+
 org.authenticate({ username: 'my_test@gmail.com', password: 'mypassword'}, function(err, resp){
   if(!err) {
     console.log('Access Token: ' + resp.access_token);
+    oauth = resp;
   } else {
     console.log('Error: ' + err.message);
   }
@@ -48,6 +51,31 @@ org.authenticate({ username: 'my_test@gmail.com', password: 'mypassword'}, funct
 ```
 
 ### Authorization Code Flow
+
+To perform an authorization code flow, first redirect users to the Authorization URI. **nforce** provides a helper function to build this url for you.
+
+```js
+org.getAuthUri()
+```
+
+Once you get a callback at the Redirect URI that you specify, you need to request your access token and other important oauth information by calling `authenticate()` and passing in the "code" that you received.
+
+```js
+var oauth;
+
+org.authenticate({ code: 'SOMEOAUTHAUTHORIZATIONCODE' }, function(err, resp){
+  if(!err) {
+    console.log('Access Token: ' + resp.access_token);
+    oauth = resp;
+  } else {
+    console.log('Error: ' + err.message);
+  }
+});
+```
+
+### OAuth Object
+
+At the end of a successful authorization, you a returned an OAuth object for the user. Cache this object as it will be used for subsequent requests. This object contains your access token, endpoint, id, and other information.
 
 ## API
 
