@@ -31,6 +31,32 @@ var org = nforce.createConnection({
 });
 ```
 
+Now we just need to authenticate and get our OAuth credentials. Here is one way...
+
+```js
+var oauth;
+
+org.authenticate({ username: 'my_test@gmail.com', password: 'mypassword'}, function(err, resp){
+  if(!err) oauth = resp;
+});
+```
+
+Now we can go nuts. Inserting a record...
+
+```js
+var record = {
+  type: 'Account',
+  fieldValues: {
+    Name: 'Spiffy Cleaners',
+    Custom__c: 234
+  }
+}
+
+org.insert(record, oauth, function(err, resp){
+  if(!err) console.log('It worked!');
+})
+```
+
 ## Authentication
 
 **nforce** supports two OAuth 2.0 flows, username/password and authorization code.
