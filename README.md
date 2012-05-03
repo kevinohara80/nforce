@@ -25,7 +25,8 @@ var nforce = require('nforce');
 var org = nforce.createConnection({
   clientId: 'SOME_OAUTH_CLIENT_ID',
   clientSecret: 'SOME_OAUTH_CLIENT_SECRET',
-  redirectUri: 'http://localhost:3000/oauth/_callback'
+  redirectUri: 'http://localhost:3000/oauth/_callback',
+  apiVersion: 'v24.0'  // optional, defaults to 24.0
 });
 ```
 
@@ -76,6 +77,24 @@ org.authenticate({ code: 'SOMEOAUTHAUTHORIZATIONCODE' }, function(err, resp){
 ### OAuth Object
 
 At the end of a successful authorization, you a returned an OAuth object for the user. Cache this object as it will be used for subsequent requests. This object contains your access token, endpoint, id, and other information.
+
+### Express Middleware
+
+**nforce** has built-in support for express using the express/connect middleware system. The middleware handles the oauth callbacks. To use the middleware you must have sessions enabled in your express configuration.
+
+```js
+app.configure(function(){
+  app.set('views', __dirname + '/views');
+  app.set('view engine', 'jade');
+  app.use(express.bodyParser());
+  app.use(express.methodOverride());
+  app.use(express.cookieParser());
+	app.use(express.session({ secret: 'nforce testing baby' }));
+  app.use(org.expressOAuth({onSuccess: '/home', onError: '/oauth/error'}));  // <--- nforce middleware
+  app.use(app.router);
+  app.use(express.static(__dirname + '/public'));
+});
+```
 
 ## API
 
