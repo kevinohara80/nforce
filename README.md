@@ -8,6 +8,7 @@ nforce
 * Simple api
 * Connection object to manage multiple force.com connections in a single app
 * Helper oauth methods
+* Express middleware
 
 ## Installation
 
