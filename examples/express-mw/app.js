@@ -16,7 +16,7 @@ app.configure(function(){
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.cookieParser());
-	app.use(express.session({ secret: 'nforce testing baby' }));
+  app.use(express.session({ secret: 'nforce testing baby' }));
   app.use(org.expressOAuth({onSuccess: '/test/query', onError: '/oauth/error'}));
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
