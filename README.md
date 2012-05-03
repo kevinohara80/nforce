@@ -54,7 +54,7 @@ var record = {
 
 org.insert(record, oauth, function(err, resp){
   if(!err) console.log('It worked!');
-})
+});
 ```
 
 ## Authentication
