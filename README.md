@@ -114,18 +114,85 @@ This is a helper method to build the authentication uri for a authorization code
 
 This method requests the OAuth access token and instance information from Salesforce. This method either requires that you pass in the authorization code (authorization code flow) or username and password (username/password flow).
 
-* `code`: An OAuth authorization code
+* `code`: (String) An OAuth authorization code
 
 -- OR --
 
-* `username`: Your salesforce/force.com/database.com username
-* `password`: Your salesforce/force.com/database.com password
+* `username`: (String) Your salesforce/force.com/database.com username
+* `password`: (String) Your salesforce/force.com/database.com password
 
 ### getVersions(callback)
 
-Gets the salesforce versions. Note: Does not require authentication
+Gets the salesforce versions. Note: Does not require authentication.
 
-### 
+### getResources(oauth, callback)
+
+Gets the available resources
+
+### getSObjects(oauth, callback)
+
+Get all sObjects for an org
+
+### getMetadata(type, oauth, callback)
+
+Get metadata for a single sObject. `type` is a required String for the sObject type
+
+### getDescribe(type, oauth, callback)
+
+Get describe information for a single sObject. `type` is a required String for the sObject type
+
+### insert(data, oauth, callback)
+
+Insert a record. `data` is an object with the following properties:
+
+* `type`: (String) sObject type
+* `fieldValues`: (Object) contains field names and values
+
+### update(data, oauth, callback)
+
+Update a record. `data` is an object with the following properties:
+
+* `type`: (String) sObject type
+* `id`: (String) the id of the record
+* `fieldValues`: (Object) contains field names and values
+
+### upsert(data, oauth, callback)
+
+Update a record. `data` is an object with the following properties:
+
+* `type`: (String) sObject type
+* `externalId`: (String) the external id of the record
+* `externalIdField`: (String) the external id field to be used for upserting
+* `fieldValues`: (Object) contains field names and values
+
+### delete(data, oauth, callback)
+
+Delete a record. `data` is an object with the following properties:
+
+* `type`: (String) sObject type
+* `id`: (String) the id of the record
+
+### getRecord(data, oauth, callback)
+
+Get a single record. `data` is an object with the following properties:
+
+* `type`: (String) sObject type
+* `id`: (String) the id of the record
+
+### query(query, oauth, callback)
+
+Execute a SOQL query for records. `query` should be a SOQL string.
+
+### search(search, oauth, callback)
+
+Execute a SOSL search for records. `search` should be a SOSL string.
+
+### getUrl(url, oauth, callback)
+
+Get a REST API resource by its url. `url` should be a REST API resource.
+
 ## Todo
 
-* Integrated support for Express w/ automated oauth callback generation
+* Implement tests
+* Add caching capabilities for describe/metadata calls
+* Chatter support

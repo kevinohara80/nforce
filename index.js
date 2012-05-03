@@ -176,13 +176,13 @@ Connection.prototype.getSObjects = function(oauth, callback) {
 }
 
 Connection.prototype.getMetadata = function(data, oauth, callback) {
-  if(typeof data.type !== 'string') {
+  if(typeof data !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
   if(!oauth || !oauth.instance_url || !oauth.access_token) {
     return callback(new Error('Invalid oauth object argument'), null);
   }
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data.type;
+  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data;
   var opts = { uri: uri, method: 'GET' }
   apiRequest(opts, oauth, callback);
 }
