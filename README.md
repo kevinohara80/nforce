@@ -116,7 +116,7 @@ app.configure(function(){
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.cookieParser());
-	app.use(express.session({ secret: 'nforce testing baby' }));
+  app.use(express.session({ secret: 'nforce testing baby' }));
   app.use(org.expressOAuth({onSuccess: '/home', onError: '/oauth/error'}));  // <--- nforce middleware
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
