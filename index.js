@@ -399,4 +399,4 @@ module.exports.createConnection = function(opts) {
   return new Connection(opts);
 }
 
-module.exports.version = '0.0.0';
+module.exports.version = '0.0.1';
