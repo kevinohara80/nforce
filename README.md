@@ -107,7 +107,7 @@ At the end of a successful authorization, you a returned an OAuth object for the
 
 ### Express Middleware
 
-**nforce** has built-in support for express using the express/connect middleware system. The middleware handles the oauth callbacks. To use the middleware you must have sessions enabled in your express configuration.
+**nforce** has built-in support for [express](https://github.com/visionmedia/express) using the express/connect middleware system. The middleware handles the oauth callbacks for you. To use the middleware you must have sessions enabled in your express configuration.
 
 ```js
 app.configure(function(){
