@@ -3,6 +3,7 @@
 var request = require('request');
 var qs = require('querystring');
 var url = require('url');
+var Record = require('./lib/record');
 
 // constants
 
@@ -223,7 +224,7 @@ Connection.prototype.getDescribe = function(data, oauth, callback) {
 }
 
 Connection.prototype.insert = function(data, oauth, callback) {
-  if(typeof data.type !== 'string') {
+  if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
   if(typeof data.fieldValues !== 'object') {
@@ -232,8 +233,8 @@ Connection.prototype.insert = function(data, oauth, callback) {
   if(!oauth || !oauth.instance_url || !oauth.access_token) {
     return callback(new Error('Invalid oauth object argument'), null);
   }
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data.type;
-  var opts = { uri: uri, method: 'POST', body: JSON.stringify(data.fieldValues) }
+  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data.attributes.type;
+  var opts = { uri: uri, method: 'POST', body: JSON.stringify(data.getFieldValues()) }
   apiRequest(opts, oauth, callback);
 }
 
@@ -325,7 +326,18 @@ Connection.prototype.query = function(query, oauth, callback) {
   }
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/query';
   var opts = { uri: uri, method: 'GET', qs: { q: query } }
-  apiRequest(opts, oauth, callback);
+  apiRequest(opts, oauth, function(err, resp){
+    if(!err) {
+      if(resp.records && resp.records.length > 0) {
+        var recs = [];
+        for(var i=0; i<resp.records.length; i++) {
+          recs.push(new Record(resp.records[i]));
+        }
+        resp.records = recs;
+      }
+    }
+    callback(err, resp);
+  });
 }
 
 Connection.prototype.search = function(search, oauth, callback) {
@@ -420,6 +432,15 @@ var apiRequest = function(opts, oauth, callback) {
 
 module.exports.createConnection = function(opts) {
   return new Connection(opts);
+}
+
+module.exports.createSObject = function(type, id) {
+  var data = {
+    attributes: {}
+  }
+  data.attributes.type = type;
+  if(id) data.Id = id;
+  return new Record(data);
 }
 
 module.exports.version = '0.0.2';
