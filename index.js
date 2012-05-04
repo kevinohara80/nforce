@@ -239,10 +239,12 @@ Connection.prototype.insert = function(data, oauth, callback) {
 }
 
 Connection.prototype.update = function(data, oauth, callback) {
-  if(typeof data.type !== 'string') {
+  if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
-  if(typeof data.id !== 'string') {
+  
+  
+  if(typeof data.Id !== 'string') {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   if(typeof data.fieldValues !== 'object') {
@@ -251,7 +253,7 @@ Connection.prototype.update = function(data, oauth, callback) {
   if(!oauth || !oauth.instance_url || !oauth.access_token) {
     return callback(new Error('Invalid oauth object argument'), null);
   }
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data.type + '/' + data.id;
+  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data.attributes.type + '/' + data.Id;
   var opts = { uri: uri, method: 'PATCH', body: JSON.stringify(data.fieldValues) }
   apiRequest(opts, oauth, callback);
 }
