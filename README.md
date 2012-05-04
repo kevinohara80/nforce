@@ -220,6 +220,12 @@ Get a REST API resource by its url. `url` should be a REST API resource.
 
 ## Todo
 
+* Blob data support
+* User password management
 * Implement tests
-* Add caching capabilities for describe/metadata calls
+* Continue with caching capabilities for describe/metadata calls
 * Chatter support
+
+## Changelog
+
+* `v0.0.1`: Initial release. OAuth, CRUD, describes
