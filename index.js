@@ -323,9 +323,9 @@ Connection.prototype.query = function(query, oauth, callback) {
   if(typeof query !== 'string') {
     return callback(new Error('Query must be in string form'), null);
   }
-  if(!oauth || !oauth.instance_url || !oauth.access_token) {
-    return callback(new Error('Invalid oauth object argument'), null);
-  }
+  
+  if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
+
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/query';
   var opts = { uri: uri, method: 'GET', qs: { q: query } }
   apiRequest(opts, oauth, function(err, resp){
@@ -406,6 +406,14 @@ Connection.prototype.expressOAuth = function(opts) {
 }
 
 // utility methods
+
+var validateOAuth = function(oauth) {
+  if(!oauth || !oauth.instance_url || !oauth.access_token) {
+    return false;
+  } else {
+    return true;
+  }
+}
 
 var apiRequest = function(opts, oauth, callback) {
   var token = 'OAuth ' + oauth.access_token;
