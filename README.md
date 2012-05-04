@@ -27,7 +27,8 @@ var org = nforce.createConnection({
   clientId: 'SOME_OAUTH_CLIENT_ID',
   clientSecret: 'SOME_OAUTH_CLIENT_SECRET',
   redirectUri: 'http://localhost:3000/oauth/_callback',
-  apiVersion: 'v24.0'  // optional, defaults to 24.0
+  apiVersion: 'v24.0',  // optional, defaults to v24.0
+  environment: 'production'  // optional, sandbox or production, production default
 });
 ```
 
@@ -125,13 +126,25 @@ app.configure(function(){
 
 ## API
 
+### Callbacks
+
 Callbacks will always pass an optional error object, and a response object.
 
 ```js
 callback(err, resp);
 ```
 
-The following list of methods are available for an **nforce** connection object
+### createConnection(opts)
+
+The createConnection method creates an *nforce* connection object. You need to supply some arguments including oauth information and some optional arguments for version and environment.
+
+* `clientId`: Required. This is the OAuth client id
+* `clientSecret`: Required. This is the OAuth client secret
+* `redirectUri`: Required. This is the redirect URI for OAuth callbacks
+* `apiVersion`: Optional. This is a number or string representing a valid REST API version. Default is v24.0.
+* `environment`: Optional. Values can be 'production' or 'sandbox'. Default is production.
+
+The following list of methods are available for an **nforce** connection object:
 
 ### getAuthUri()
 

@@ -7,7 +7,9 @@ var url = require('url');
 // constants
 
 var AUTH_ENDPOINT = 'https://login.salesforce.com/services/oauth2/authorize';
+var TEST_AUTH_ENDPOINT = 'https://test.salesforce.com/services/oauth2/authorize';
 var LOGIN_URI = 'https://login.salesforce.com/services/oauth2/token';
+var TEST_LOGIN_URI = 'https://test.salesforce.com/services/oauth2/token';
 var API_VERSIONS = ['v20.0', 'v21.0', 'v22.0', 'v23.0', 'v24.0'];
 
 // nforce connection object
@@ -25,7 +27,7 @@ var Connection = function(opts) {
     this.clientSecret = opts.clientSecret;
   }
   if(typeof opts.redirectUri === 'undefined' || typeof opts.redirectUri !== 'string') {
-    throw new Error('Invalid or missing clientId');
+    throw new Error('Invalid or missing redirectUri');
   } else {
     this.redirectUri = opts.redirectUri;
   }  
@@ -48,7 +50,13 @@ var Connection = function(opts) {
       if(opts.apiVersion.length === 2) opts.apiVersion = opts.apiVersion + '.0';
     }
     opts.apiVersion = opts.apiVersion.toLowerCase();
-    if(/^\d\d\.\d$/g.test(opts.apiVersion)) opts.apiVersion = 'v' + opts.apiVersion;
+    if(/^\d\d\.\d$/g.test(opts.apiVersion)) {
+      opts.apiVersion = 'v' + opts.apiVersion;
+    } else if(/^\d\d$/g.test(opts.apiVersion)) {
+      opts.apiVersion = 'v' + opts.apiVersion + '.0';
+    } else if(/^v\d\d$/g.test(opts.apiVersion)) {
+      opts.apiVersion = opts.apiVersion + '.0';
+    }
     if(API_VERSIONS.indexOf(opts.apiVersion) === -1 ) {
       throw new Error(opts.apiVersion + ' is an invalid api version');
     } else {
@@ -56,6 +64,15 @@ var Connection = function(opts) {
     }
   } else {
     this.apiVersion = 'v24.0';
+  }
+  if(opts.environment) {
+    if(opts.environment.toLowerCase() == 'sandbox' || opts.environment.toLowerCase() == 'production') {
+      this.environment = opts.environment.toLowerCase();
+    } else {
+      throw new Error(opts.environment + ' is an invalid environment');
+    }
+  } else {
+    this.environment = 'production';
   }
 }
 
@@ -69,7 +86,11 @@ Connection.prototype.getAuthUri = function() {
     'client_secret': self.clientSecret,
     'redirect_uri': self.redirectUri
   }
-  return AUTH_ENDPOINT + '?' + qs.stringify(opts);
+  if(self.environment == 'sandbox') {
+    return TEST_AUTH_ENDPOINT + '?' + qs.stringify(opts);
+  } else {
+    return AUTH_ENDPOINT + '?' + qs.stringify(opts);
+  }
 }
 
 Connection.prototype.authenticate = function(opts, callback) {
@@ -96,8 +117,10 @@ Connection.prototype.authenticate = function(opts, callback) {
     return;
   }
   
+  var uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
+  
   var reqOpts = {
-    uri: LOGIN_URI,
+    uri: uri,
     method: 'POST',
     body: qs.stringify(bodyOpts),
     headers: {
@@ -399,4 +422,4 @@ module.exports.createConnection = function(opts) {
   return new Connection(opts);
 }
 
-module.exports.version = '0.0.1';
+module.exports.version = '0.0.2';
