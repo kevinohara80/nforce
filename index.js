@@ -151,9 +151,7 @@ Connection.prototype.refreshToken = function(opts, callback) {
 // api methods
 
 Connection.prototype.getIdentity = function(oauth, callback) {
-  if(!oauth || !oauth.instance_url || !oauth.access_token) {
-    return callback(new Error('Invalid oauth object argument'), null);
-  }
+  if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
   var opts = { uri: oauth.id, method: 'GET'}
   apiRequest(opts, oauth, callback);
 }
@@ -169,9 +167,7 @@ Connection.prototype.getVersions = function(callback) {
 }
 
 Connection.prototype.getResources = function(oauth, callback) {
-  if(!oauth || !oauth.instance_url || !oauth.access_token) {
-    return callback(new Error('Invalid oauth object argument'), null);
-  }
+  if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion;
   var opts = { uri: uri, method: 'GET' }
   apiRequest(opts, oauth, callback);
@@ -179,9 +175,7 @@ Connection.prototype.getResources = function(oauth, callback) {
 
 Connection.prototype.getSObjects = function(oauth, callback) {
   var self = this;
-  if(!oauth || !oauth.instance_url || !oauth.access_token) {
-    return callback(new Error('Invalid oauth object argument'), null);
-  }
+  if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects';
   var opts = { uri: uri, method: 'GET' }
   apiRequest(opts, oauth, function(err, resp){
@@ -203,9 +197,9 @@ Connection.prototype.getMetadata = function(data, oauth, callback) {
   if(typeof data !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
-  if(!oauth || !oauth.instance_url || !oauth.access_token) {
-    return callback(new Error('Invalid oauth object argument'), null);
-  }
+  
+  if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
+  
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data;
   var opts = { uri: uri, method: 'GET' }
   apiRequest(opts, oauth, callback);
@@ -215,9 +209,9 @@ Connection.prototype.getDescribe = function(data, oauth, callback) {
   if(typeof data.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
-  if(!oauth || !oauth.instance_url || !oauth.access_token) {
-    return callback(new Error('Invalid oauth object argument'), null);
-  }
+  
+  if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
+  
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data.type + '/describe';
   var opts = { uri: uri, method: 'GET' }
   apiRequest(opts, oauth, callback);
@@ -230,9 +224,9 @@ Connection.prototype.insert = function(data, oauth, callback) {
   if(typeof data.fieldValues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
-  if(!oauth || !oauth.instance_url || !oauth.access_token) {
-    return callback(new Error('Invalid oauth object argument'), null);
-  }
+  
+  if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
+  
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data.attributes.type;
   var opts = { uri: uri, method: 'POST', body: JSON.stringify(data.getFieldValues()) }
   apiRequest(opts, oauth, callback);
@@ -243,69 +237,64 @@ Connection.prototype.update = function(data, oauth, callback) {
     return callback(new Error('Type must be in the form of a string'), null);
   }
   
-  
-  if(typeof data.Id !== 'string') {
+  if(!data.getId()) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   if(typeof data.fieldValues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
-  if(!oauth || !oauth.instance_url || !oauth.access_token) {
-    return callback(new Error('Invalid oauth object argument'), null);
-  }
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data.attributes.type + '/' + data.Id;
-  var opts = { uri: uri, method: 'PATCH', body: JSON.stringify(data.fieldValues) }
+  
+  if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
+  
+  var uri = oauth.instance_url + '/services/data/' + this.apiVersion 
+    + '/sobjects/' + data.attributes.type + '/' + data.getId();
+  var opts = { uri: uri, method: 'PATCH', body: JSON.stringify(data.getFieldValues()) }
   apiRequest(opts, oauth, callback);
 }
 
 Connection.prototype.upsert = function(data, oauth, callback) {
-  if(typeof data.type !== 'string') {
+  if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
-  if(typeof data.externalId !== 'string') {
-    return callback(new Error('You must specify an external id in the form of a string'));
-  }
-  if(typeof data.externalIdField !== 'string') {
-    return callback(new Error('You must specify an external id field in the form of a string'));
+  if(!data.getExternalId()) { 
+    return callback(new Error('Invalid external id or external id field'));
   }
   if(typeof data.fieldValues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
-  if(!oauth || !oauth.instance_url || !oauth.access_token) {
-    return callback(new Error('Invalid oauth object argument'), null);
-  }
+  
+  if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
+  
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' 
-    + data.type + '/' + data.externalIdField + '/' + data.externalId;
-  var opts = { uri: uri, method: 'PATCH', body: JSON.stringify(data.fieldValues) }
+    + data.attributes.type + '/' + data.attributes.externalIdField + '/' + data.getExternalId();
+  var opts = { uri: uri, method: 'PATCH', body: JSON.stringify(data.getFieldValues()) }
   apiRequest(opts, oauth, callback);
 }
 
 Connection.prototype.delete = function(data, oauth, callback) {
-  if(typeof data.type !== 'string') {
+  if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
-  if(typeof data.id !== 'string') {
+  if(!data.getId()) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
-  if(!oauth || !oauth.instance_url || !oauth.access_token) {
-    return callback(new Error('Invalid oauth object argument'), null);
-  }
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data.type + '/' + data.id;
+  if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
+  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' 
+    + data.attributes.type + '/' + data.getId();
   var opts = { uri: uri, method: 'DELETE'}
   apiRequest(opts, oauth, callback);
 }
 
 Connection.prototype.getRecord = function(data, oauth, callback) {
-  if(typeof data.type !== 'string') {
+  if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
-  if(typeof data.id !== 'string') {
+  if(!data.getId()) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
-  if(!oauth || !oauth.instance_url || !oauth.access_token) {
-    return callback(new Error('Invalid oauth object argument'), null);
-  }
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data.type + '/' + data.id;
+  if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
+  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' 
+    + data.attributes.type + '/' + data.getId();
   if(data.fields) {
     var query = {}
     if(typeof data.fields === 'string') {
@@ -351,7 +340,18 @@ Connection.prototype.search = function(search, oauth, callback) {
   }
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/search';
   var opts = { uri: uri, method: 'GET', qs: { q: search } }
-  apiRequest(opts, oauth, callback);
+  apiRequest(opts, oauth, function(err, resp){
+    if(!err) {
+      if(resp.length) {
+        var recs = [];
+        for(var i=0; i<resp.length; i++) {
+          recs.push(new Record(resp[i]));
+        }
+        resp = recs;
+      }
+    }
+    callback(err, resp);
+  });
 }
 
 Connection.prototype.getUrl = function(url, auth, callback) {
