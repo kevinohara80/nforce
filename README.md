@@ -164,7 +164,7 @@ The createConnection method creates an *nforce* connection object. You need to s
 
 ### createSObject(type)
 
-This creates an sObject record that you can use to insert, update, upsert, and delete.
+This creates an sObject record that you can use to insert, update, upsert, and delete. `type` should be the API name of the sObject that you are updating.
 
 ## Connection Methods
 

@@ -444,4 +444,4 @@ module.exports.createSObject = function(type) {
   return new Record(data);
 }
 
-module.exports.version = '0.0.2';
+module.exports.version = '0.0.3';
