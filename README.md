@@ -168,7 +168,7 @@ This creates an sObject record that you can use to insert, update, upsert, and d
 
 ## sObject Methods
 
-### getFieldValues
+### getFieldValues()
 
 This method shows the cached values that have been updated that will be passed in an update or upsert method
 
