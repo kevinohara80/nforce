@@ -17,17 +17,17 @@ var API_VERSIONS = ['v20.0', 'v21.0', 'v22.0', 'v23.0', 'v24.0'];
 
 var Connection = function(opts) {
   if(!opts) opts = {};
-  if(typeof opts.clientId === 'undefined' || typeof opts.clientId !== 'string') {
+  if(!opts.clientId  || typeof opts.clientId !== 'string') {
     throw new Error('Invalid or missing clientId');
   } else {
     this.clientId = opts.clientId;
   }
-  if(typeof opts.clientSecret === 'undefined' || typeof opts.clientSecret !== 'string') {
+  if(!opts.clientSecret || typeof opts.clientSecret !== 'string') {
     throw new Error('Invalid or missing clientSecret');
   } else {
     this.clientSecret = opts.clientSecret;
   }
-  if(typeof opts.redirectUri === 'undefined' || typeof opts.redirectUri !== 'string') {
+  if(!opts.redirectUri || typeof opts.redirectUri !== 'string') {
     throw new Error('Invalid or missing redirectUri');
   } else {
     this.redirectUri = opts.redirectUri;
