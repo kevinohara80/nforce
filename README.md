@@ -166,6 +166,20 @@ The createConnection method creates an *nforce* connection object. You need to s
 
 This creates an sObject record that you can use to insert, update, upsert, and delete. `type` should be the API name of the sObject that you are updating.
 
+## sObject Methods
+
+### getFieldValues
+
+This method shows the cached values that have been updated that will be passed in an update or upsert method
+
+### setExternalId(field, value)
+
+For upsert methods, you need to specify the External Id field and the value that you are trying to match on.
+
+### getId()
+
+Returns the sObjects Id (if set)
+
 ## Connection Methods
 
 The following list of methods are available for an **nforce** connection object:
