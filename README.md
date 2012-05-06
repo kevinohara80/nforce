@@ -42,19 +42,37 @@ org.authenticate({ username: 'my_test@gmail.com', password: 'mypassword'}, funct
 });
 ```
 
-Now we can go nuts. Inserting a record...
+Now we can go nuts. *nforce* has an sObject factory method that creates records for you. Let's use that and insert a record...
 
 ```js
-var record = {
-  type: 'Account',
-  fieldValues: {
-    Name: 'Spiffy Cleaners',
-    Custom__c: 234
-  }
-}
+var acc = nforce.createSObject('Account');
+acc.Name = 'Spiffy Cleaners';
+acc.Phone = '800-555-2345';
+acc.SLA__c = 'Gold';
 
-org.insert(record, oauth, function(err, resp){
+org.insert(acc, oauth, function(err, resp){
   if(!err) console.log('It worked!');
+});
+```
+
+Querying and updating records is super easy. *nforce* wraps API-queried records in a special object. The object caches field updates that you make to the record and allows you to pass the record directly into the update method without having to scrub out the unchanged fields.
+
+```js
+var query = 'SELECT Id, Name, CreatedDate, BillingCity FROM Account WHERE Name = \'Spiffy Cleaners\' LIMIT 1';
+
+org.query(query, oauth, function(err, resp){
+  
+  if(!err && resp.records) {
+    
+    var acc = resp.records[0];
+    acc.Name = 'Really Spiffy Cleaners';
+    acc.Industry = 'Cleaners';
+    
+    org.update(acc, oauth, function(err, resp){
+      if(!err) console.log('It worked!');
+    });
+    
+  } 
 });
 ```
 

@@ -294,7 +294,12 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
     uri += '?' + qs.stringify(query);
   }
   var opts = { uri: uri, method: 'GET'}
-  apiRequest(opts, oauth, callback);
+  apiRequest(opts, oauth, function(err, resp){
+    if(!err) {
+      resp = new Record(resp);
+    }
+    callback(err, resp);
+  });
 }
 
 Connection.prototype.query = function(query, oauth, callback) {
