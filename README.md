@@ -42,7 +42,7 @@ org.authenticate({ username: 'my_test@gmail.com', password: 'mypassword'}, funct
 });
 ```
 
-Now we can go nuts. *nforce* has an sObject factory method that creates records for you. Let's use that and insert a record...
+Now we can go nuts. **nforce** has an sObject factory method that creates records for you. Let's use that and insert a record...
 
 ```js
 var acc = nforce.createSObject('Account');
@@ -55,7 +55,7 @@ org.insert(acc, oauth, function(err, resp){
 });
 ```
 
-Querying and updating records is super easy. *nforce* wraps API-queried records in a special object. The object caches field updates that you make to the record and allows you to pass the record directly into the update method without having to scrub out the unchanged fields.
+Querying and updating records is super easy. **nforce** wraps API-queried records in a special object. The object caches field updates that you make to the record and allows you to pass the record directly into the update method without having to scrub out the unchanged fields.
 
 ```js
 var query = 'SELECT Id, Name, CreatedDate, BillingCity FROM Account WHERE Name = \'Spiffy Cleaners\' LIMIT 1';
@@ -142,11 +142,11 @@ app.configure(function(){
 });
 ```
 
-## API
+## nforce API
 
 ### Callbacks
 
-Callbacks will always pass an optional error object, and a response object.
+Callbacks will always pass an optional error object, and a response object. The response object closely resemble the typical responses from the Salesforce REST API.
 
 ```js
 callback(err, resp);
@@ -161,6 +161,12 @@ The createConnection method creates an *nforce* connection object. You need to s
 * `redirectUri`: Required. This is the redirect URI for OAuth callbacks
 * `apiVersion`: Optional. This is a number or string representing a valid REST API version. Default is v24.0.
 * `environment`: Optional. Values can be 'production' or 'sandbox'. Default is production.
+
+### createSObject(type)
+
+This creates an sObject record that you can use to insert, update, upsert, and delete.
+
+## Connection Methods
 
 The following list of methods are available for an **nforce** connection object:
 
@@ -199,43 +205,25 @@ Get metadata for a single sObject. `type` is a required String for the sObject t
 
 Get describe information for a single sObject. `type` is a required String for the sObject type
 
-### insert(data, oauth, callback)
+### insert(sobject, oauth, callback)
 
-Insert a record. `data` is an object with the following properties:
+Insert a record. `sobject`: (Object) A Salesforce sObject
 
-* `type`: (String) sObject type
-* `fieldValues`: (Object) contains field names and values
+### update(sobject, oauth, callback)
 
-### update(data, oauth, callback)
+Update a record. `sobject`: (Object) A Salesforce sObject
 
-Update a record. `data` is an object with the following properties:
+### upsert(sobject, oauth, callback)
 
-* `type`: (String) sObject type
-* `id`: (String) the id of the record
-* `fieldValues`: (Object) contains field names and values
+Update a record. `sobject`: (Object) A Salesforce sObject
 
-### upsert(data, oauth, callback)
+### delete(sobject, oauth, callback)
 
-Update a record. `data` is an object with the following properties:
+Delete a record. `sobject`: (Object) A Salesforce sObject
 
-* `type`: (String) sObject type
-* `externalId`: (String) the external id of the record
-* `externalIdField`: (String) the external id field to be used for upserting
-* `fieldValues`: (Object) contains field names and values
+### getRecord(sobject, oauth, callback)
 
-### delete(data, oauth, callback)
-
-Delete a record. `data` is an object with the following properties:
-
-* `type`: (String) sObject type
-* `id`: (String) the id of the record
-
-### getRecord(data, oauth, callback)
-
-Get a single record. `data` is an object with the following properties:
-
-* `type`: (String) sObject type
-* `id`: (String) the id of the record
+Get a single record. `sobject`: (Object) A Salesforce sObject
 
 ### query(query, oauth, callback)
 
@@ -253,10 +241,11 @@ Get a REST API resource by its url. `url` should be a REST API resource.
 
 * Blob data support
 * User password management
-* Implement tests
 * Continue with caching capabilities for describe/metadata calls
 * Chatter support
 
 ## Changelog
 
+* `v0.0.3`: API overhaul. Implemented Record class with field update caching
+* `v0.0.2`: Testing framework implemented. Bug fixes.
 * `v0.0.1`: Initial release. OAuth, CRUD, describes

@@ -436,12 +436,11 @@ module.exports.createConnection = function(opts) {
   return new Connection(opts);
 }
 
-module.exports.createSObject = function(type, id) {
+module.exports.createSObject = function(type) {
   var data = {
     attributes: {}
   }
   data.attributes.type = type;
-  if(id) data.Id = id;
   return new Record(data);
 }
 
