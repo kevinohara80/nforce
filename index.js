@@ -348,6 +348,10 @@ Connection.prototype.search = function(search, oauth, callback) {
 }
 
 Connection.prototype.getUrl = function(url, auth, callback) {
+  if(typeof url !== 'string') {
+    return callback(new Error('Url must be in string form'), null);
+  }
+  if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
   var uri = auth.instance_url + url;
   var opts = { uri: uri, method: 'GET' }
   apiRequest(opts, oauth, callback);
