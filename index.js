@@ -330,9 +330,7 @@ Connection.prototype.search = function(search, oauth, callback) {
   if(typeof search !== 'string') {
     return callback(new Error('Search must be in string form'), null);
   }
-  if(!oauth || !oauth.instance_url || !oauth.access_token) {
-    return callback(new Error('Invalid oauth object argument'), null);
-  }
+  if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/search';
   var opts = { uri: uri, method: 'GET', qs: { q: search } }
   apiRequest(opts, oauth, function(err, resp){
