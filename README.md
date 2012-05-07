@@ -229,7 +229,7 @@ Update a record. `sobject`: (Object) A Salesforce sObject
 
 ### upsert(sobject, oauth, callback)
 
-Update a record. `sobject`: (Object) A Salesforce sObject
+Update a record. `sobject`: (Object) A Salesforce sObject. NOTE: you must use the setExternalId() method to set the external Id field and the value to match on.
 
 ### delete(sobject, oauth, callback)
 
