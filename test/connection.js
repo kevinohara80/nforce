@@ -108,5 +108,25 @@ describe('index', function(){
       });
   
   });
+  
+  describe('#createSObject', function(){
+    
+    it('should create an SObject of type Account', function(){
+      var acc = nforce.createSObject('Account');
+      acc.should.be.a('object');
+      acc.should.have.property('attributes');
+      acc.should.have.property('fieldValues');
+      acc.attributes.type.should.equal('Account');
+    });
+    
+    it('should create an SObject of type Test_Object__c', function(){
+      var acc = nforce.createSObject('Test_Object__c');
+      acc.should.be.a('object');
+      acc.should.have.property('attributes');
+      acc.should.have.property('fieldValues');
+      acc.attributes.type.should.equal('Test_Object__c');
+    });
+    
+  });
 
 });
