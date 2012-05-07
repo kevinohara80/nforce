@@ -261,6 +261,7 @@ Get a REST API resource by its url. `url` should be a REST API resource.
 
 ## Changelog
 
+* `v0.0.4`: Initialization of SObject now has field setting option
 * `v0.0.3`: API overhaul. Implemented Record class with field update caching
 * `v0.0.2`: Testing framework implemented. Bug fixes.
 * `v0.0.1`: Initial release. OAuth, CRUD, describes
