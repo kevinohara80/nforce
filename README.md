@@ -198,6 +198,7 @@ This method requests the OAuth access token and instance information from Salesf
 
 * `username`: (String) Your salesforce/force.com/database.com username
 * `password`: (String) Your salesforce/force.com/database.com password
+* `securityToken`: (String) Your Salesforce security token. This will be appended to your password if this property is set.
 
 ### getVersions(callback)
 
