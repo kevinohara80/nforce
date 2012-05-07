@@ -1,6 +1,8 @@
 nforce
 ======
 
+[![Build Status](https://secure.travis-ci.org/kevinohara80/nforce.png)](http://travis-ci.org/kevinohara80/nforce)  
+
 **nforce** is node.js a REST API wrapper for force.com, database.com, and salesforce.com.
 
 ## Features
