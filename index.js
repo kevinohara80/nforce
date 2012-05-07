@@ -112,6 +112,9 @@ Connection.prototype.authenticate = function(opts, callback) {
     bodyOpts['grant_type'] = 'password';
     bodyOpts['username'] = opts.username;
     bodyOpts['password'] = opts.password;
+    if(opts.securityToken) {
+      bodyOpts['password'] = bodyOpts['password'] + opts.securityToken;
+    }
   } else {
     var err = new Error('You must either supply a code, or username and password');
     callback(err, null);
