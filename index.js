@@ -352,7 +352,7 @@ Connection.prototype.getUrl = function(url, auth, callback) {
     return callback(new Error('Url must be in string form'), null);
   }
   if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
-  var uri = auth.instance_url + url;
+  var uri = oauth.instance_url + url;
   var opts = { uri: uri, method: 'GET' }
   apiRequest(opts, oauth, callback);
 }
