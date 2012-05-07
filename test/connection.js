@@ -120,11 +120,28 @@ describe('index', function(){
     });
     
     it('should create an SObject of type Test_Object__c', function(){
-      var acc = nforce.createSObject('Test_Object__c');
-      acc.should.be.a('object');
-      acc.should.have.property('attributes');
-      acc.should.have.property('fieldValues');
-      acc.attributes.type.should.equal('Test_Object__c');
+      var obj = nforce.createSObject('Test_Object__c');
+      obj.should.be.a('object');
+      obj.should.have.property('attributes');
+      obj.should.have.property('fieldValues');
+      obj.attributes.type.should.equal('Test_Object__c');
+    });
+    
+    it('should allow field values to be passed in', function(){
+      var obj = nforce.createSObject('Test_Object__c', {
+        Name: 'Test Me',
+        Custom_Field__c: 'Blah'
+      });
+      obj.should.be.a('object');
+      obj.should.have.property('attributes');
+      obj.should.have.property('fieldValues');
+      obj.attributes.type.should.equal('Test_Object__c');
+      obj.should.have.property('Name');
+      obj.Name.should.equal('Test Me');
+      obj.should.have.property('Custom_Field__c');
+      obj.Custom_Field__c.should.equal('Blah');
+      obj.getFieldValues().should.have.property('Name', 'Test Me');
+      obj.getFieldValues().should.have.property('Custom_Field__c', 'Blah');
     });
     
   });
