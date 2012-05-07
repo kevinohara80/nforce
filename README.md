@@ -162,9 +162,9 @@ The createConnection method creates an *nforce* connection object. You need to s
 * `apiVersion`: Optional. This is a number or string representing a valid REST API version. Default is v24.0.
 * `environment`: Optional. Values can be 'production' or 'sandbox'. Default is production.
 
-### createSObject(type)
+### createSObject(type, [fieldValues])
 
-This creates an sObject record that you can use to insert, update, upsert, and delete. `type` should be the API name of the sObject that you are updating.
+This creates an sObject record that you can use to insert, update, upsert, and delete. `type` should be the API name of the sObject that you are updating. `fieldValues` should be a hash of field names and values that you want to initialize your sObject with. You can also just assign fields and values by setting properties after you create the sObject.
 
 ## sObject Methods
 

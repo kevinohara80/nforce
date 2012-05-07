@@ -439,12 +439,18 @@ module.exports.createConnection = function(opts) {
   return new Connection(opts);
 }
 
-module.exports.createSObject = function(type) {
+module.exports.createSObject = function(type, fields) {
   var data = {
     attributes: {}
   }
   data.attributes.type = type;
-  return new Record(data);
+  var rec = new Record(data);
+  if(fields) {
+    for(var key in fields) {
+      rec[key] = fields[key];
+    }
+  }
+  return rec;
 }
 
 module.exports.version = '0.0.3';
