@@ -455,4 +455,4 @@ module.exports.createSObject = function(type, fields) {
   return rec;
 }
 
-module.exports.version = '0.0.4';
+module.exports.version = '0.0.5';
