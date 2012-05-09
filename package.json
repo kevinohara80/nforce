@@ -25,5 +25,9 @@
   },
   "scripts": {
     "test": "mocha --reporter spec"
+  },
+  "license": {
+    "type": "MIT",
+    "url": "https://raw.github.com/kevinohara80/nforce/master/LICENSE"
   }
 }
