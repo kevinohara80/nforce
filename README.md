@@ -202,6 +202,10 @@ This method requests the OAuth access token and instance information from Salesf
 * `password`: (String) Your salesforce/force.com/database.com password
 * `securityToken`: (String) Your Salesforce security token. This will be appended to your password if this property is set.
 
+### expressOAuth(onSuccess, onError)
+
+The express middleware. `onSuccess` and `onError` should be uri routes for redirection after OAuth callbacks.
+
 ### getVersions(callback)
 
 Gets the salesforce versions. Note: Does not require authentication.
