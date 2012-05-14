@@ -260,6 +260,7 @@ Get a REST API resource by its url. `url` should be a REST API resource.
 
 ## Todo
 
+* Streaming API support
 * Blob data support
 * User password management
 * Continue with caching capabilities for describe/metadata calls
