@@ -347,7 +347,7 @@ Connection.prototype.search = function(search, oauth, callback) {
   });
 }
 
-Connection.prototype.getUrl = function(url, auth, callback) {
+Connection.prototype.getUrl = function(url, oauth, callback) {
   if(typeof url !== 'string') {
     return callback(new Error('Url must be in string form'), null);
   }
