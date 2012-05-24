@@ -305,24 +305,56 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
   });
 }
 
-Connection.prototype.query = function(query, oauth, callback) {
-  if(typeof query !== 'string') {
-    return callback(new Error('Query must be in string form'), null);
+Connection.prototype.query = function(opts, oauth, callback) {
+  var query;
+  var self = this;
+  var recs = [];
+  
+  if(typeof opts === 'string') {
+    query = opts;
+  } else if(typeof opts === 'object') {
+    if(!opts.query) {
+      return callback(new Error('You must specify a query'));
+    } else {
+      query = opts.query;
+    }
+  } else {
+    return callback(new Error('Invalid query arguments'));
   }
+  
+  var queryNext = function(url) {
+    self.getUrl(url, oauth, function(err, resp) {
+      if(err) return callback(err, resp);
+      if(resp.records && resp.records.length > 0) {
+        for(var i=0; i<resp.records.length; i++) {
+          recs.push(new Record(resp.records[i]));
+        }
+      }
+      // need to check for next url and make recursive call
+    });
+  }
+  
   if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/query';
   var opts = { uri: uri, method: 'GET', qs: { q: query } }
   apiRequest(opts, oauth, function(err, resp){
     if(!err) {
       if(resp.records && resp.records.length > 0) {
-        var recs = [];
         for(var i=0; i<resp.records.length; i++) {
           recs.push(new Record(resp.records[i]));
         }
         resp.records = recs;
       }
+      
+      if(resp.nextRecordsUrl && opts.queryAll) {
+        queryNext(resp.nextRecordsUrl, oauth);
+      } else {
+        callback(err, resp);
+      }
+    } else {
+      callback(err, resp);
     }
-    callback(err, resp);
+    
   });
 }
 
