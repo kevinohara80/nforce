@@ -101,7 +101,7 @@ org.authenticate({ username: 'my_test@gmail.com', password: 'mypassword'}, funct
 
 ### Authorization Code Flow
 
-To perform an authorization code flow, first redirect users to the Authorization URI. **nforce** provides a helper function to build this url for you.
+To perform an authorization code flow, first redirect users to the Authorization URI at Salesforce. **nforce** provides a helper function to build this url for you.
 
 ```js
 org.getAuthUri()
@@ -124,7 +124,9 @@ org.authenticate({ code: 'SOMEOAUTHAUTHORIZATIONCODE' }, function(err, resp){
 
 ### OAuth Object
 
-At the end of a successful authorization, you a returned an OAuth object for the user. Cache this object as it will be used for subsequent requests. This object contains your access token, endpoint, id, and other information.
+At the end of a successful authorization, you a returned an OAuth object for the user. Cache this object as it will be used for subsequent requests. This object contains your access token, endpoint, id, and other information. 
+
+Why is this not automatically stored as a global variable? This is because you can have multiple users accessing your application and each user will have their own OAuth credentials from Salesforce. In this scenario, it makes the most sense to store these credentials in the users session or in some other data store. If you are using [express](https://github.com/visionmedia/express), **nforce** can take care of storing this for you (see below).
 
 ### Express Middleware
 
