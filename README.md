@@ -144,6 +144,28 @@ app.configure(function(){
 });
 ```
 
+### Query Streaming API
+
+The Salesforce query call in the REST API returns a 2000 record chunk at one time. 
+
+```js
+// dataset of 50k records. Stream these to a writable stream.
+var query = 'SELECT Name, CreatedDate FROM Account ORDER BY CreatedDate DESC';
+org.query(query, req.session.oauth, callback(err, resp) {
+  if(!err) console.log(resp.records.length) // this will be 2000 max
+});
+```
+
+For large queries, you must make subsequent calls to the API to get the rest of the records. 
+
+The **nforce** query method returns a node.js stream. By calling the `pipe` method on this object, your query call will automatically start streaming ALL of the records in 2000 record batches.
+
+```js
+// dataset of 50k records. Stream these to a writable stream.
+var query = 'SELECT Name, CreatedDate FROM Account ORDER BY CreatedDate DESC';
+org.query(query, req.session.oauth).pipe(res);
+``` 
+
 ## nforce API
 
 ### Callbacks

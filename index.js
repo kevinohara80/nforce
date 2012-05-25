@@ -4,6 +4,7 @@ var request = require('request');
 var qs = require('querystring');
 var url = require('url');
 var Record = require('./lib/record');
+var QueryStream = require('./lib/querystream');
 
 // constants
 
@@ -305,57 +306,65 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
   });
 }
 
-Connection.prototype.query = function(opts, oauth, callback) {
-  var query;
+Connection.prototype.query = function(query, oauth, callback) {
+
   var self = this;
   var recs = [];
   
-  if(typeof opts === 'string') {
-    query = opts;
-  } else if(typeof opts === 'object') {
-    if(!opts.query) {
-      return callback(new Error('You must specify a query'));
-    } else {
-      query = opts.query;
-    }
-  } else {
-    return callback(new Error('Invalid query arguments'));
+  var stream = new QueryStream();
+  
+  if(typeof query !== 'string') {
+    return callback(new Error('You must specify a query'));
   }
   
+  if(!callback || typeof callback !== 'function') callback = function(){} 
+  
+  if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
+  
   var queryNext = function(url) {
+    console.log('streaming next records url');
     self.getUrl(url, oauth, function(err, resp) {
       if(err) return callback(err, resp);
       if(resp.records && resp.records.length > 0) {
+        stream.write(JSON.stringify(resp));
         for(var i=0; i<resp.records.length; i++) {
           recs.push(new Record(resp.records[i]));
         }
       }
-      // need to check for next url and make recursive call
+      if(resp.nextRecordsUrl) {
+        queryNext(resp.nextRecordsUrl);
+      } else {
+        stream.end();
+      }
     });
   }
   
-  if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/query';
   var opts = { uri: uri, method: 'GET', qs: { q: query } }
   apiRequest(opts, oauth, function(err, resp){
     if(!err) {
       if(resp.records && resp.records.length > 0) {
+        stream.write(JSON.stringify(resp));
         for(var i=0; i<resp.records.length; i++) {
           recs.push(new Record(resp.records[i]));
         }
         resp.records = recs;
       }
-      
-      if(resp.nextRecordsUrl && opts.queryAll) {
-        queryNext(resp.nextRecordsUrl, oauth);
+      if(resp.nextRecordsUrl && stream.isStreaming()) {
+        console.log('not streaming');
+        queryNext(resp.nextRecordsUrl);
       } else {
+        console.log('not streaming');
         callback(err, resp);
+        stream.end();
       }
     } else {
+      stream.end();
       callback(err, resp);
     }
     
   });
+  return stream;
 }
 
 Connection.prototype.search = function(search, oauth, callback) {
