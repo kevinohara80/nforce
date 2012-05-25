@@ -263,6 +263,7 @@ Get a REST API resource by its url. `url` should be a REST API resource.
 ## Todo
 
 * Query paging and streaming
+* **nforce** cli implementation
 * Streaming API support
 * Blob data support
 * User password management
