@@ -151,7 +151,7 @@ app.configure(function(){
 The Salesforce query call in the REST API returns a 2000 record chunk at one time. The example below shows a normal query returning 2000 records only.
 
 ```js
-// dataset of 50k records. Stream these to a writable stream.
+// dataset of 50k records.
 var query = 'SELECT Name, CreatedDate FROM Account ORDER BY CreatedDate DESC';
 org.query(query, req.session.oauth, callback(err, resp) {
   if(!err) console.log(resp.records.length) // this will be 2000 max
@@ -161,7 +161,7 @@ org.query(query, req.session.oauth, callback(err, resp) {
 The **nforce** query method returns a node stream. By calling the `pipe` method on this object, your query call will automatically start streaming ALL of the records from your query in 2000 record batches.
 
 ```js
-// dataset of 50k records. Stream these to a writable stream.
+// dataset of 50k records.
 var query = 'SELECT Name, CreatedDate FROM Account ORDER BY CreatedDate DESC';
 org.query(query, req.session.oauth).pipe(res); // streaming all 50k records
 ``` 
