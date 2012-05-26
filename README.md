@@ -282,7 +282,6 @@ Get a REST API resource by its url. `url` should be a REST API resource.
 
 ## Todo
 
-* Query paging and streaming
 * **nforce** cli implementation
 * Streaming API support
 * Blob data support
@@ -292,6 +291,7 @@ Get a REST API resource by its url. `url` should be a REST API resource.
 
 ## Changelog
 
+* `v0.0.6`: Query streaming
 * `v0.0.5`: Bug fixes
 * `v0.0.4`: Initialization of SObject now has field setting option
 * `v0.0.3`: API overhaul. Implemented Record class with field update caching
