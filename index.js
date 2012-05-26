@@ -322,14 +322,10 @@ Connection.prototype.query = function(query, oauth, callback) {
   if(!validateOAuth(oauth)) callback(new Error('Invalid oauth object argument'), null);
   
   var queryNext = function(url) {
-    console.log('streaming next records url');
     self.getUrl(url, oauth, function(err, resp) {
       if(err) return callback(err, resp);
       if(resp.records && resp.records.length > 0) {
         stream.write(JSON.stringify(resp));
-        for(var i=0; i<resp.records.length; i++) {
-          recs.push(new Record(resp.records[i]));
-        }
       }
       if(resp.nextRecordsUrl) {
         queryNext(resp.nextRecordsUrl);
