@@ -148,7 +148,7 @@ app.configure(function(){
 
 ### Query Streaming API
 
-The Salesforce query call in the REST API returns a 2000 record chunk at one time. 
+The Salesforce query call in the REST API returns a 2000 record chunk at one time. The example below shows a normal query returning 2000 records only.
 
 ```js
 // dataset of 50k records. Stream these to a writable stream.
@@ -158,14 +158,12 @@ org.query(query, req.session.oauth, callback(err, resp) {
 });
 ```
 
-For large queries, you must make subsequent calls to the API to get the rest of the records. 
-
-The **nforce** query method returns a node.js stream. By calling the `pipe` method on this object, your query call will automatically start streaming ALL of the records in 2000 record batches.
+The **nforce** query method returns a node stream. By calling the `pipe` method on this object, your query call will automatically start streaming ALL of the records from your query in 2000 record batches.
 
 ```js
 // dataset of 50k records. Stream these to a writable stream.
 var query = 'SELECT Name, CreatedDate FROM Account ORDER BY CreatedDate DESC';
-org.query(query, req.session.oauth).pipe(res);
+org.query(query, req.session.oauth).pipe(res); // streaming all 50k records
 ``` 
 
 ## nforce API
@@ -270,7 +268,7 @@ Delete a record. `sobject`: (Object) A Salesforce sObject
 
 Get a single record. `sobject`: (Object) A Salesforce sObject
 
-### query(query, oauth, callback)
+### query(query, oauth, [callback])
 
 Execute a SOQL query for records. `query` should be a SOQL string. Large queries can be streamed using the `pipe()` method.
 
