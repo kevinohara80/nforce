@@ -272,7 +272,7 @@ Get a single record. `sobject`: (Object) A Salesforce sObject
 
 ### query(query, oauth, callback)
 
-Execute a SOQL query for records. `query` should be a SOQL string.
+Execute a SOQL query for records. `query` should be a SOQL string. Large queries can be streamed using the `pipe()` method.
 
 ### search(search, oauth, callback)
 
