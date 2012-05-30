@@ -134,11 +134,14 @@ Connection.prototype.authenticate = function(opts, callback) {
   }
   
   request(reqOpts, function(err, res, body){
-    if(body) body = JSON.parse(body);
     if(!err && res.statusCode == 200) {
+      if(body) body = JSON.parse(body);
       callback(null, body);
     } else if(!err) {
-      if(body) err = new Error(body.error + ': ' + body.error_description);
+      if(body) body = JSON.parse(body);
+      err = new Error(body[0].message);
+      err.errorCode = body[0].errorCode;
+      err.statusCode = res.statusCode;
       callback(err, null);
     } else {
       callback(err, null);
@@ -148,8 +151,47 @@ Connection.prototype.authenticate = function(opts, callback) {
 }
 
 
-Connection.prototype.refreshToken = function(opts, callback) {
-
+Connection.prototype.refreshToken = function(oauth, callback) {
+  
+  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!oauth.refresh_token) return callback(new Error('You must supply a refresh token'));
+  
+  var self = this;
+  
+  var bodyOpts = {
+    'client_id': self.clientId,
+    'client_secret': self.clientSecret,
+    'grant_type': 'refresh_token',
+    'redirect_uri': self.redirectUri,
+    'refresh_token': oauth.refresh_token
+  }
+  
+  var uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
+  
+  var reqOpts = {
+    uri: uri,
+    method: 'POST',
+    body: qs.stringify(bodyOpts),
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  }
+  
+  request(reqOpts, function(err, res, body){
+    if(!err && res.statusCode == 200) {
+      if(body) body = JSON.parse(body);
+      callback(null, body);
+    } else if(!err) {
+      if(body) body = JSON.parse(body);
+      err = new Error(body[0].message);
+      err.errorCode = body[0].errorCode;
+      err.statusCode = res.statusCode;
+      callback(err, null);
+    } else {
+      callback(err, null);
+    }
+  });
+  
 }
 
 // api methods
