@@ -291,6 +291,7 @@ Get a REST API resource by its url. `url` should be a REST API resource.
 
 ## Changelog
 
+* `v0.1.1`: Fixes auth error handling bug
 * `v0.1.0`: Releasing 0.1.0!
 * `v0.0.7`: Bug fixes
 * `v0.0.6`: Query streaming
