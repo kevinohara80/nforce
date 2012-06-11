@@ -139,8 +139,7 @@ Connection.prototype.authenticate = function(opts, callback) {
       callback(null, body);
     } else if(!err) {
       if(body) body = JSON.parse(body);
-      err = new Error(body[0].message);
-      err.errorCode = body[0].errorCode;
+      err = new Error(body.error + ' - ' + body.error_description);
       err.statusCode = res.statusCode;
       callback(err, null);
     } else {
@@ -183,8 +182,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
       callback(null, body);
     } else if(!err) {
       if(body) body = JSON.parse(body);
-      err = new Error(body[0].message);
-      err.errorCode = body[0].errorCode;
+      err = new Error(body.error + ' - ' + body.error_description);
       err.statusCode = res.statusCode;
       callback(err, null);
     } else {
