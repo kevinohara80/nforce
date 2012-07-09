@@ -248,11 +248,11 @@ Connection.prototype.getMetadata = function(data, oauth, callback) {
 }
 
 Connection.prototype.getDescribe = function(data, oauth, callback) {
-  if(typeof data.type !== 'string') {
+  if(typeof data !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data.type + '/describe';
+  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data + '/describe';
   var opts = { uri: uri, method: 'GET' }
   apiRequest(opts, oauth, callback);
 }
