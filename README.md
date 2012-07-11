@@ -291,8 +291,8 @@ Get a REST API resource by its url. `url` should be a REST API resource.
 
 ## Contributors
 
-* Kevin O'Hara [kevinohara80](https://github.com/kevinohara80)
-* Jeff Douglas [jeffdonthemic](https://github.com/jeffdonthemic)
+* Kevin O'Hara -> [kevinohara80](https://github.com/kevinohara80)
+* Jeff Douglas -> [jeffdonthemic](https://github.com/jeffdonthemic)
 
 ## Changelog
 
