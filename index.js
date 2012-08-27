@@ -1,19 +1,19 @@
 // module dependencies
 
-var request = require('request');
-var qs = require('querystring');
-var url = require('url');
-var Record = require('./lib/record');
+var request     = require('request');
+var qs          = require('querystring');
+var url         = require('url');
+var Record      = require('./lib/record');
 var QueryStream = require('./lib/querystream');
-var faye = require('faye');
+var faye        = require('faye');
 
 // constants
 
-var AUTH_ENDPOINT = 'https://login.salesforce.com/services/oauth2/authorize';
+var AUTH_ENDPOINT      = 'https://login.salesforce.com/services/oauth2/authorize';
 var TEST_AUTH_ENDPOINT = 'https://test.salesforce.com/services/oauth2/authorize';
-var LOGIN_URI = 'https://login.salesforce.com/services/oauth2/token';
-var TEST_LOGIN_URI = 'https://test.salesforce.com/services/oauth2/token';
-var API_VERSIONS = ['v20.0', 'v21.0', 'v22.0', 'v23.0', 'v24.0', 'v25.0'];
+var LOGIN_URI          = 'https://login.salesforce.com/services/oauth2/token';
+var TEST_LOGIN_URI     = 'https://test.salesforce.com/services/oauth2/token';
+var API_VERSIONS       = ['v20.0', 'v21.0', 'v22.0', 'v23.0', 'v24.0', 'v25.0'];
 
 // nforce connection object
 
