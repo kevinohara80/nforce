@@ -280,9 +280,13 @@ Execute a SOSL search for records. `search` should be a SOSL string.
 
 Get a REST API resource by its url. `url` should be a REST API resource.
 
-### stream(pushtopic, oauth, callback)
+### stream(pushtopic, oauth)
 
-Start a streaming connection. Callback gets called on new stream events.
+Start a streaming connection. An EventEmitter is returned with the following events:
+
+* `connect`: subscribed to the topic
+* `data`: got a streaming event
+* `error`: there was a problem with the subscription
 
 ## Todo
 
