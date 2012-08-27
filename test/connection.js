@@ -63,13 +63,13 @@ describe('index', function(){
       }).should.not.throw();
     });
   
-    it('should throw for apiVersion 25', function(){
+    it('should throw for apiVersion 45', function(){
       (function() {
         var org = nforce.createConnection({
           clientId: 'ADFJSD234ADF765SFG55FD54S',
           clientSecret: 'ADFJSD234ADF765SFG55FD54S',
           redirectUri: 'http://localhost:3000/oauth/_callback',
-          apiVersion: 25.0
+          apiVersion: 45.0
         });
       }).should.throw();
     });
