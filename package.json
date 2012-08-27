@@ -3,14 +3,21 @@
   "name": "nforce",
   "description": "nforce is a REST API wrapper for force.com, database.com, and salesforce.com",
   "version": "0.1.1",
-  "keywords": ["salesforce", "force.com", "database.com", "sfdc", "forcedotcom"],
+  "keywords": [
+    "salesforce",
+    "force.com",
+    "database.com",
+    "sfdc",
+    "forcedotcom"
+  ],
   "repository": {
     "type": "git",
     "url": "git://github.com/kevinohara80/nforce.git"
   },
   "main": "index.js",
   "dependencies": {
-    "request": "*"
+    "request": "*",
+    "faye": "~0.8.3"
   },
   "devDependencies": {
     "mocha": "*",
