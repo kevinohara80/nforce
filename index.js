@@ -5,6 +5,7 @@ var qs          = require('querystring');
 var url         = require('url');
 var Record      = require('./lib/record');
 var QueryStream = require('./lib/querystream');
+var FDCStream   = require('./lib/fdcstream');
 var faye        = require('faye');
 
 // constants
@@ -439,12 +440,21 @@ Connection.prototype.getUrl = function(url, oauth, callback) {
 
 // streaming methods
 
-Connection.prototype.stream = function(data, oauth, callback) {
+Connection.prototype.stream = function(data, oauth) {
+  var str = new FDCStream();
   var endpoint = oauth.instance_url + '/cometd/' + this.apiVersion.substring(1);
-  console.log(endpoint);
   var client = new faye.Client(endpoint, {});
   client.setHeader('Authorization', 'OAuth ' + oauth.access_token);
-  client.subscribe('/topic/' + data, callback);
+  var sub = client.subscribe('/topic/' + data, function(data){
+    str.write(data);
+  });
+  sub.callback(function(){
+    str.emit('connect');
+  });
+  sub.errback(function(error) {
+    str.emit('error', error);
+  });
+  return str;
 }
 
 // express middleware
@@ -543,4 +553,4 @@ module.exports.createSObject = function(type, fields) {
   return rec;
 }
 
-module.exports.version = '0.2.0-alpha';
+module.exports.version = '0.2.0';
