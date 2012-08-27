@@ -8,6 +8,24 @@ var org = nforce.createConnection({
   apiVersion: 'v25.0'
 });
 
-org.stream('TestStream', req.session.oauth, function(resp) {
-  console.log(resp);
+
+org.authenticate({ username: process.env.SF_UN, password: process.env.SF_PW}, function(err, oauth){
+  
+  if(err) return console.log(err);
+
+  var str = org.stream('AllAccounts', oauth);
+
+  str.on('connect', function(){
+    console.log('connected to pushtopic');
+  });
+
+  str.on('error', function(error) {
+    console.log('error: ' + error);
+  });
+
+  str.on('data', function(data) {
+    console.log(data);
+  });
+
 });
+
