@@ -553,4 +553,4 @@ module.exports.createSObject = function(type, fields) {
   return rec;
 }
 
-module.exports.version = '0.2.0-alpha';
+module.exports.version = '0.2.0';
