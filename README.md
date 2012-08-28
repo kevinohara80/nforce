@@ -128,6 +128,8 @@ At the end of a successful authorization, you a returned an OAuth object for the
 
 Why is this not automatically stored as a global variable? This is because you can have multiple users accessing your application and each user will have their own OAuth credentials from Salesforce. In this scenario, it makes the most sense to store these credentials in the users session or in some other data store. If you are using [express](https://github.com/visionmedia/express), **nforce** can take care of storing this for you (see below).
 
+## Other Features
+
 ### Express Middleware
 
 **nforce** has built-in support for [express](https://github.com/visionmedia/express) using the express/connect middleware system. The middleware handles the oauth callbacks for you. To use the middleware you must have sessions enabled in your express configuration.
@@ -146,7 +148,7 @@ app.configure(function(){
 });
 ```
 
-### Query Streaming API
+### Query Streaming
 
 The Salesforce query call in the REST API returns a 2000 record chunk at one time. The example below shows a normal query returning 2000 records only.
 
@@ -165,6 +167,33 @@ The **nforce** query method returns a node stream. By calling the `pipe` method 
 var query = 'SELECT Name, CreatedDate FROM Account ORDER BY CreatedDate DESC';
 org.query(query, req.session.oauth).pipe(res); // streaming all 50k records
 ``` 
+
+### Force.com Streaming API Support
+
+**nforce** supports the Force.com Streaming API. Connecting to one of your PushTopics is easy using the EventEmitter interface.
+
+```js
+org.authenticate({ username: user, password: pass }, function(err, oauth) {
+  
+  if(err) return console.log(err);
+
+  // subscribe to a pushtopic
+  var str = org.stream('AllAccounts', oauth);
+
+  str.on('connect', function(){
+    console.log('connected to pushtopic');
+  });
+
+  str.on('error', function(error) {
+    console.log('error: ' + error);
+  });
+
+  str.on('data', function(data) {
+    console.log(data);
+  });
+
+});
+```
 
 ## nforce API
 
