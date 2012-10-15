@@ -333,6 +333,7 @@ Start a streaming connection. An EventEmitter is returned with the following eve
 
 ## Changelog
 
+* `v0.2.1`: API version bump
 * `v0.2.0`: Adding streaming support
 * `v0.1.1`: Fixes auth error handling bug
 * `v0.1.0`: Releasing 0.1.0!
