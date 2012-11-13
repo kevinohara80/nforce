@@ -34,7 +34,13 @@ var Connection = function(opts) {
     throw new Error('Invalid or missing redirectUri');
   } else {
     this.redirectUri = opts.redirectUri;
-  }  
+  } 
+  // Allow custom login and test uris to be passed in
+  // Addresses issue #5
+  // @zachelrath 11/13/12
+  opts.loginUri && (LOGIN_URI = opts.loginUri);
+  opts.testLoginUri && (TEST_LOGIN_URI = opts.testLoginUri);
+
   if(typeof opts.cacheMetadata !== 'undefined') {
     if(typeof opts.cacheMetadata !== 'boolean') throw new Error('cacheMetadata must be a boolean');
     this.cacheMetadata = opts.cacheMetadata;
