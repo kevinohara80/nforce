@@ -214,6 +214,8 @@ The createConnection method creates an *nforce* connection object. You need to s
 * `redirectUri`: Required. This is the redirect URI for OAuth callbacks
 * `apiVersion`: Optional. This is a number or string representing a valid REST API version. Default is v24.0.
 * `environment`: Optional. Values can be 'production' or 'sandbox'. Default is production.
+* `loginUri`: Optional. Used to override the login URI if needed.
+* `testLoginUri`: Optional. Used to override the testLoginUri if needed.
 
 ### createSObject(type, [fieldValues])
 
@@ -330,9 +332,11 @@ Start a streaming connection. An EventEmitter is returned with the following eve
 
 * Kevin O'Hara -> [kevinohara80](https://github.com/kevinohara80)
 * Jeff Douglas -> [jeffdonthemic](https://github.com/jeffdonthemic)
+* Zach McElrath -> [zachelrath](https://github.com/zachelrath)
 
 ## Changelog
 
+* `v0.2.2`: Added loginUri override support
 * `v0.2.1`: API version bump
 * `v0.2.0`: Adding streaming support
 * `v0.1.1`: Fixes auth error handling bug
