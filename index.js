@@ -549,7 +549,7 @@ Connection.prototype.apexRest = function(restRequest, oauth, callback) {
   }
   if(typeof restRequest.method === 'string' ) {
     var method = restRequest.method;
-    if(method !=='GET' && method !=='POST' && method !=='PATCH' && method !='=PUT')
+    if(method !=='GET' && method !=='POST' && method !=='PATCH' && method !=='PUT')
     return callback(new Error('Only GET, POST, PATCH, & PUT are supported, you specified: '+ method), null);
   }
   //default to GET
