@@ -554,7 +554,7 @@ Connection.prototype.apexRest = function(restRequest, oauth, callback) {
   }
   //default to GET
   if(restRequest.method==null || typeof restRequest.method !== 'string'){
-    restRequest.method = 'GET'
+    restRequest.method = 'GET';
   }
   var uri = oauth.instance_url + '/services/apexrest/' + restRequest.uri;
   var opts = { uri: uri, method: restRequest.method}
