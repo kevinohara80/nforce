@@ -538,6 +538,42 @@ var apiRequest = function(opts, oauth, callback) {
   });
   
 }
+//apex rest
+Connection.prototype.apexRest = function(restRequest, oauth, callback) {
+  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(typeof restRequest !== 'object') {
+    return callback(new Error('You must specify a restRequest object'), null);
+  }
+  if(typeof restRequest.uri !== 'string') {
+    return callback(new Error('You must specify a url with the type string'), null);
+  }
+  if(typeof restRequest.method === 'string' ) {
+    var method = restRequest.method;
+    if(method !=='GET' && method !=='POST' && method !=='PATCH' && method !='=PUT')
+    return callback(new Error('Only GET, POST, PATCH, & PUT are supported, you specified: '+ method), null);
+  }
+  //default to GET
+  if(restRequest.method==null || typeof restRequest.method !== 'string'){
+    restRequest.method = 'GET'
+  }
+  var uri = oauth.instance_url + '/services/apexrest/' + restRequest.uri;
+  var opts = { uri: uri, method: restRequest.method}
+  if(restRequest.body!==null) {
+    opts.body = JSON.stringify(restRequest.body);
+  }
+  if(restRequest.urlParams!==null) {
+    if(!Array.isArray(restRequest.urlParams)) {
+      return callback(new Error('URL parmams must be an array in form of [{key:\'key\', value:\'value\'}]'), null);
+    }
+    var params = '?';
+    for(i = 0; i<restRequest.urlParams.length; i++){
+      if(i>0) params+='&'
+      params+=restRequest.urlParams[i].key+'='+restRequest.urlParams[i].value;
+    }
+    opts.uri+=params;
+  }
+  apiRequest(opts, oauth, callback);
+}
 
 // exports
 
@@ -559,4 +595,4 @@ module.exports.createSObject = function(type, fields) {
   return rec;
 }
 
-module.exports.version = '0.2.1';
+module.exports.version = '0.2.2';
