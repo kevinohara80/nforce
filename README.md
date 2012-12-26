@@ -319,6 +319,29 @@ Start a streaming connection. An EventEmitter is returned with the following eve
 * `data`: got a streaming event
 * `error`: there was a problem with the subscription
 
+### apexRest(restRequest, oauth, callback)
+
+This method handles integration with salesforce ApexRest (Custom Rest endpoints)
+http://wiki.developerforce.com/page/Creating_REST_APIs_using_Apex_REST
+
+A restRequest has the following properties
+
+* `uri`: (String) REQUIRED - The endpoint you wrote (everything after services/apexrest/..)
+* `method`: (String) Optional - defaults to GET if not supplied
+* `body`: (Object || String) Optional - What you would like placed in the body of your request
+* `urlParams`: (Array) Optional - URL parmams in an array of [{key:'key', value:'value'}]
+```js
+org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req.session.oauth, function(err,resp){
+    if(!err) {
+      console.log(resp);
+      res.send(resp);
+    }else{
+      console.log(err);
+      res.send(err);
+    }
+  })
+```
+
 ## Todo
 
 * **nforce** cli implementation
@@ -333,6 +356,7 @@ Start a streaming connection. An EventEmitter is returned with the following eve
 * Kevin O'Hara -> [kevinohara80](https://github.com/kevinohara80)
 * Jeff Douglas -> [jeffdonthemic](https://github.com/jeffdonthemic)
 * Zach McElrath -> [zachelrath](https://github.com/zachelrath)
+* Chris Bland -> [chrisbland](https://github.com/chrisbland)
 
 ## Changelog
 
