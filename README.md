@@ -330,6 +330,7 @@ A restRequest has the following properties
 * `method`: (String) Optional - defaults to GET if not supplied
 * `body`: (Object || String) Optional - What you would like placed in the body of your request
 * `urlParams`: (Array) Optional - URL parmams in an array of [{key:'key', value:'value'}]
+
 ```js
 org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req.session.oauth, function(err,resp){
     if(!err) {
