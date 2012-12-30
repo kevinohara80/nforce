@@ -346,7 +346,6 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 ## Todo
 
 * **nforce** cli implementation
-* Streaming API support
 * Blob data support
 * User password management
 * Continue with caching capabilities for describe/metadata calls
@@ -361,6 +360,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 
 ## Changelog
 
+* `v0.2.3`: Apex Rest support
 * `v0.2.2`: Added loginUri override support
 * `v0.2.1`: API version bump
 * `v0.2.0`: Adding streaming support
