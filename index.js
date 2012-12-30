@@ -595,4 +595,4 @@ module.exports.createSObject = function(type, fields) {
   return rec;
 }
 
-module.exports.version = '0.2.2';
+module.exports.version = require('./package.json').version;
