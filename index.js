@@ -395,10 +395,8 @@ Connection.prototype.query = function(query, oauth, callback) {
         resp.records = recs;
       }
       if(resp.nextRecordsUrl && stream.isStreaming()) {
-        console.log('not streaming');
         queryNext(resp.nextRecordsUrl);
       } else {
-        console.log('not streaming');
         callback(err, resp);
         stream.end();
       }
