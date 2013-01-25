@@ -360,6 +360,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 
 ## Changelog
 
+* `v0.2.4`: Small bug fixes
 * `v0.2.3`: Apex Rest support
 * `v0.2.2`: Added loginUri override support
 * `v0.2.1`: API version bump
