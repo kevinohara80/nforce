@@ -531,6 +531,7 @@ var apiRequest = function(opts, oauth, callback) {
       err = new Error(body[0].message);
       err.errorCode = body[0].errorCode;
       err.statusCode = res.statusCode;
+      err.messageBody = body[0].message;
       callback(err, null);
     } else {
       callback(err, null);
