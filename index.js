@@ -34,7 +34,7 @@ var Connection = function(opts) {
     throw new Error('Invalid or missing redirectUri');
   } else {
     this.redirectUri = opts.redirectUri;
-  } 
+  }
   // Allow custom login and test uris to be passed in
   // Addresses issue #5
   // @zachelrath 11/13/12
@@ -104,15 +104,15 @@ Connection.prototype.getAuthUri = function() {
 }
 
 Connection.prototype.authenticate = function(opts, callback) {
-  
+
   var self = this;
   if(!opts) opts = {};
-  
+
   var bodyOpts = {
     'client_id': self.clientId,
     'client_secret': self.clientSecret,
   }
-  
+
   if(opts.code) {
     bodyOpts['grant_type'] = 'authorization_code';
     bodyOpts['code'] = opts.code;
@@ -129,9 +129,9 @@ Connection.prototype.authenticate = function(opts, callback) {
     callback(err, null);
     return;
   }
-  
+
   var uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
-  
+
   var reqOpts = {
     uri: uri,
     method: 'POST',
@@ -140,7 +140,7 @@ Connection.prototype.authenticate = function(opts, callback) {
       'Content-Type': 'application/x-www-form-urlencoded'
     }
   }
-  
+
   request(reqOpts, function(err, res, body){
     if(!err && res.statusCode == 200) {
       if(body) body = JSON.parse(body);
@@ -154,17 +154,17 @@ Connection.prototype.authenticate = function(opts, callback) {
       callback(err, null);
     }
   });
-  
+
 }
 
 
 Connection.prototype.refreshToken = function(oauth, callback) {
-  
+
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   if(!oauth.refresh_token) return callback(new Error('You must supply a refresh token'));
-  
+
   var self = this;
-  
+
   var bodyOpts = {
     'client_id': self.clientId,
     'client_secret': self.clientSecret,
@@ -172,9 +172,9 @@ Connection.prototype.refreshToken = function(oauth, callback) {
     'redirect_uri': self.redirectUri,
     'refresh_token': oauth.refresh_token
   }
-  
+
   var uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
-  
+
   var reqOpts = {
     uri: uri,
     method: 'POST',
@@ -183,7 +183,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
       'Content-Type': 'application/x-www-form-urlencoded'
     }
   }
-  
+
   request(reqOpts, function(err, res, body){
     if(!err && res.statusCode == 200) {
       if(body) body = JSON.parse(body);
@@ -197,7 +197,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
       callback(err, null);
     }
   });
-  
+
 }
 
 // api methods
@@ -289,7 +289,7 @@ Connection.prototype.update = function(data, oauth, callback) {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion 
+  var uri = oauth.instance_url + '/services/data/' + this.apiVersion
     + '/sobjects/' + data.attributes.type + '/' + data.getId();
   var opts = { uri: uri, method: 'PATCH', body: JSON.stringify(data.getFieldValues()) }
   apiRequest(opts, oauth, callback);
@@ -299,14 +299,14 @@ Connection.prototype.upsert = function(data, oauth, callback) {
   if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
-  if(!data.attributes.externalId || !data.attributes.externalIdField) { 
+  if(!data.attributes.externalId || !data.attributes.externalIdField) {
     return callback(new Error('Invalid external id or external id field'));
   }
   if(typeof data.fieldValues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' 
+  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + data.attributes.type + '/' + data.attributes.externalIdField + '/' + data.attributes.externalId;
   var opts = { uri: uri, method: 'PATCH', body: JSON.stringify(data.getFieldValues()) }
   apiRequest(opts, oauth, callback);
@@ -320,7 +320,7 @@ Connection.prototype.delete = function(data, oauth, callback) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' 
+  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + data.attributes.type + '/' + data.getId();
   var opts = { uri: uri, method: 'DELETE'}
   apiRequest(opts, oauth, callback);
@@ -334,7 +334,7 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' 
+  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + data.attributes.type + '/' + data.getId();
   if(data.fields) {
     var query = {}
@@ -358,17 +358,17 @@ Connection.prototype.query = function(query, oauth, callback) {
 
   var self = this;
   var recs = [];
-  
+
   var stream = new QueryStream();
-  
+
   if(typeof query !== 'string') {
     return callback(new Error('You must specify a query'));
   }
-  
-  if(!callback || typeof callback !== 'function') callback = function(){} 
-  
+
+  if(!callback || typeof callback !== 'function') callback = function(){}
+
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  
+
   var queryNext = function(url) {
     self.getUrl(url, oauth, function(err, resp) {
       if(err) return callback(err, resp);
@@ -382,7 +382,7 @@ Connection.prototype.query = function(query, oauth, callback) {
       }
     });
   }
-  
+
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/query';
   var opts = { uri: uri, method: 'GET', qs: { q: query } }
   apiRequest(opts, oauth, function(err, resp){
@@ -404,7 +404,7 @@ Connection.prototype.query = function(query, oauth, callback) {
       stream.end();
       callback(err, resp);
     }
-    
+
   });
   return stream;
 }
@@ -474,7 +474,7 @@ Connection.prototype.expressOAuth = function(opts) {
     opts.onError = '/' + opts.onError;
   }
   return function(req, res, next) {
-    
+
     if(req.session && req.query.code) {
       var url = req.url.replace(/\?.*/i, '').replace(/\/$/, '');
       if(matchUrl.pathname == url) {
@@ -497,7 +497,7 @@ Connection.prototype.expressOAuth = function(opts) {
             }
           }
         });
-      } 
+      }
     } else {
       next();
     }
@@ -529,12 +529,13 @@ var apiRequest = function(opts, oauth, callback) {
       err = new Error(body[0].message);
       err.errorCode = body[0].errorCode;
       err.statusCode = res.statusCode;
+      err.messageBody = body[0].message;
       callback(err, null);
     } else {
       callback(err, null);
     }
   });
-  
+
 }
 //apex rest
 Connection.prototype.apexRest = function(restRequest, oauth, callback) {
@@ -556,10 +557,10 @@ Connection.prototype.apexRest = function(restRequest, oauth, callback) {
   }
   var uri = oauth.instance_url + '/services/apexrest/' + restRequest.uri;
   var opts = { uri: uri, method: restRequest.method}
-  if(restRequest.body!==null) {
+  if(restRequest.body!=null) {
     opts.body = JSON.stringify(restRequest.body);
   }
-  if(restRequest.urlParams!==null) {
+  if(restRequest.urlParams!=null) {
     if(!Array.isArray(restRequest.urlParams)) {
       return callback(new Error('URL parmams must be an array in form of [{key:\'key\', value:\'value\'}]'), null);
     }
