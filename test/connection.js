@@ -143,6 +143,16 @@ describe('index', function(){
       obj.getFieldValues().should.have.property('Name', 'Test Me');
       obj.getFieldValues().should.have.property('Custom_Field__c', 'Blah');
     });
+
+    it('should allow instantiation with id', function() {
+      var obj = nforce.createSObject('Test_Object__c', {
+        Name: 'Test Me',
+        Custom_Field__c: 'Blah',
+        Id: 'asalesforceid'
+      });
+      obj.should.have.property('Id');
+      obj.Id.should.equal('asalesforceid');
+    })
     
   });
 
