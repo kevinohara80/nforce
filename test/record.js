@@ -56,7 +56,7 @@ describe('lib/record', function(){
       var myRecord = new Record(accountRec);
       myRecord.Fax = '248-443-3456';
       myRecord.Fax.should.equal('248-443-3456');
-      myRecord.fieldValues.Fax.should.equal('248-443-3456');
+      myRecord.getFieldValues().Fax.should.equal('248-443-3456');
     });
   
     it('should allow me to set properties multiple times', function() {
@@ -65,18 +65,40 @@ describe('lib/record', function(){
       myRecord.Fax = '248-443-3457';
       myRecord.Fax = '248-443-3458';
       myRecord.Fax.should.equal('248-443-3458');
-      myRecord.fieldValues.Fax.should.equal('248-443-3458');
+      myRecord.getFieldValues().Fax.should.equal('248-443-3458');
+    });
+
+    it('should not drop the Id', function() {
+      var myRecord = new Record(accountRec);
+      myRecord.Id.should.exist;
+      myRecord.Id.should.equal('001Q000000RpQagIAF');
+      myRecord.getId().should.equal('001Q000000RpQagIAF');
     });
   
   });
 
   describe('#getFieldValues', function() {
+
+    it('should have a getFieldValues method', function() {
+      var myRecord = new Record(accountRec);
+      myRecord.getFieldValues.should.exist;
+    });
   
     it('should return existing and custom set properties', function() {
       var myRecord = new Record(accountRec);
       myRecord.Fax = '248-443-3456';
       myRecord.Custom_Field__c = 'This is something';
       myRecord.getFieldValues().should.have.keys('Fax', 'Custom_Field__c');
+    });
+
+    it('should return the right number of properties', function() {
+      var myRecord = new Record(accountRec);
+      myRecord.Fax = '248-443-3456';
+      myRecord.Custom_Field__c = 'This is something';
+      //myRecord.getFieldValues().length.should.equal(2);
+      should.equal(Object.keys(myRecord.getFieldValues()).length, 2);
+      myRecord.Phone = '2488843403';
+      should.equal(Object.keys(myRecord.getFieldValues()).length, 3);
     });
     
     it('should not contain the Id', function() {
