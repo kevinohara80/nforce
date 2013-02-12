@@ -115,7 +115,6 @@ describe('index', function(){
       var acc = nforce.createSObject('Account');
       acc.should.be.a('object');
       acc.should.have.property('attributes');
-      acc.should.have.property('fieldValues');
       acc.attributes.type.should.equal('Account');
     });
     
@@ -123,7 +122,6 @@ describe('index', function(){
       var obj = nforce.createSObject('Test_Object__c');
       obj.should.be.a('object');
       obj.should.have.property('attributes');
-      obj.should.have.property('fieldValues');
       obj.attributes.type.should.equal('Test_Object__c');
     });
     
@@ -134,7 +132,6 @@ describe('index', function(){
       });
       obj.should.be.a('object');
       obj.should.have.property('attributes');
-      obj.should.have.property('fieldValues');
       obj.attributes.type.should.equal('Test_Object__c');
       obj.should.have.property('Name');
       obj.Name.should.equal('Test Me');
@@ -152,7 +149,7 @@ describe('index', function(){
       });
       obj.should.have.property('Id');
       obj.Id.should.equal('asalesforceid');
-    })
+    });
     
   });
 
