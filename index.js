@@ -537,7 +537,9 @@ var apiRequest = function(opts, oauth, callback) {
   });
 
 }
-//apex rest
+
+//  apex rest
+
 Connection.prototype.apexRest = function(restRequest, oauth, callback) {
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   if(typeof restRequest !== 'object') {
