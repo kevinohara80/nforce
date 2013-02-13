@@ -73,7 +73,7 @@ var Connection = function(opts) {
       this.apiVersion = opts.apiVersion;
     }
   } else {
-    this.apiVersion = 'v24.0';
+    this.apiVersion = API_VERSIONS[API_VERSIONS.length - 1];
   }
   if(opts.environment) {
     if(opts.environment.toLowerCase() == 'sandbox' || opts.environment.toLowerCase() == 'production') {
