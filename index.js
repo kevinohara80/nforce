@@ -354,6 +354,11 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
   });
 }
 
+Connection.prototype.getBlob = function(data, oauth, callback) {
+  // data.type and data.Id should be present
+  
+}
+
 Connection.prototype.query = function(query, oauth, callback) {
 
   var self = this;
