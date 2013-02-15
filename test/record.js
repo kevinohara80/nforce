@@ -74,6 +74,13 @@ describe('lib/record', function(){
       myRecord.Id.should.equal('001Q000000RpQagIAF');
       myRecord.getId().should.equal('001Q000000RpQagIAF');
     });
+
+    it('should retain the attributes', function() {
+      var myRecord = new Record(accountRec);
+      myRecord.attributes.should.exist;
+      myRecord.attributes.type.should.equal('Account');
+      myRecord.attributes.url.should.equal('/services/data/v24.0/sobjects/Account/001Q000000RpQagIAF');
+    });
   
   });
 
@@ -106,7 +113,12 @@ describe('lib/record', function(){
       myRecord.Fax = '248-443-3456';
       myRecord.Custom_Field__c = 'This is something';
       myRecord.Id = '001Q000000RpQagIAD';
-      myRecord.getFieldValues().should.not.have.keys('Id');
+      myRecord.getFieldValues().should.not.have.keys('Id', 'id', 'ID', 'iD');
+    });
+
+    it('should not contain attributes', function() {
+      var myRecord = new Record(accountRec);
+      myRecord.getFieldValues().should.not.have.keys('attributes');
     });
   
   });
