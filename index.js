@@ -282,7 +282,8 @@ Connection.prototype.update = function(data, oauth, callback) {
   if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
-  if(!data.getId()) {
+  var id = findId(data);
+  if(!id) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   if(typeof data.fieldValues !== 'object') {
@@ -316,7 +317,8 @@ Connection.prototype.delete = function(data, oauth, callback) {
   if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
-  if(!data.getId()) {
+  var id = findId(data);
+  if(!id) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
@@ -330,12 +332,13 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
   if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
-  if(!data.getId()) {
+  var id = findId(data);
+  if(!id) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
-    + data.attributes.type + '/' + data.getId();
+    + data.attributes.type + '/' + id;
   if(data.fields) {
     var query = {}
     if(typeof data.fields === 'string') {
@@ -354,9 +357,34 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
   });
 }
 
-Connection.prototype.getBlob = function(data, oauth, callback) {
-  // data.type and data.Id should be present
-  
+// blob methods
+
+Connection.prototype.getAttachmentBody = function(id, oauth, callback) {
+  if(!callback) callback = function(){};
+  if(typeof id === 'object') id = findId(id);
+  if(!id) {
+    return callback(new Error('You must specify an id in the form of a string'));
+  }
+  var uri = oauth.instance_url + '/services/data' + this.apiVersion 
+    + '/sobjects/Attachment/' + id + '/body'
+  var opts = { uri: uri, method: 'GET' }
+  return apiBlobRequest(opts, oauth, function(err, resp) {
+    callback(err, resp);
+  });
+}
+
+Connection.prototype.getDocumentBody = function(id, oauth, callback) {
+  if(!callback) callback = function(){};
+  if(typeof id === 'object') id = findId(id);
+  if(!id) {
+    return callback(new Error('You must specify an id in the form of a string'));
+  }
+  var uri = oauth.instance_url + '/services/data' + this.apiVersion 
+    + '/sobjects/Document/' + id + '/body'
+  var opts = { uri: uri, method: 'GET' }
+  return apiBlobRequest(opts, oauth, function(err, resp) {
+    callback(err, resp);
+  });
 }
 
 Connection.prototype.query = function(query, oauth, callback) {
@@ -519,13 +547,40 @@ var validateOAuth = function(oauth) {
   }
 }
 
+var findId = function(data) {
+  if(data.getId && typeof data.getId === 'function') {
+    return data.getId();
+  } else if(data.Id) {
+    return data.Id
+  } if(data.id) {
+    return data.id;
+  } else if(data.ID) {
+    return data.ID;
+  }
+}
+
+var apiBlobRequest = function(opts, oauth, callback) {
+  var token = 'OAuth ' + oauth.access_token;
+  opts.headers = {
+    'Content-Type': 'application/json',
+    'Authorization': token
+  }
+  return request(opts, function(err, res, body) {
+    if(!err && res.statusCode == 200 || res.statusCode == 201 || res.statusCode == 202 || res.statusCode == 204) {
+      callback(null, body);
+    } else {
+      callback(err, null);
+    }
+  });
+}
+
 var apiRequest = function(opts, oauth, callback) {
   var token = 'OAuth ' + oauth.access_token;
   opts.headers = {
     'Content-Type': 'application/json',
     'Authorization': token
   }
-  request(opts, function(err, res, body) {
+  return request(opts, function(err, res, body) {
     if(!err && res.statusCode == 200 || res.statusCode == 201 || res.statusCode == 202 || res.statusCode == 204) {
       if(body) body = JSON.parse(body);
       callback(null, body);
@@ -540,7 +595,6 @@ var apiRequest = function(opts, oauth, callback) {
       callback(err, null);
     }
   });
-
 }
 
 //  apex rest
