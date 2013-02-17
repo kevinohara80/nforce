@@ -1,4 +1,4 @@
-var nforce = require('../../');
+var nforce = require('../');
 
 var org = nforce.createConnection({
   clientId: '3MVG9rFJvQRVOvk5nd6A4swCyck.4BFLnjFuASqNZmmxzpQSFWSTe6lWQxtF3L5soyVLfjV3yBKkjcePAsPzi',
@@ -9,7 +9,7 @@ var org = nforce.createConnection({
 });
 
 
-org.authenticate({ username: process.env.SF_UN, password: process.env.SF_PW}, function(err, oauth){
+org.authenticate({ username: process.env.SFUSER, password: process.env.SFPASS}, function(err, oauth){
   
   if(err) return console.log(err);
 

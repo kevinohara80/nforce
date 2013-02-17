@@ -2,7 +2,7 @@ var nforce = require('../');
 var sfuser = process.env.SFUSER;
 var sfpass = process.env.SFPASS;
 
-var query = 'SELECT Id, LastName, Email FROM Lead LIMIT 10';
+var query = 'SELECT Id, FirstName, LastName, Email FROM Lead LIMIT 10';
 
 var org = nforce.createConnection({
   clientId: '3MVG9rFJvQRVOvk5nd6A4swCyck.4BFLnjFuASqNZmmxzpQSFWSTe6lWQxtF3L5soyVLfjV3yBKkjcePAsPzi',
@@ -17,7 +17,7 @@ org.authenticate({ username: sfuser, password: sfpass}, function(err, oauth) {
     org.query(query, oauth, function(err, resp) {
       if(resp.records && resp.records.length) {
         resp.records.forEach(function(rec) {
-          console.log('Lead: ' + rec.LastName);
+          console.log('Lead: ' + rec.FirstName + ' ' + rec.LastName);
         }); 
       }
     });

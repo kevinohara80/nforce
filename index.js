@@ -269,12 +269,13 @@ Connection.prototype.insert = function(data, oauth, callback) {
   if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
-  if(typeof data.fieldValues !== 'object') {
+  var fieldvalues = data.getFieldValues();
+  if(typeof fieldvalues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data.attributes.type;
-  var opts = { uri: uri, method: 'POST', body: JSON.stringify(data.getFieldValues()) }
+  var opts = { uri: uri, method: 'POST', body: JSON.stringify(fieldvalues) }
   apiRequest(opts, oauth, callback);
 }
 
@@ -286,13 +287,14 @@ Connection.prototype.update = function(data, oauth, callback) {
   if(!id) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
-  if(typeof data.fieldValues !== 'object') {
+  var fieldvalues = data.getFieldValues();
+  if(typeof fieldvalues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion
     + '/sobjects/' + data.attributes.type + '/' + data.getId();
-  var opts = { uri: uri, method: 'PATCH', body: JSON.stringify(data.getFieldValues()) }
+  var opts = { uri: uri, method: 'PATCH', body: JSON.stringify(fieldvalues) }
   apiRequest(opts, oauth, callback);
 }
 
@@ -303,13 +305,14 @@ Connection.prototype.upsert = function(data, oauth, callback) {
   if(!data.attributes.externalId || !data.attributes.externalIdField) {
     return callback(new Error('Invalid external id or external id field'));
   }
-  if(typeof data.fieldValues !== 'object') {
+  var fieldvalues = data.getFieldValues();
+  if(typeof fieldValues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + data.attributes.type + '/' + data.attributes.externalIdField + '/' + data.attributes.externalId;
-  var opts = { uri: uri, method: 'PATCH', body: JSON.stringify(data.getFieldValues()) }
+  var opts = { uri: uri, method: 'PATCH', body: JSON.stringify(fieldvalues) }
   apiRequest(opts, oauth, callback);
 }
 
