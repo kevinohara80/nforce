@@ -195,7 +195,7 @@ org.authenticate({ username: user, password: pass }, function(err, oauth) {
 });
 ```
 
-## nforce API
+## nforce API Basics
 
 ### Callbacks
 
@@ -214,6 +214,8 @@ var so = fs.createWriteStream('sobjects.txt', {'flags': 'a'});
 
 org.getSObjects(oauth).pipe(so);  
 ```
+
+## nforce Base Methods
 
 ### createConnection(opts)
 
