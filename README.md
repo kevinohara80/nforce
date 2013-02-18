@@ -205,6 +205,16 @@ Callbacks will always pass an optional error object, and a response object. The 
 callback(err, resp);
 ```
 
+### Streams
+
+Most of the org methods take a callback, but also return a stream. This is useful if you want to **pipe** stuff around. Here is a quick example of how you could dump all sobjects in an org to a file.
+
+```js
+var so = fs.createWriteStream('sobjects.txt', {'flags': 'a'});
+
+org.getSObjects(oauth).pipe(so);  
+```
+
 ### createConnection(opts)
 
 The createConnection method creates an *nforce* connection object. You need to supply some arguments including oauth information and some optional arguments for version and environment.
