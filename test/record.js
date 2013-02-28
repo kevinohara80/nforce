@@ -120,6 +120,16 @@ describe('lib/record', function(){
       var myRecord = new Record(accountRec);
       myRecord.getFieldValues().should.not.have.keys('attributes');
     });
+
+    it('should not return attachment data adding after create', function() {
+      var myRecord = new Record(accountRec);
+      myRecord.attachment = {
+        contentType: 'application.pdf',
+        fileName: 'mytest.pdf',
+        body: 'dfslfjsdfjds'
+      }
+      myRecord.getFieldValues().should.not.have.keys('attachment');
+    });
   
   });
 
