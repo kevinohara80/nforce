@@ -273,6 +273,7 @@ Connection.prototype.getDescribe = function(data, oauth, callback) {
 }
 
 Connection.prototype.insert = function(data, oauth, callback) {
+  var type, opts, uri;
   if(!callback) callback = function(){}
   if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
@@ -282,8 +283,27 @@ Connection.prototype.insert = function(data, oauth, callback) {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data.attributes.type;
-  var opts = { uri: uri, method: 'POST', body: JSON.stringify(fieldvalues) }
+  uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data.attributes.type;
+  if(data.attributes.type.toLowerCase() === 'document') {
+    opts = {
+      uri: uri, 
+      method: 'POST', 
+      multipart: [
+        {
+          'Content-Disposition': 'form-data; name="entity_document"',
+          'Content-Type': 'application/json',
+          body: JSON.stringify(fieldvalues)
+        },
+        {
+          'Content-Type': data.attachment.contentType,
+          'Content-Disposition': 'form-data; name="Body"; filename="' + data.attachment.fileName + '"',
+          body: data.attachment.body
+        }
+      ]
+    }
+  } else {
+    opts = { uri: uri, method: 'POST', body: JSON.stringify(fieldvalues) }
+  }
   return apiRequest(opts, oauth, callback);
 }
 
@@ -577,7 +597,7 @@ var findId = function(data) {
 var apiBlobRequest = function(opts, oauth, callback) {
   var token = 'OAuth ' + oauth.access_token;
   opts.headers = {
-    'Content-Type': 'application/json',
+    'content-type': 'application/json',
     'Authorization': token
   }
   return request(opts, function(err, res, body) {
@@ -590,11 +610,17 @@ var apiBlobRequest = function(opts, oauth, callback) {
 }
 
 var apiRequest = function(opts, oauth, callback) {
-  var token = 'OAuth ' + oauth.access_token;
+
   opts.headers = {
-    'Content-Type': 'application/json',
-    'Authorization': token
+    'Authorization': 'OAuth ' + oauth.access_token
   }
+
+  if(opts.multipart) {
+    opts.headers['content-type'] = 'multipart/form-data';
+  } else {
+    opts.headers['content-type'] = 'application/json';
+  }
+  
   return request(opts, function(err, res, body) {
     if(!err && res.statusCode == 200 || res.statusCode == 201 || res.statusCode == 202 || res.statusCode == 204) {
       if(body) body = JSON.parse(body);
