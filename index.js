@@ -7,6 +7,7 @@ var Record      = require('./lib/record');
 var QueryStream = require('./lib/querystream');
 var FDCStream   = require('./lib/fdcstream');
 var faye        = require('faye');
+var mime        = require('mime');
 
 // constants
 
@@ -207,7 +208,7 @@ Connection.prototype.getIdentity = function(oauth, callback) {
   if(!callback) callback = function(){}
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   var opts = { uri: oauth.id, method: 'GET'}
-  return apiRequest(opts, oauth, callback);
+  return apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.getVersions = function(callback) {
@@ -226,7 +227,7 @@ Connection.prototype.getResources = function(oauth, callback) {
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion;
   var opts = { uri: uri, method: 'GET' }
-  return apiRequest(opts, oauth, callback);
+  return apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.getSObjects = function(oauth, callback) {
@@ -235,7 +236,7 @@ Connection.prototype.getSObjects = function(oauth, callback) {
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects';
   var opts = { uri: uri, method: 'GET' }
-  return apiRequest(opts, oauth, function(err, resp){
+  return apiRequest(opts, oauth, null, function(err, resp){
     if(err) {
       callback(err, null);
     } else {
@@ -258,7 +259,7 @@ Connection.prototype.getMetadata = function(data, oauth, callback) {
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data;
   var opts = { uri: uri, method: 'GET' }
-  return apiRequest(opts, oauth, callback);
+  return apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.getDescribe = function(data, oauth, callback) {
@@ -269,62 +270,106 @@ Connection.prototype.getDescribe = function(data, oauth, callback) {
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data + '/describe';
   var opts = { uri: uri, method: 'GET' }
-  return apiRequest(opts, oauth, callback);
+  return apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.insert = function(data, oauth, callback) {
-  var type, opts, uri;
+  var type, opts, entity, fieldValues;
+  
   if(!callback) callback = function(){}
+  
   if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
-  var fieldvalues = data.getFieldValues();
+
+  type = data.attributes.type.toLowerCase();
+  
+  fieldvalues = data.getFieldValues();
   if(typeof fieldvalues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
+  
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data.attributes.type;
-  if(data.attributes.type.toLowerCase() === 'document') {
-    opts = {
-      uri: uri, 
-      method: 'POST', 
-      multipart: [
-        {
-          'Content-Disposition': 'form-data; name="entity_document"',
-          'Content-Type': 'application/json',
-          body: JSON.stringify(fieldvalues)
-        },
-        {
-          'Content-Type': data.attachment.contentType,
-          'Content-Disposition': 'form-data; name="Body"; filename="' + data.attachment.fileName + '"',
-          body: data.attachment.body
-        }
-      ]
-    }
+
+  opts = { 
+    uri: oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + type, 
+    method: 'POST' 
+  };
+
+  if(type === 'document' || type === 'attachment' || type === 'contentversion') {
+    
+    entity = (type === 'contentversion') ? 'content' : type;
+
+    opts.multipart = [
+      {
+        'content-disposition': 'form-data; name="entity_' + entity + '"',
+        'content-type': 'application/json',
+        body: JSON.stringify(fieldvalues)
+      },
+      {
+        'content-type': mime.lookup(data.attachment.fileName),
+        'content-disposition': 'form-data; name="Body"; filename="' + data.attachment.fileName + '"',
+        body: data.attachment.body
+      }
+    ];
+   
   } else {
-    opts = { uri: uri, method: 'POST', body: JSON.stringify(fieldvalues) }
+    opts.body = JSON.stringify(fieldvalues);
   }
-  return apiRequest(opts, oauth, callback);
+
+  return apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.update = function(data, oauth, callback) {
+  var type, opts, entity, fieldValues;
+
   if(!callback) callback = function(){}
+  
   if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
-  var id = findId(data);
+
+  type = data.attributes.type.toLowerCase();
+
+  id = findId(data);
   if(!id) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
-  var fieldvalues = data.getFieldValues();
+
+  fieldvalues = data.getFieldValues();
   if(typeof fieldvalues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
+
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion
-    + '/sobjects/' + data.attributes.type + '/' + data.getId();
-  var opts = { uri: uri, method: 'PATCH', body: JSON.stringify(fieldvalues) }
-  return apiRequest(opts, oauth, callback);
+  
+  opts = { 
+    uri: oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + type + '/' + id, 
+    method: 'PATCH' 
+  };
+
+  if(type === 'document' || type === 'attachment' || type === 'contentversion') {
+    
+    entity = (type === 'contentversion') ? 'content' : type;
+
+    opts.multipart = [
+      {
+        'content-disposition': 'form-data; name="entity_' + entity + '"',
+        'content-type': 'application/json',
+        body: JSON.stringify(fieldvalues)
+      },
+      {
+        'content-type': mime.lookup(data.attachment.fileName),
+        'content-disposition': 'form-data; name="Body"; filename="' + data.attachment.fileName + '"',
+        body: data.attachment.body
+      }
+    ];
+   
+  } else {
+    opts.body = JSON.stringify(fieldvalues);
+  }
+
+  return apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.upsert = function(data, oauth, callback) {
@@ -343,7 +388,7 @@ Connection.prototype.upsert = function(data, oauth, callback) {
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + data.attributes.type + '/' + data.attributes.externalIdField + '/' + data.attributes.externalId;
   var opts = { uri: uri, method: 'PATCH', body: JSON.stringify(fieldvalues) }
-  return apiRequest(opts, oauth, callback);
+  return apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.delete = function(data, oauth, callback) {
@@ -359,7 +404,7 @@ Connection.prototype.delete = function(data, oauth, callback) {
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + data.attributes.type + '/' + data.getId();
   var opts = { uri: uri, method: 'DELETE'}
-  return apiRequest(opts, oauth, callback);
+  return apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.getRecord = function(data, oauth, callback) {
@@ -384,7 +429,7 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
     uri += '?' + qs.stringify(query);
   }
   var opts = { uri: uri, method: 'GET'}
-  return apiRequest(opts, oauth, function(err, resp){
+  return apiRequest(opts, oauth, null, function(err, resp){
     if(!err) {
       resp = new Record(resp);
     }
@@ -451,7 +496,7 @@ Connection.prototype.query = function(query, oauth, callback) {
 
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/query';
   var opts = { uri: uri, method: 'GET', qs: { q: query } }
-  apiRequest(opts, oauth, function(err, resp){
+  apiRequest(opts, oauth, null, function(err, resp){
     if(!err) {
       if(resp.records && resp.records.length > 0) {
         stream.write(JSON.stringify(resp));
@@ -483,7 +528,7 @@ Connection.prototype.search = function(search, oauth, callback) {
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/search';
   var opts = { uri: uri, method: 'GET', qs: { q: search } }
-  return apiRequest(opts, oauth, function(err, resp){
+  return apiRequest(opts, oauth, null, function(err, resp){
     if(!err) {
       if(resp.length) {
         var recs = [];
@@ -505,7 +550,7 @@ Connection.prototype.getUrl = function(url, oauth, callback) {
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   var uri = oauth.instance_url + url;
   var opts = { uri: uri, method: 'GET' }
-  return apiRequest(opts, oauth, callback);
+  return apiRequest(opts, oauth, null, callback);
 }
 
 // chatter api methods
@@ -609,7 +654,7 @@ var apiBlobRequest = function(opts, oauth, callback) {
   });
 }
 
-var apiRequest = function(opts, oauth, callback) {
+var apiRequest = function(opts, oauth, sobject, callback) {
 
   opts.headers = {
     'Authorization': 'OAuth ' + oauth.access_token
@@ -624,6 +669,8 @@ var apiRequest = function(opts, oauth, callback) {
   return request(opts, function(err, res, body) {
     if(!err && res.statusCode == 200 || res.statusCode == 201 || res.statusCode == 202 || res.statusCode == 204) {
       if(body) body = JSON.parse(body);
+      // attach the id back to the sobject on insert
+      if(sobject && body && body.id && !sobject.Id && !sobject.id && !sobject.ID) sobject.Id = body.id;
       callback(null, body);
     } else if(!err) {
       if(body) body = JSON.parse(body);
@@ -673,7 +720,7 @@ Connection.prototype.apexRest = function(restRequest, oauth, callback) {
     }
     opts.uri+=params;
   }
-  apiRequest(opts, oauth, callback);
+  apiRequest(opts, oauth, null, callback);
 }
 
 // exports
