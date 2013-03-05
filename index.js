@@ -421,6 +421,27 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
 
 // blob methods
 
+Connection.prototype.getBody = function(data, oauth, callback) {
+  var type, id, uri;
+  if(!callback) callback = function(){};
+  if(typeof data.attributes.type !== 'string') {
+    return callback(new Error('Type must be in the form of a string'), null);
+  }
+  type = data.attributes.type.toLowerCase();
+  if(!(id = findId(data))) {
+    return callback(new Error('You must specify an id in the form of a string'));
+  }
+  if(type === 'document') {
+    return this.getDocumentBody(id, oauth, callback);
+  } else if(type === 'attachment') {
+    return this.getAttachmentBody(id, oauth, callback);
+  } else if(type === 'contentversion') {
+    return this.getContentVersionBody(id, oauth, callback);
+  } else {
+    return callback(new Error('sobject is of invalid type: ' + type));
+  }
+}
+
 Connection.prototype.getAttachmentBody = function(id, oauth, callback) {
   if(!callback) callback = function(){};
   if(typeof id === 'object') id = findId(id);
@@ -443,6 +464,20 @@ Connection.prototype.getDocumentBody = function(id, oauth, callback) {
   }
   var uri = oauth.instance_url + '/services/data' + this.apiVersion 
     + '/sobjects/Document/' + id + '/body'
+  var opts = { uri: uri, method: 'GET' }
+  return apiBlobRequest(opts, oauth, function(err, resp) {
+    callback(err, resp);
+  });
+}
+
+Connection.prototype.getContentVersionBody = function(id, oauth, callback) {
+  if(!callback) callback = function(){};
+  if(typeof id === 'object') id = findId(id);
+  if(!id) {
+    return callback(new Error('You must specify an id in the form of a string'));
+  }
+  var uri = oauth.instance_url + '/services/data' + this.apiVersion 
+    + '/sobjects/ContentVersion/' + id + '/body'
   var opts = { uri: uri, method: 'GET' }
   return apiBlobRequest(opts, oauth, function(err, resp) {
     callback(err, resp);
