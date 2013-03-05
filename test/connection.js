@@ -137,8 +137,9 @@ describe('index', function(){
       obj.Name.should.equal('Test Me');
       obj.should.have.property('Custom_Field__c');
       obj.Custom_Field__c.should.equal('Blah');
-      obj.getFieldValues().should.have.property('Name', 'Test Me');
-      obj.getFieldValues().should.have.property('Custom_Field__c', 'Blah');
+      var fv = obj.getFieldValues();
+      fv.should.have.property('Name', 'Test Me');
+      fv.should.have.property('Custom_Field__c', 'Blah');
     });
 
     it('should allow instantiation with id', function() {
@@ -149,6 +150,18 @@ describe('index', function(){
       });
       obj.should.have.property('Id');
       obj.Id.should.equal('asalesforceid');
+    });
+
+    it('should clear the cache after calling getFieldValues', function() {
+      var obj = nforce.createSObject('Test_Object__c', {
+        Name: 'Test Me',
+        Custom_Field__c: 'Blah',
+        Id: 'asalesforceid'
+      });
+      var fvBefore = obj.getFieldValues();
+      var fvAfter = obj.getFieldValues();
+      fvBefore.should.have.keys('Name', 'Custom_Field__c');
+      fvAfter.should.not.have.keys('Name', 'Custom_Field__c', 'Id');
     });
     
   });
