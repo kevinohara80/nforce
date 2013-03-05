@@ -390,21 +390,15 @@ Connection.prototype.delete = function(data, oauth, callback) {
 
 Connection.prototype.getRecord = function(data, oauth, callback) {
   var type, uri, opts, id, query;
-
   if(!callback) callback = function(){}
-
   if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
-
   type = data.attributes.type.toLowerCase();
-
-  if(!id = findId(data)) {
+  if(!(id = findId(data))) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
-
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + type + '/' + id;
   
