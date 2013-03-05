@@ -29,7 +29,7 @@ var org = nforce.createConnection({
   clientId: 'SOME_OAUTH_CLIENT_ID',
   clientSecret: 'SOME_OAUTH_CLIENT_SECRET',
   redirectUri: 'http://localhost:3000/oauth/_callback',
-  apiVersion: 'v24.0',  // optional, defaults to v24.0
+  apiVersion: 'v27.0',  // optional, defaults to current version
   environment: 'production'  // optional, sandbox or production, production default
 });
 ```
