@@ -60,5 +60,6 @@ console.log('Authenticating with SFDC');
 org.authenticate({ username: sfuser, password: sfpass}, function(err, res) {
   if(err) return console.error('unable to authenticate to sfdc');
   oauth = res;
+  console.log(oauth);
   findALead();
 });
