@@ -401,7 +401,6 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + type + '/' + id;
-  
   if(data.fields) {
     query = {}
     if(typeof data.fields === 'string') {
@@ -411,9 +410,7 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
     }
     uri += '?' + qs.stringify(query);
   }
-  
   opts = { uri: uri, method: 'GET'}
-  
   return apiRequest(opts, oauth, null, function(err, resp){
     if(!err) {
       resp = new Record(resp);
