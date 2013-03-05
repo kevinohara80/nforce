@@ -1,6 +1,7 @@
 var nforce = require('../');
 var sfuser = process.env.SFUSER;
 var sfpass = process.env.SFPASS;
+
 var oauth;
 
 var org = nforce.createConnection({
@@ -9,11 +10,8 @@ var org = nforce.createConnection({
   redirectUri: 'http://localhost:3000/oauth/_callback'
 });
 
-function deleteLead(id) {
-  var ld = nforce.createSObject('Lead', { id: id });
-
+function deleteLead(ld) {
   console.log('attempting to delete lead');
-
   org.delete(ld, oauth, function(err, resp) {
     if(err) {
       console.error('--> unable to delete lead');
@@ -24,41 +22,35 @@ function deleteLead(id) {
   });
 }
 
-function updateLead(id) {
-  var ld = nforce.createSObject('Lead', { id: id });
+function updateLead(ld) {
+  console.log('attempting to update lead');
   ld.Company = 'JJ Inc.';
-
-  console.log('attempting to update lead')
-
   org.update(ld, oauth, function(err, resp) {
     if(err) {
       console.error('--> unable to update lead');
       console.error('--> ' + JSON.stringify(err));
     } else {
       console.log('--> lead updated');
-      deleteLead(id);
+      deleteLead(ld);
     }
   });
 }
 
 function insertLead() {
+  console.log('Attempting to insert lead');
   var ld = nforce.createSObject('Lead', {
     FirstName: 'Bobby',
     LastName: 'Tester',
     Company: 'ABC Widgets',
     Email: 'bobbytester@testertest.com'
   });
-
-  console.log('Attempting to insert lead');
-
   org.insert(ld, oauth, function(err, resp) {
     if(err) {
       console.error('--> unable to insert lead');
       console.error('--> ' + JSON.stringify(err));
     } else {
       console.log('--> lead inserted');
-      console.log('--> ' + JSON.stringify(resp));
-      updateLead(resp.id);
+      updateLead(ld);
     }
   });
 }

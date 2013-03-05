@@ -104,8 +104,6 @@ describe('lib/record', function(){
       myRecord.Custom_Field__c = 'This is something';
       //myRecord.getFieldValues().length.should.equal(2);
       should.equal(Object.keys(myRecord.getFieldValues()).length, 2);
-      myRecord.Phone = '2488843403';
-      should.equal(Object.keys(myRecord.getFieldValues()).length, 3);
     });
     
     it('should not contain the Id', function() {
@@ -119,6 +117,39 @@ describe('lib/record', function(){
     it('should not contain attributes', function() {
       var myRecord = new Record(accountRec);
       myRecord.getFieldValues().should.not.have.keys('attributes');
+    });
+
+    it('should not return attachment data adding after create', function() {
+      var myRecord = new Record(accountRec);
+      myRecord.attachment = {
+        contentType: 'application.pdf',
+        fileName: 'mytest.pdf',
+        body: 'dfslfjsdfjds'
+      }
+      myRecord.getFieldValues().should.not.have.keys('attachment');
+    });
+
+    it('should clear the cache after calling it once', function(){
+      var myRecord = new Record(accountRec);
+      myRecord.Test_Field__c = 'blah';
+      var fvBefore = myRecord.getFieldValues();
+      var fvAfter = myRecord.getFieldValues();
+      fvBefore.should.have.keys('Test_Field__c');
+      fvAfter.should.not.have.keys('Test_Field__c');
+      should.equal(0, Object.keys(fvAfter).length);
+    });
+
+    it('should create a new cache', function() {
+      var myRecord = new Record(accountRec);
+      myRecord.Test_Field__c = 'blah';
+      var fvClear = myRecord.getFieldValues();
+      myRecord.Test_Field2__c = 'foo';
+      var fvAfter = myRecord.getFieldValues();
+      fvClear.should.have.keys('Test_Field__c');
+      fvClear.should.not.have.keys('Test_Field2__c');
+      fvAfter.should.have.keys('Test_Field2__c');
+      fvAfter.should.not.have.keys('Test_Field__c');
+      fvAfter.Test_Field2__c.should.equal('foo');
     });
   
   });

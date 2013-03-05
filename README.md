@@ -148,6 +148,34 @@ app.configure(function(){
 });
 ```
 
+### Streaming API Responses
+
+Under the covers, **nforce** leverages [request](https://github.com/mikeal/request) for all http requests to the Salesforce REST API. **request** returns a readable stream that can be used to pipe the data to a writable stream.
+
+Here is an example of piping an nforce api request for the binary data of an Attachment directly to the response object in an http server.
+
+```js
+var http = require('http');
+
+var server = http.createServer(function(req, res) {
+  if(req.url === '/myimage') {
+    org.getAttachmentBody({ id: attId }, oauth).pipe(res);
+  } else {
+    res.statusCode = 404;
+    res.end();
+  }
+});
+```
+
+Here is an example of how you could get all sobjects in an org and write directly to a file in the local file system.
+
+```js
+var fs = require('fs');
+
+org.getSObjects(oauth).pipe(fs.createWriteStream('./sobjects.txt'));
+
+```
+
 ### Query Streaming
 
 The Salesforce query call in the REST API returns a 2000 record chunk at one time. The example below shows a normal query returning 2000 records only.
@@ -237,7 +265,7 @@ This creates an sObject record that you can use to insert, update, upsert, and d
 
 ### getFieldValues()
 
-This method shows the cached values that have been updated that will be passed in an update or upsert method
+This method returns the cached values that have been updated that will be passed in an update or upsert method. Calling this method clears the cache. It's very rare that you will need to call this method directly.
 
 ### setExternalId(field, value)
 
@@ -311,6 +339,22 @@ Delete a record. `sobject`: (Object) A Salesforce sObject
 
 Get a single record. `sobject`: (Object) A Salesforce sObject
 
+### getBody(sobject, oauth, callback)
+
+Get the binary data for an attachment, document, or contentversion. The `sobject` must be one of those three types.
+
+### getAttachmentBody(id, oauth, callback) 
+
+Get the binary data for an attachment for the given `id`
+
+### getDocumentBody(id, oauth, callback) 
+
+Get the binary data for an document for the given `id`
+
+### getContentVersionBody(id, oauth, callback) 
+
+Get the binary data for an contentversion for the given `id`
+
 ### query(query, oauth, [callback])
 
 Execute a SOQL query for records. `query` should be a SOQL string. Large queries can be streamed using the `pipe()` method.
@@ -372,6 +416,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 
 ## Changelog
 
+* `v0.3.0`: Blob support. API request streaming.
 * `v0.2.5`: Patches for Apex Rest
 * `v0.2.4`: Small bug fixes
 * `v0.2.3`: Apex Rest support
