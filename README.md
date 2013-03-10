@@ -1,4 +1,4 @@
-nforce
+nforce :: Salesforce REST API Wrapper
 ======
 
 [![Build Status](https://secure.travis-ci.org/kevinohara80/nforce.png)](http://travis-ci.org/kevinohara80/nforce)  
@@ -8,9 +8,11 @@ nforce
 ## Features
 
 * Simple api
-* Helper oauth methods
+* Intelligent sObjects
+* Helper OAuth methods
+* Simple streaming
+* Multi-user design
 * Express middleware
-* Streaming queries
 
 ## Installation
 
@@ -20,7 +22,7 @@ $ npm install nforce
 
 ## Usage
 
-Require **nforce** in your app and create a connection to an org.
+Require **nforce** in your app and create a client connection to a Salesforce org.
 
 ```js
 var nforce = require('nforce');
@@ -60,7 +62,7 @@ org.insert(acc, oauth, function(err, resp){
 Querying and updating records is super easy. **nforce** wraps API-queried records in a special object. The object caches field updates that you make to the record and allows you to pass the record directly into the update method without having to scrub out the unchanged fields. In the example below, only the Name and Industry fields will be sent in the update call despite the fact that the query returned other fields such as BillingCity and CreatedDate.
 
 ```js
-var query = 'SELECT Id, Name, CreatedDate, BillingCity FROM Account WHERE Name = \'Spiffy Cleaners\' LIMIT 1';
+var query = 'SELECT Id, Name, CreatedDate, BillingCity FROM Account WHERE Name = "Spiffy Cleaners" LIMIT 1';
 
 org.query(query, oauth, function(err, resp){
   
@@ -80,7 +82,7 @@ org.query(query, oauth, function(err, resp){
 
 ## Authentication
 
-**nforce** supports two OAuth 2.0 flows, username/password and authorization code.
+**nforce** supports two Salesforce OAuth 2.0 flows, username/password and authorization code. 
 
 ### Username/Password flow
 
@@ -126,7 +128,9 @@ org.authenticate({ code: 'SOMEOAUTHAUTHORIZATIONCODE' }, function(err, resp){
 
 At the end of a successful authorization, you a returned an OAuth object for the user. Cache this object as it will be used for subsequent requests. This object contains your access token, endpoint, id, and other information. 
 
-Why is this not automatically stored as a global variable? This is because you can have multiple users accessing your application and each user will have their own OAuth credentials from Salesforce. In this scenario, it makes the most sense to store these credentials in the users session or in some other data store. If you are using [express](https://github.com/visionmedia/express), **nforce** can take care of storing this for you (see below).
+### OAuth Object De-Coupling
+
+**nforce** decouples the oauth credentials from the connection object so that in a multi-user situation, a separate connection object doesn't need to be created for each user. This makes the module more efficient. Essentially, you only need one connection object for multiple users and pass that in with the request. In this scenario, it makes the most sense to store the OAuth credentials in the users session or in some other data store. If you are using [express](https://github.com/visionmedia/express), **nforce** can take care of storing this for you (see below).
 
 ## Other Features
 
@@ -173,7 +177,6 @@ Here is an example of how you could get all sobjects in an org and write directl
 var fs = require('fs');
 
 org.getSObjects(oauth).pipe(fs.createWriteStream('./sobjects.txt'));
-
 ```
 
 ### Query Streaming
@@ -188,7 +191,7 @@ org.query(query, req.session.oauth, callback(err, resp) {
 });
 ```
 
-The **nforce** query method returns a node stream. By calling the `pipe` method on this object, your query call will automatically start streaming ALL of the records from your query in 2000 record batches.
+Like other API requests, **nforce** query method returns a node stream. By calling the `pipe` method on this object, your query call will automatically start streaming ALL of the records from your query in 2000 record batches.
 
 ```js
 // dataset of 50k records.
@@ -227,7 +230,7 @@ org.authenticate({ username: user, password: pass }, function(err, oauth) {
 
 ### Callbacks
 
-Callbacks will always pass an optional error object, and a response object. The response object closely resemble the typical responses from the Salesforce REST API.
+The API of **nforce** follows typical node standards. Callbacks will always pass an optional error object, and a response object. The response object closely resembles the typical responses from the Salesforce REST API.
 
 ```js
 callback(err, resp);
@@ -402,10 +405,11 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 ## Todo
 
 * **nforce** cli implementation
-* Blob data support
 * User password management
 * Continue with caching capabilities for describe/metadata calls
 * Chatter support
+* Tooling API
+* Single-user mode (global OAuth)
 
 ## Contributors
 
@@ -416,6 +420,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 
 ## Changelog
 
+* `v0.3.1`: Documentation updates.
 * `v0.3.0`: Blob support. API request streaming.
 * `v0.2.5`: Patches for Apex Rest
 * `v0.2.4`: Small bug fixes
