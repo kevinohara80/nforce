@@ -1,4 +1,4 @@
-nforce :: Salesforce REST API Wrapper
+nforce :: salesforce REST API wrapper
 ======
 
 [![Build Status](https://secure.travis-ci.org/kevinohara80/nforce.png)](http://travis-ci.org/kevinohara80/nforce)  
@@ -62,9 +62,9 @@ org.insert(acc, oauth, function(err, resp){
 Querying and updating records is super easy. **nforce** wraps API-queried records in a special object. The object caches field updates that you make to the record and allows you to pass the record directly into the update method without having to scrub out the unchanged fields. In the example below, only the Name and Industry fields will be sent in the update call despite the fact that the query returned other fields such as BillingCity and CreatedDate.
 
 ```js
-var query = 'SELECT Id, Name, CreatedDate, BillingCity FROM Account WHERE Name = "Spiffy Cleaners" LIMIT 1';
+var q = 'SELECT Id, Name, CreatedDate, BillingCity FROM Account WHERE Name = "Spiffy Cleaners" LIMIT 1';
 
-org.query(query, oauth, function(err, resp){
+org.query(q, oauth, function(err, resp){
   
   if(!err && resp.records) {
     
