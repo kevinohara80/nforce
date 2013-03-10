@@ -2,13 +2,16 @@
   "author": "Kevin O'Hara <kevnohara80@gmail.com> (http://kevinmohara.com)",
   "name": "nforce",
   "description": "nforce is a REST API wrapper for force.com, database.com, and salesforce.com",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "keywords": [
     "salesforce",
+    "salesforce.com",
     "force.com",
     "database.com",
     "sfdc",
-    "forcedotcom"
+    "forcedotcom",
+    "rest",
+    "api"
   ],
   "repository": {
     "type": "git",
