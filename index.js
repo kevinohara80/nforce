@@ -85,18 +85,26 @@ var Connection = function(opts) {
   } else {
     this.environment = 'production';
   }
+  if(opts.mode && opts.mode.toLowerCase() === 'single') {
+    this.mode = 'single';
+  } else {
+    this.mode = 'multi';
+  }
 }
 
 // oauth methods
 
 Connection.prototype.getAuthUri = function() {
+  var opts;
   var self = this;
-  var opts = {
+  
+  opts = {
     'response_type': 'code',
     'client_id': self.clientId,
     'client_secret': self.clientSecret,
     'redirect_uri': self.redirectUri
   }
+
   if(self.environment == 'sandbox') {
     return TEST_AUTH_ENDPOINT + '?' + qs.stringify(opts);
   } else {
@@ -105,12 +113,14 @@ Connection.prototype.getAuthUri = function() {
 }
 
 Connection.prototype.authenticate = function(opts, callback) {
+  var uri, reqOpts, bodyOpts;
+  var self = this;
+
   if(!callback) callback = function(){}
 
-  var self = this;
   if(!opts) opts = {};
 
-  var bodyOpts = {
+  bodyOpts = {
     'client_id': self.clientId,
     'client_secret': self.clientSecret,
   }
@@ -127,14 +137,12 @@ Connection.prototype.authenticate = function(opts, callback) {
       bodyOpts['password'] = bodyOpts['password'] + opts.securityToken;
     }
   } else {
-    var err = new Error('You must either supply a code, or username and password');
-    callback(err, null);
-    return;
+    return callback(new Error('You must either supply a code, or username and password'));
   }
 
-  var uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
+  uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
 
-  var reqOpts = {
+  reqOpts = {
     uri: uri,
     method: 'POST',
     body: qs.stringify(bodyOpts),
@@ -146,6 +154,7 @@ Connection.prototype.authenticate = function(opts, callback) {
   return request(reqOpts, function(err, res, body){
     if(!err && res.statusCode == 200) {
       if(body) body = JSON.parse(body);
+      if(self.mode === 'single') self.oauth = body;
       callback(null, body);
     } else if(!err) {
       if(body) body = JSON.parse(body);
@@ -161,13 +170,21 @@ Connection.prototype.authenticate = function(opts, callback) {
 
 
 Connection.prototype.refreshToken = function(oauth, callback) {
+  var uri, reqOpts, bodyOpts;
+  var self = this;
+
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 1) callback = args[0];
+  }
+
+  if(!callback) callback = function(){};
 
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   if(!oauth.refresh_token) return callback(new Error('You must supply a refresh token'));
 
-  var self = this;
-
-  var bodyOpts = {
+  bodyOpts = {
     'client_id': self.clientId,
     'client_secret': self.clientSecret,
     'grant_type': 'refresh_token',
@@ -175,9 +192,9 @@ Connection.prototype.refreshToken = function(oauth, callback) {
     'refresh_token': oauth.refresh_token
   }
 
-  var uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
+  uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
 
-  var reqOpts = {
+  reqOpts = {
     uri: uri,
     method: 'POST',
     body: qs.stringify(bodyOpts),
@@ -205,14 +222,26 @@ Connection.prototype.refreshToken = function(oauth, callback) {
 // api methods
 
 Connection.prototype.getIdentity = function(oauth, callback) {
+  var opts;
+
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 1) callback = args[0];
+  }
+  
   if(!callback) callback = function(){}
+  
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  var opts = { uri: oauth.id, method: 'GET'}
+  
+  opts = { uri: oauth.id, method: 'GET'}
+  
   return apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.getVersions = function(callback) {
   if(!callback) callback = function(){}
+  
   return request('http://na1.salesforce.com/services/data/', function(err, res, body){
     if(!err && res.statusCode == 200) {
       callback(null, JSON.parse(body));
@@ -223,19 +252,42 @@ Connection.prototype.getVersions = function(callback) {
 }
 
 Connection.prototype.getResources = function(oauth, callback) {
+  var uri, opts;
+  
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 1) callback = args[0];
+  }
+  
   if(!callback) callback = function(){}
+  
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion;
-  var opts = { uri: uri, method: 'GET' }
+  
+  uri = oauth.instance_url + '/services/data/' + this.apiVersion;
+  opts = { uri: uri, method: 'GET' }
+  
   return apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.getSObjects = function(oauth, callback) {
-  if(!callback) callback = function(){}
+  var uri, opts;
   var self = this;
+  
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 1) callback = args[0];
+  }
+  
+  if(!callback) callback = function(){}
+  
+  
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects';
-  var opts = { uri: uri, method: 'GET' }
+  
+  uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects';
+  opts = { uri: uri, method: 'GET' }
+  
   return apiRequest(opts, oauth, null, function(err, resp){
     if(err) {
       callback(err, null);
@@ -252,43 +304,80 @@ Connection.prototype.getSObjects = function(oauth, callback) {
 }
 
 Connection.prototype.getMetadata = function(data, oauth, callback) {
+  var uri, opts;
+
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+  
   if(!callback) callback = function(){}
+  
   if(typeof data !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
+  
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data;
-  var opts = { uri: uri, method: 'GET' }
+  
+  uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data;
+  opts = { uri: uri, method: 'GET' }
+  
   return apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.getDescribe = function(data, oauth, callback) {
+  var uri, opts;
+
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+  
   if(!callback) callback = function(){}
+  
   if(typeof data !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
+  
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data + '/describe';
-  var opts = { uri: uri, method: 'GET' }
+  
+  uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data + '/describe';
+  opts = { uri: uri, method: 'GET' }
+  
   return apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.insert = function(data, oauth, callback) {
   var type, opts, entity, name, fieldvalues;
+  
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+  
   if(!callback) callback = function(){}
   if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
+  
   type = data.attributes.type.toLowerCase();
+  
   fieldvalues = data.getFieldValues();
+  
   if(typeof fieldvalues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
+  
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  
   opts = { 
     uri: oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + type, 
     method: 'POST' 
   };
+  
   if(type === 'document' || type === 'attachment' || type === 'contentversion') {
     entity = (type === 'contentversion') ? 'content' : type;
     name   = (type === 'contentversion') ? 'VersionData' : 'Body';
@@ -307,28 +396,44 @@ Connection.prototype.insert = function(data, oauth, callback) {
   } else {
     opts.body = JSON.stringify(fieldvalues);
   }
+  
   return apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.update = function(data, oauth, callback) {
   var type, opts, entity, name, id, fieldvalues;
+  
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+  
   if(!callback) callback = function(){}
+  
   if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
+  
   type = data.attributes.type.toLowerCase();
+  
   if(!(id = findId(data))) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
+  
   fieldvalues = data.getFieldValues();
+  
   if(typeof fieldvalues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
+  
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  
   opts = { 
     uri: oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + type + '/' + id, 
     method: 'PATCH' 
   };
+  
   if(type === 'document' || type === 'attachment' || type === 'contentversion') {
     entity = (type === 'contentversion') ? 'content' : type;
     name   = (type === 'contentversion') ? 'VersionData' : 'Body';
@@ -347,60 +452,102 @@ Connection.prototype.update = function(data, oauth, callback) {
   } else {
     opts.body = JSON.stringify(fieldvalues);
   }
+  
   return apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.upsert = function(data, oauth, callback) {
   var type, fieldvalues, uri, opts;
+  
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+  
   if(!callback) callback = function(){}
+  
   if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
+  
   type = data.attributes.type.toLowerCase();
+  
   if(!data.attributes.externalId || !data.attributes.externalIdField) {
     return callback(new Error('Invalid external id or external id field'));
   }
+  
   fieldvalues = data.getFieldValues();
+  
   if(typeof fieldValues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
+  
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + type + '/' + data.attributes.externalIdField + '/' + data.attributes.externalId;
   opts = { uri: uri, method: 'PATCH', body: JSON.stringify(fieldvalues) }
+  
   return apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.delete = function(data, oauth, callback) {
   var type, uri, opts, id;
+  
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+  
   if(!callback) callback = function(){}
+  
   if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
+  
   type = data.attributes.type.toLowerCase();
+  
   if(!(id = findId(data))) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
+  
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + type + '/' + data.getId();
   opts = { uri: uri, method: 'DELETE' }
+  
   return apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.getRecord = function(data, oauth, callback) {
   var type, uri, opts, id, query;
+  
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+  
   if(!callback) callback = function(){}
+  
   if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
+  
   type = data.attributes.type.toLowerCase();
+  
   if(!(id = findId(data))) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
+  
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + type + '/' + id;
+  
   if(data.fields) {
     query = {}
     if(typeof data.fields === 'string') {
@@ -410,7 +557,9 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
     }
     uri += '?' + qs.stringify(query);
   }
+  
   opts = { uri: uri, method: 'GET'}
+  
   return apiRequest(opts, oauth, null, function(err, resp){
     if(!err) {
       resp = new Record(resp);
@@ -423,14 +572,25 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
 
 Connection.prototype.getBody = function(data, oauth, callback) {
   var type, id, uri;
+  
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+  
   if(!callback) callback = function(){};
+  
   if(typeof data.attributes.type !== 'string') {
     return callback(new Error('Type must be in the form of a string'), null);
   }
+  
   type = data.attributes.type.toLowerCase();
+  
   if(!(id = findId(data))) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
+  
   if(type === 'document') {
     return this.getDocumentBody(id, oauth, callback);
   } else if(type === 'attachment') {
@@ -443,53 +603,97 @@ Connection.prototype.getBody = function(data, oauth, callback) {
 }
 
 Connection.prototype.getAttachmentBody = function(id, oauth, callback) {
+  var uri, opts;
+  
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+  
   if(!callback) callback = function(){};
+  
   if(typeof id === 'object') id = findId(id);
+  
   if(!id) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
-  var uri = oauth.instance_url + '/services/data' + this.apiVersion 
+  
+  uri = oauth.instance_url + '/services/data' + this.apiVersion 
     + '/sobjects/Attachment/' + id + '/body'
-  var opts = { uri: uri, method: 'GET' }
+  opts = { uri: uri, method: 'GET' }
+  
   return apiBlobRequest(opts, oauth, function(err, resp) {
     callback(err, resp);
   });
 }
 
 Connection.prototype.getDocumentBody = function(id, oauth, callback) {
+  var uri, opts;
+  
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+  
   if(!callback) callback = function(){};
+  
   if(typeof id === 'object') id = findId(id);
+  
   if(!id) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
-  var uri = oauth.instance_url + '/services/data' + this.apiVersion 
+  
+  uri = oauth.instance_url + '/services/data' + this.apiVersion 
     + '/sobjects/Document/' + id + '/body'
-  var opts = { uri: uri, method: 'GET' }
+  opts = { uri: uri, method: 'GET' }
+  
   return apiBlobRequest(opts, oauth, function(err, resp) {
     callback(err, resp);
   });
 }
 
 Connection.prototype.getContentVersionBody = function(id, oauth, callback) {
+  var uri, opts;
+
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+
   if(!callback) callback = function(){};
+  
   if(typeof id === 'object') id = findId(id);
+  
   if(!id) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
-  var uri = oauth.instance_url + '/services/data' + this.apiVersion 
+  
+  uri = oauth.instance_url + '/services/data' + this.apiVersion 
     + '/sobjects/ContentVersion/' + id + '/body'
-  var opts = { uri: uri, method: 'GET' }
+  opts = { uri: uri, method: 'GET' }
+  
   return apiBlobRequest(opts, oauth, function(err, resp) {
     callback(err, resp);
   });
 }
 
 Connection.prototype.query = function(query, oauth, callback) {
-  if(!callback) callback = function(){}
+  var uri, opts, stream;
   var self = this;
   var recs = [];
 
-  var stream = new QueryStream();
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+
+  if(!callback) callback = function(){}
+
+  stream = new QueryStream();
 
   if(typeof query !== 'string') {
     return callback(new Error('You must specify a query'));
@@ -511,8 +715,9 @@ Connection.prototype.query = function(query, oauth, callback) {
     });
   }
 
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/query';
-  var opts = { uri: uri, method: 'GET', qs: { q: query } }
+  uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/query';
+  opts = { uri: uri, method: 'GET', qs: { q: query } }
+  
   apiRequest(opts, oauth, null, function(err, resp){
     if(!err) {
       if(resp.records && resp.records.length > 0) {
@@ -534,17 +739,31 @@ Connection.prototype.query = function(query, oauth, callback) {
     }
 
   });
+
   return stream;
+
 }
 
 Connection.prototype.search = function(search, oauth, callback) {
-  if(!callback) callback = function(){}
+  var uri, opts;
+
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+
+  if(!callback) callback = function(){};
+
   if(typeof search !== 'string') {
     return callback(new Error('Search must be in string form'), null);
   }
+
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/search';
-  var opts = { uri: uri, method: 'GET', qs: { q: search } }
+  
+  uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/search';
+  opts = { uri: uri, method: 'GET', qs: { q: search } }
+  
   return apiRequest(opts, oauth, null, function(err, resp){
     if(!err) {
       if(resp.length) {
@@ -560,53 +779,139 @@ Connection.prototype.search = function(search, oauth, callback) {
 }
 
 Connection.prototype.getUrl = function(url, oauth, callback) {
+  var uri, opts;
+
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+  
   if(!callback) callback = function(){}
+  
   if(typeof url !== 'string') {
     return callback(new Error('Url must be in string form'), null);
   }
+  
   if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  var uri = oauth.instance_url + url;
-  var opts = { uri: uri, method: 'GET' }
+  
+  uri = oauth.instance_url + url;
+  opts = { uri: uri, method: 'GET' }
+  
   return apiRequest(opts, oauth, null, callback);
 }
 
 // chatter api methods
 
+// apex rest
+
+Connection.prototype.apexRest = function(restRequest, oauth, callback) {
+  var uri, opts, params, method;
+
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+
+  if(!callback) callback = function(){};
+
+  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  
+  if(typeof restRequest !== 'object') {
+    return callback(new Error('You must specify a restRequest object'), null);
+  }
+  
+  if(typeof restRequest.uri !== 'string') {
+    return callback(new Error('You must specify a url with the type string'), null);
+  }
+  
+  if(typeof restRequest.method === 'string' ) {
+    method = restRequest.method;
+    if(method !=='GET' && method !=='POST' && method !=='PATCH' && method !=='PUT')
+    return callback(new Error('Only GET, POST, PATCH, & PUT are supported, you specified: '+ method), null);
+  }
+  //default to GET
+  if(restRequest.method==null || typeof restRequest.method !== 'string'){
+    restRequest.method = 'GET';
+  }
+  
+  uri = oauth.instance_url + '/services/apexrest/' + restRequest.uri;
+  opts = { uri: uri, method: restRequest.method}
+  
+  if(restRequest.body!=null) {
+    opts.body = JSON.stringify(restRequest.body);
+  }
+
+  if(restRequest.urlParams!=null) {
+    if(!Array.isArray(restRequest.urlParams)) {
+      return callback(new Error('URL parmams must be an array in form of [{key:\'key\', value:\'value\'}]'), null);
+    }
+    
+    params = '?';
+    
+    for(i = 0; i<restRequest.urlParams.length; i++){
+      if(i>0) params+='&'
+      params+=restRequest.urlParams[i].key+'='+restRequest.urlParams[i].value;
+    }
+    
+    opts.uri+=params;
+  }
+
+  return apiRequest(opts, oauth, null, callback);
+}
+
 // streaming methods
 
 Connection.prototype.stream = function(data, oauth) {
-  var str = new FDCStream();
-  var endpoint = oauth.instance_url + '/cometd/' + this.apiVersion.substring(1);
-  var client = new faye.Client(endpoint, {});
+  var str, endpoint, client, sub;
+
+  if(this.mode === 'single') {
+    oauth = this.oauth;
+  }
+
+  str = new FDCStream();
+  endpoint = oauth.instance_url + '/cometd/' + this.apiVersion.substring(1);
+  
+  client = new faye.Client(endpoint, {});
   client.setHeader('Authorization', 'OAuth ' + oauth.access_token);
-  var sub = client.subscribe('/topic/' + data, function(data){
+  
+  sub = client.subscribe('/topic/' + data, function(data){
     str.write(data);
   });
+  
   sub.callback(function(){
     str.emit('connect');
   });
+  
   sub.errback(function(error) {
     str.emit('error', error);
   });
+  
   return str;
 }
 
 // express middleware
 
 Connection.prototype.expressOAuth = function(opts) {
+  var url;
   var self = this;
   var matchUrl = url.parse(this.redirectUri);
+  
   matchUrl.pathname.replace(/\/$/, '');
+  
   if(opts.onSuccess && opts.onSuccess.substring(0,1) !== '/') {
     opts.onSuccess = '/' + opts.onSuccess;
   }
+  
   if(opts.onError && opts.onError.substring(0,1) !== '/') {
     opts.onError = '/' + opts.onError;
   }
+  
   return function(req, res, next) {
 
     if(req.session && req.query.code) {
-      var url = req.url.replace(/\?.*/i, '').replace(/\/$/, '');
+      url = req.url.replace(/\?.*/i, '').replace(/\/$/, '');
       if(matchUrl.pathname == url) {
         // its an oauth callback
         self.authenticate({ code: req.query.code}, function(err, resp){
@@ -627,6 +932,7 @@ Connection.prototype.expressOAuth = function(opts) {
             }
           }
         });
+
       }
     } else {
       next();
@@ -700,44 +1006,6 @@ var apiRequest = function(opts, oauth, sobject, callback) {
       callback(err, null);
     }
   });
-}
-
-//  apex rest
-
-Connection.prototype.apexRest = function(restRequest, oauth, callback) {
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  if(typeof restRequest !== 'object') {
-    return callback(new Error('You must specify a restRequest object'), null);
-  }
-  if(typeof restRequest.uri !== 'string') {
-    return callback(new Error('You must specify a url with the type string'), null);
-  }
-  if(typeof restRequest.method === 'string' ) {
-    var method = restRequest.method;
-    if(method !=='GET' && method !=='POST' && method !=='PATCH' && method !=='PUT')
-    return callback(new Error('Only GET, POST, PATCH, & PUT are supported, you specified: '+ method), null);
-  }
-  //default to GET
-  if(restRequest.method==null || typeof restRequest.method !== 'string'){
-    restRequest.method = 'GET';
-  }
-  var uri = oauth.instance_url + '/services/apexrest/' + restRequest.uri;
-  var opts = { uri: uri, method: restRequest.method}
-  if(restRequest.body!=null) {
-    opts.body = JSON.stringify(restRequest.body);
-  }
-  if(restRequest.urlParams!=null) {
-    if(!Array.isArray(restRequest.urlParams)) {
-      return callback(new Error('URL parmams must be an array in form of [{key:\'key\', value:\'value\'}]'), null);
-    }
-    var params = '?';
-    for(i = 0; i<restRequest.urlParams.length; i++){
-      if(i>0) params+='&'
-      params+=restRequest.urlParams[i].key+'='+restRequest.urlParams[i].value;
-    }
-    opts.uri+=params;
-  }
-  apiRequest(opts, oauth, null, callback);
 }
 
 // exports
