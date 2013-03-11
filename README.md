@@ -328,7 +328,7 @@ The following list of methods are available for an **nforce** connection object:
 
 This is a helper method to build the authentication uri for a authorization code OAuth 2.0 flow.
 
-### authenticate(opts, callback)
+### authenticate(opts, [callback])
 
 This method requests the OAuth access token and instance information from Salesforce. This method either requires that you pass in the authorization code (authorization code flow) or username and password (username/password flow).
 
