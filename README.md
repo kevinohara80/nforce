@@ -344,15 +344,15 @@ This method requests the OAuth access token and instance information from Salesf
 
 The express middleware. `onSuccess` and `onError` should be uri routes for redirection after OAuth callbacks.
 
-### getVersions(callback)
+### getVersions([callback])
 
 Gets the salesforce versions. Note: Does not require authentication.
 
-### getResources([oauth], callback)
+### getResources([oauth], [callback])
 
 Gets the available resources
 
-### getSObjects([oauth], callback)
+### getSObjects([oauth], [callback])
 
 Get all sObjects for an org
 
