@@ -11,7 +11,7 @@ nforce :: salesforce REST API wrapper
 * Intelligent sObjects
 * Helper OAuth methods
 * Simple streaming
-* Multi-user design
+* Multi-user design with single user mode
 * Express middleware
 
 ## Installation
@@ -32,17 +32,29 @@ var org = nforce.createConnection({
   clientSecret: 'SOME_OAUTH_CLIENT_SECRET',
   redirectUri: 'http://localhost:3000/oauth/_callback',
   apiVersion: 'v27.0',  // optional, defaults to current version
-  environment: 'production'  // optional, sandbox or production, production default
+  environment: 'production',  // optional, 'sandbox' or 'production', production default
+  mode: 'multi' // optional, 'single' or 'multi' user mode, multi default
 });
 ```
 
-Now we just need to authenticate and get our OAuth credentials. Here is one way...
+Now we just need to authenticate and get our OAuth credentials. Here is one way to do this in multi-user mode...
 
 ```js
+// multi user mode
 var oauth;
-
 org.authenticate({ username: 'my_test@gmail.com', password: 'mypassword'}, function(err, resp){
+  // store the oauth object for this user
   if(!err) oauth = resp;
+});
+```
+
+...or in single-user mode...
+
+```js
+// single-user mode
+org.authenticate({ username: 'my_test@gmail.com', password: 'mypassword'}, function(err, resp){
+  // the oauth object was stored in the connection object
+  if(!err) console.log('Cached Token: ' + org.oauth.access_token)
 });
 ```
 
@@ -126,11 +138,23 @@ org.authenticate({ code: 'SOMEOAUTHAUTHORIZATIONCODE' }, function(err, resp){
 
 ### OAuth Object
 
-At the end of a successful authorization, you a returned an OAuth object for the user. Cache this object as it will be used for subsequent requests. This object contains your access token, endpoint, id, and other information. 
+At the end of a successful authorization, you a returned an OAuth object for the user. This object contains your access token, endpoint, id, and other information.  If you have `mode` set to `multi`, cache this object for the user as it will be used for subsequent requests. If you are in `single` user mode, the OAuth object is stored as a property on your connection object.
 
-### OAuth Object De-Coupling
+### OAuth Object De-Coupling (Multi-user mode)
 
-**nforce** decouples the oauth credentials from the connection object so that in a multi-user situation, a separate connection object doesn't need to be created for each user. This makes the module more efficient. Essentially, you only need one connection object for multiple users and pass that in with the request. In this scenario, it makes the most sense to store the OAuth credentials in the users session or in some other data store. If you are using [express](https://github.com/visionmedia/express), **nforce** can take care of storing this for you (see below).
+**nforce** decouples the oauth credentials from the connection object when `mode` is set to `multi` so that in a multi-user situation, a separate connection object doesn't need to be created for each user. This makes the module more efficient. Essentially, you only need one connection object for multiple users and pass the OAuth object in with the request. In this scenario, it makes the most sense to store the OAuth credentials in the users session or in some other data store. If you are using [express](https://github.com/visionmedia/express), **nforce** can take care of storing this for you (see Express Middleware).
+
+### Integrated OAuth Object (Single-user mode)
+
+If you specified `single` as your `mode` when creating the connection, calling authenticate will store the OAuth object within the connection object. Then, in subsequent API requests, you can simply omit the OAuth object from the request like so.
+
+```js
+// look ma, no oauth argument!
+org.query('SELECT Id FROM Lead LIMIT 1', function(err, res) {
+  if(err) return console.error(err);
+  else return console.log(res.records[0]);
+});
+```
 
 ## Other Features
 
@@ -316,71 +340,71 @@ The express middleware. `onSuccess` and `onError` should be uri routes for redir
 
 Gets the salesforce versions. Note: Does not require authentication.
 
-### getResources(oauth, callback)
+### getResources([oauth], callback)
 
 Gets the available resources
 
-### getSObjects(oauth, callback)
+### getSObjects([oauth], callback)
 
 Get all sObjects for an org
 
-### getMetadata(type, oauth, callback)
+### getMetadata(type, [oauth], [callback])
 
 Get metadata for a single sObject. `type` is a required String for the sObject type
 
-### getDescribe(type, oauth, callback)
+### getDescribe(type, [oauth], [callback])
 
 Get describe information for a single sObject. `type` is a required String for the sObject type
 
-### insert(sobject, oauth, callback)
+### insert(sobject, [oauth], [callback])
 
 Insert a record. `sobject`: (Object) A Salesforce sObject
 
-### update(sobject, oauth, callback)
+### update(sobject, [oauth], [callback])
 
 Update a record. `sobject`: (Object) A Salesforce sObject
 
-### upsert(sobject, oauth, callback)
+### upsert(sobject, [oauth], [callback])
 
 Update a record. `sobject`: (Object) A Salesforce sObject. NOTE: you must use the setExternalId() method to set the external Id field and the value to match on.
 
-### delete(sobject, oauth, callback)
+### delete(sobject, [oauth], [callback])
 
 Delete a record. `sobject`: (Object) A Salesforce sObject
 
-### getRecord(sobject, oauth, callback)
+### getRecord(sobject, [oauth], [callback])
 
 Get a single record. `sobject`: (Object) A Salesforce sObject
 
-### getBody(sobject, oauth, callback)
+### getBody(sobject, [oauth], [callback])
 
 Get the binary data for an attachment, document, or contentversion. The `sobject` must be one of those three types.
 
-### getAttachmentBody(id, oauth, callback) 
+### getAttachmentBody(id, [oauth], [callback]) 
 
 Get the binary data for an attachment for the given `id`
 
-### getDocumentBody(id, oauth, callback) 
+### getDocumentBody(id, [oauth], [callback]) 
 
 Get the binary data for an document for the given `id`
 
-### getContentVersionBody(id, oauth, callback) 
+### getContentVersionBody(id, [oauth], [callback]) 
 
 Get the binary data for an contentversion for the given `id`
 
-### query(query, oauth, [callback])
+### query(query, [oauth], [callback])
 
 Execute a SOQL query for records. `query` should be a SOQL string. Large queries can be streamed using the `pipe()` method.
 
-### search(search, oauth, callback)
+### search(search, [oauth], [callback])
 
 Execute a SOSL search for records. `search` should be a SOSL string.
 
-### getUrl(url, oauth, callback)
+### getUrl(url, [oauth], [callback])
 
 Get a REST API resource by its url. `url` should be a REST API resource.
 
-### stream(pushtopic, oauth)
+### stream(pushtopic, [oauth])
 
 Start a streaming connection. An EventEmitter is returned with the following events:
 
@@ -388,7 +412,7 @@ Start a streaming connection. An EventEmitter is returned with the following eve
 * `data`: got a streaming event
 * `error`: there was a problem with the subscription
 
-### apexRest(restRequest, oauth, callback)
+### apexRest(restRequest, [oauth], [callback])
 
 This method handles integration with salesforce ApexRest (Custom Rest endpoints)
 http://wiki.developerforce.com/page/Creating_REST_APIs_using_Apex_REST
@@ -415,11 +439,9 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 ## Todo
 
 * **nforce** cli implementation
-* User password management
 * Continue with caching capabilities for describe/metadata calls
 * Chatter support
 * Tooling API
-* Single-user mode (global OAuth)
 
 ## Contributors
 
@@ -430,6 +452,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 
 ## Changelog
 
+* `v0.4.0`: Single user mode
 * `v0.3.1`: Documentation updates.
 * `v0.3.0`: Blob support. API request streaming.
 * `v0.2.5`: Patches for Apex Rest
