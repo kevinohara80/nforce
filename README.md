@@ -1,4 +1,4 @@
-nforce :: salesforce REST API wrapper
+nforce :: node.js salesforce REST API wrapper
 ======
 
 [![Build Status](https://secure.travis-ci.org/kevinohara80/nforce.png)](http://travis-ci.org/kevinohara80/nforce)  
@@ -22,7 +22,7 @@ $ npm install nforce
 
 ## Usage
 
-Require **nforce** in your app and create a client connection to a Salesforce org.
+Require **nforce** in your app and create a client connection to a Salesforce Remote Access Application.
 
 ```js
 var nforce = require('nforce');
@@ -31,13 +31,13 @@ var org = nforce.createConnection({
   clientId: 'SOME_OAUTH_CLIENT_ID',
   clientSecret: 'SOME_OAUTH_CLIENT_SECRET',
   redirectUri: 'http://localhost:3000/oauth/_callback',
-  apiVersion: 'v27.0',  // optional, defaults to current version
-  environment: 'production',  // optional, 'sandbox' or 'production', production default
+  apiVersion: 'v27.0',  // optional, defaults to current salesforce API version
+  environment: 'production',  // optional, salesforce 'sandbox' or 'production', production default
   mode: 'multi' // optional, 'single' or 'multi' user mode, multi default
 });
 ```
 
-Now we just need to authenticate and get our OAuth credentials. Here is one way to do this in multi-user mode...
+Now we just need to authenticate and get our salesforce OAuth credentials. Here is one way to do this in multi-user mode...
 
 ```js
 // multi user mode
@@ -58,7 +58,7 @@ org.authenticate({ username: 'my_test@gmail.com', password: 'mypassword'}, funct
 });
 ```
 
-Now we can go nuts. **nforce** has an sObject factory method that creates records for you. Let's use that and insert a record...
+Now we can go nuts. **nforce** has an salesforce sObject factory method that creates records for you. Let's use that and insert a record...
 
 ```js
 var acc = nforce.createSObject('Account');
@@ -146,7 +146,7 @@ org.authenticate({ code: 'SOMEOAUTHAUTHORIZATIONCODE' }, function(err, resp){
 
 ### OAuth Object
 
-At the end of a successful authorization, you a returned an OAuth object for the user. This object contains your access token, endpoint, id, and other information.  If you have `mode` set to `multi`, cache this object for the user as it will be used for subsequent requests. If you are in `single` user mode, the OAuth object is stored as a property on your connection object.
+At the end of a successful authorization, you a returned an OAuth object for the user. This object contains your salesforce access token, endpoint, id, and other information.  If you have `mode` set to `multi`, cache this object for the user as it will be used for subsequent requests. If you are in `single` user mode, the OAuth object is stored as a property on your salesforce connection object.
 
 ### OAuth Object De-Coupling (Multi-user mode)
 
@@ -243,7 +243,7 @@ org.query(query, req.session.oauth).pipe(res); // streaming all 50k records
 
 ### Force.com Streaming API Support
 
-**nforce** supports the Force.com Streaming API. Connecting to one of your PushTopics is easy using the EventEmitter interface.
+**nforce** supports the Force.com Streaming API. Connecting to one of your PushTopics is easy using the node.js EventEmitter interface.
 
 ```js
 org.authenticate({ username: user, password: pass }, function(err, oauth) {
@@ -272,7 +272,7 @@ org.authenticate({ username: user, password: pass }, function(err, oauth) {
 
 ### Callbacks
 
-The API of **nforce** follows typical node standards. Callbacks will always pass an optional error object, and a response object. The response object closely resembles the typical responses from the Salesforce REST API.
+The API of **nforce** follows typical node.js standards. Callbacks will always pass an optional error object, and a response object. The response object closely resembles the typical responses from the Salesforce REST API.
 
 ```js
 callback(err, resp);
@@ -292,7 +292,7 @@ org.getSObjects(oauth).pipe(so);
 
 ### createConnection(opts)
 
-The createConnection method creates an *nforce* connection object. You need to supply some arguments including oauth information and some optional arguments for version and environment.
+The createConnection method creates an *nforce* salesforce connection object. You need to supply some arguments including oauth information and some optional arguments for version and salesforce environment type. 
 
 * `clientId`: Required. This is the OAuth client id
 * `clientSecret`: Required. This is the OAuth client secret
@@ -304,9 +304,9 @@ The createConnection method creates an *nforce* connection object. You need to s
 
 ### createSObject(type, [fieldValues])
 
-This creates an sObject record that you can use to insert, update, upsert, and delete. `type` should be the API name of the sObject that you are updating. `fieldValues` should be a hash of field names and values that you want to initialize your sObject with. You can also just assign fields and values by setting properties after you create the sObject.
+This creates an sObject record that you can use to insert, update, upsert, and delete. `type` should be the salesforce API name of the sObject that you are updating. `fieldValues` should be a hash of field names and values that you want to initialize your sObject with. You can also just assign fields and values by setting properties after you create the sObject.
 
-## sObject Methods
+## Salesforce sObject Methods
 
 ### getFieldValues()
 
@@ -330,7 +330,7 @@ This is a helper method to build the authentication uri for a authorization code
 
 ### authenticate(opts, [callback])
 
-This method requests the OAuth access token and instance information from Salesforce. This method either requires that you pass in the authorization code (authorization code flow) or username and password (username/password flow).
+This method requests the OAuth access token and instance information from Salesforce or Force.com. This method either requires that you pass in the authorization code (authorization code flow) or username and password (username/password flow).
 
 * `code`: (String) An OAuth authorization code
 
@@ -350,7 +350,7 @@ Gets the salesforce versions. Note: Does not require authentication.
 
 ### getResources([oauth], [callback])
 
-Gets the available resources
+Gets the available salesforce resources
 
 ### getSObjects([oauth], [callback])
 
@@ -414,7 +414,7 @@ Get a REST API resource by its url. `url` should be a REST API resource.
 
 ### stream(pushtopic, [oauth])
 
-Start a streaming connection. An EventEmitter is returned with the following events:
+Start a force.com streaming API connection. An EventEmitter is returned with the following events:
 
 * `connect`: subscribed to the topic
 * `data`: got a streaming event
