@@ -996,11 +996,13 @@ var apiRequest = function(opts, oauth, sobject, callback) {
       if(sobject && body && body.id && !sobject.Id && !sobject.id && !sobject.ID) sobject.Id = body.id;
       callback(null, body);
     } else if(!err) {
-      if(body) body = JSON.parse(body);
-      err = new Error(body[0].message);
-      err.errorCode = body[0].errorCode;
-      err.statusCode = res.statusCode;
-      err.messageBody = body[0].message;
+      if(body) {
+        body = JSON.parse(body);
+        err = new Error(body[0].message);
+        err.errorCode = body[0].errorCode;
+        err.statusCode = res.statusCode;
+        err.messageBody = body[0].message;
+      }
       callback(err, null);
     } else {
       callback(err, null);
