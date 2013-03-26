@@ -990,7 +990,14 @@ var apiRequest = function(opts, oauth, sobject, callback) {
   }
   
   return request(opts, function(err, res, body) {
-    if(!err && res.statusCode == 200 || res.statusCode == 201 || res.statusCode == 202 || res.statusCode == 204) {
+    if(!err && !body) {
+      if(res.headers && res.headers.error) {
+        err = new Error(res.headers.error);
+      } else {
+        err = new Error('Server returned '+res.statusCode+' with an empty response');
+      }
+      callback(err, null);
+    } else if(!err && res.statusCode == 200 || res.statusCode == 201 || res.statusCode == 202 || res.statusCode == 204) {
       if(body) body = JSON.parse(body);
       // attach the id back to the sobject on insert
       if(sobject && body && body.id && !sobject.Id && !sobject.id && !sobject.ID) sobject.Id = body.id;
