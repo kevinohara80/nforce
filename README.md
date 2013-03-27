@@ -457,9 +457,11 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 * Jeff Douglas -> [jeffdonthemic](https://github.com/jeffdonthemic)
 * Zach McElrath -> [zachelrath](https://github.com/zachelrath)
 * Chris Bland -> [chrisbland](https://github.com/chrisbland)
+* Jeremy Neander -> [jneander](https://github.com/jneander)
 
 ## Changelog
 
+* `v0.4.1`: Bug fix for handling SFDC 500 response
 * `v0.4.0`: Single user mode
 * `v0.3.1`: Documentation updates.
 * `v0.3.0`: Blob support. API request streaming.
