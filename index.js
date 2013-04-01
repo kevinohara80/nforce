@@ -206,6 +206,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
   return request(reqOpts, function(err, res, body){
     if(!err && res.statusCode == 200) {
       if(body) body = JSON.parse(body);
+      if(self.mode === 'single') self.oauth = body;
       callback(null, body);
     } else if(!err) {
       if(body) body = JSON.parse(body);
@@ -479,7 +480,7 @@ Connection.prototype.upsert = function(data, oauth, callback) {
   
   fieldvalues = data.getFieldValues();
   
-  if(typeof fieldValues !== 'object') {
+  if(typeof fieldvalues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
   
@@ -990,30 +991,36 @@ var apiRequest = function(opts, oauth, sobject, callback) {
   }
   
   return request(opts, function(err, res, body) {
-    if(!err && !body) {
-      if(res.headers && res.headers.error) {
-        err = new Error(res.headers.error);
-      } else {
-        err = new Error('Server returned '+res.statusCode+' with an empty response');
-      }
-      callback(err, null);
-    } else if(!err && res.statusCode == 200 || res.statusCode == 201 || res.statusCode == 202 || res.statusCode == 204) {
+    
+    // request returned an error
+    if(err) return callback(err, null);
+
+    // salesforce returned no body but an error in the header
+    if(!body && res.headers && res.headers.error) {
+      return callback(new Error(res.headers.error), null);
+    }
+
+    // salesforce returned an ok of some sort
+    if(res.statusCode >= 200 && res.statusCode <= 204) {
       if(body) body = JSON.parse(body);
       // attach the id back to the sobject on insert
       if(sobject && body && body.id && !sobject.Id && !sobject.id && !sobject.ID) sobject.Id = body.id;
-      callback(null, body);
-    } else if(!err) {
-      if(body) {
-        body = JSON.parse(body);
-        err = new Error(body[0].message);
-        err.errorCode = body[0].errorCode;
-        err.statusCode = res.statusCode;
-        err.messageBody = body[0].message;
-      }
-      callback(err, null);
-    } else {
-      callback(err, null);
-    }
+      return callback(null, body);
+    } 
+
+    // salesforce returned an error with a body
+    if(body) {
+      body = JSON.parse(body);
+      err = new Error(body[0].message);
+      err.errorCode = body[0].errorCode;
+      err.statusCode = res.statusCode;
+      err.messageBody = body[0].message;
+      return callback(err, null);
+    } 
+    
+    // we don't know what happened
+    return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
+
   });
 }
 
