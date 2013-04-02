@@ -964,24 +964,46 @@ var findId = function(data) {
 }
 
 var apiBlobRequest = function(opts, oauth, callback) {
-  var token = 'OAuth ' + oauth.access_token;
+
   opts.headers = {
     'content-type': 'application/json',
-    'Authorization': token
+    'Authorization': 'Bearer ' + oauth.access_token
   }
+
   return request(opts, function(err, res, body) {
-    if(!err && res.statusCode == 200 || res.statusCode == 201 || res.statusCode == 202 || res.statusCode == 204) {
-      callback(null, body);
-    } else {
-      callback(err, null);
+    // request returned an error
+    if(err) return callback(err, null);
+
+    // salesforce returned no body but an error in the header
+    if(!body && res.headers && res.headers.error) {
+      return callback(new Error(res.headers.error), null);
     }
+
+    // salesforce returned an ok of some sort
+    if(res.statusCode >= 200 && res.statusCode <= 204) {
+      return callback(null, body);
+    } 
+
+    // salesforce returned an error with a body
+    if(body) {
+      body = JSON.parse(body);
+      err = new Error(body[0].message);
+      err.errorCode = body[0].errorCode;
+      err.statusCode = res.statusCode;
+      err.messageBody = body[0].message;
+      return callback(err, null);
+    } 
+    
+    // we don't know what happened
+    return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
+
   });
 }
 
 var apiRequest = function(opts, oauth, sobject, callback) {
 
   opts.headers = {
-    'Authorization': 'OAuth ' + oauth.access_token
+    'Authorization': 'Bearer ' + oauth.access_token
   }
 
   if(opts.multipart) {
