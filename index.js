@@ -894,8 +894,7 @@ Connection.prototype.stream = function(data, oauth) {
 
 // express middleware
 
-Connection.prototype.expressOAuth = function(opts) {
-  var url;
+Connection.prototype.expressOAuth = function(opts) { 
   var self = this;
   var matchUrl = url.parse(this.redirectUri);
   
@@ -911,11 +910,13 @@ Connection.prototype.expressOAuth = function(opts) {
   
   return function(req, res, next) {
 
+    var reqUrl;
+
     if(req.session && req.query.code) {
-      url = req.url.replace(/\?.*/i, '').replace(/\/$/, '');
-      if(matchUrl.pathname == url) {
+      reqUrl = req.url.replace(/\?.*/i, '').replace(/\/$/, '');
+      if(matchUrl.pathname == reqUrl) {
         // its an oauth callback
-        self.authenticate({ code: req.query.code}, function(err, resp){
+        self.authenticate({ code: req.query.code }, function(err, resp){
           if(!err) {
             req.session.oauth = resp;
             if(opts.onSuccess) {
