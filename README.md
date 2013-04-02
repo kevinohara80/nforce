@@ -461,6 +461,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 
 ## Changelog
 
+* `v0.4.3`: Fix express oauth issue. Whoops, my bad!
 * `v0.4.2`: Fix for upsert issue
 * `v0.4.1`: Bug fix for handling SFDC 500 response
 * `v0.4.0`: Single user mode
