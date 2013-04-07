@@ -25,7 +25,9 @@
   },
   "devDependencies": {
     "mocha": "*",
-    "should": "*"
+    "should": "*",
+    "nock": "*",
+    "underscore": "*"
   },
   "optionalDependencies": {},
   "engines": {
