@@ -17,7 +17,25 @@ var org = nforce.createConnection({
     clientId: '3MVG9rFJvQRVOvk5nd6A4swCyck.4BFLnjFuASqNZmmxzpQSFWSTe6lWQxtF3L5soyVLfjV3yBKkjcePAsPzi',
     clientSecret: '9154137956044345875',
     redirectUri: 'http://localhost:3000/oauth/_callback'
+
+    // If running in 'single-user' mode, you don't need to pass the request.session.oauth parameter
+    // to the org methods.
+    //,mode: 'single'
 });
+
+
+/*
+ single-mode authentication:
+ ==========================
+
+org.authenticate({ username: "user", password: "password+SecurityToken"}, function(err, res) {
+    if(err) return console.error('unable to authenticate to sfdc');
+
+   if(!err) console.log('Cached Token: ' + org.oauth.access_token);
+
+
+});
+*/
 
 
 // all environments
@@ -48,6 +66,9 @@ app.get('/oauth/authorize', function(req, res){
 app.get('/', routes.index);
 app.get('/chatter', chatter.index);
 
+
+
+
 app.get('/chatter/feeds/whatfollow/:chatterId?', function(request, response) {
     var chatterId = request.params.chatterId;
     var nextPage = null; //no need for next page.
@@ -57,6 +78,7 @@ app.get('/chatter/feeds/whatfollow/:chatterId?', function(request, response) {
         return;
     }
     var callback = request.query["callback"];
+
 
     org.getChatterNewsFeedItemsForProfileId(chatterId, nextPage, request.session.oauth, function(err,chatterFeedItems){
         if(callback !=null)
