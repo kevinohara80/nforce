@@ -444,6 +444,95 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
   })
 ```
 
+## Chatter API Specific
+
+
+The following is a list of methods which are related to Chatter APIs :
+
+### postFeedItem(oauth,messageSegments,userId,callback)
+Posts a feed Item to the User represented by `userId`.
+
+### addCommentsToFeedById(oauth,messageSegments,feedItemId,callback)
+Posts a feed Item to the User represented by `userId`. 
+`messagesegments` is an array which looks something like this. 
+
+```
+var messageSegments = [{'type':'Text','text':'This is a message from chatter-APIs node lib.'}]
+```
+
+### mentionUserInFeedItem(oauth,messageSegments,userId,callback)
+Metntions a user represented by `userId` in a feed.
+
+`messagesegments` is an array which looks something like this. 
+
+```
+var messageSegments = [{'type':'Text','text':comments},{'type':'mention','id':userId}]
+```
+
+### mentionUserInComments(oauth,messageSegments,feedItemId,callback) 
+Metntions a user represented by `userId` in a feed which is represented by `feedItemId`
+userId is sent in `messagesegments`. 
+
+```
+var messageSegments = [{'type':'Text','text':comments},{'type':'mention','id':userId}]
+```
+
+### likeFeedItems(oauth,feedItemId,callback)
+Like a feed Item represented by `feedItemId`.
+
+### shareFeedItem(oauth,feedItemId,userId,callback) 
+Share a feed Item represented by `feedItemId`.
+
+### getNewsFeed(oauth, callback) 
+Get News feed for the current user.
+
+### searchARecordFeed(oauth,searchString,callback)
+Search a record feed.  The record can be a group, person, object, file, and so on. For example, use this resource to search a group feed. The `searchString` can contain wildcards and must contain at least two characters that aren’t wildcards. 
+
+### getFeedItemsForARecord(oauth,recordId,callback)
+Get feed Items for a record represented by `recordId`.
+
+### getListOfWhatUserIsFollowing(oauth,userId,callback)
+Gets the list of whatever user is following.
+
+### getActivityStatisticsForUser(oauth,userId,callback) 
+Gets the activity status for the user represented by `userId`.
+
+### getRecommendations(oauth,callback)
+Get recommendations for current user.
+
+### joinGroup(oauth,userId,groupId,callback)
+Join a group represented by `groupId`.
+
+### requestToJoinGroup(oauth,userId,groupId,callback) 
+Requests the user represented by `userId` to join the group whose Id is groupId
+
+### respondToJoinGroup(oauth,requestId,reply,callback)
+Sends a reply to the request with id equal to `requestId`. Reply can be Accept or Reject
+
+### followARecord(oauth,subjectId,callback)
+Follow a rcord with Id equal to `subjectId`. If the record is a user then `subjectId` will be id of that user.
+
+### unFollowARecord(oauth,subscriptionId,callback)
+Unfollow a rcord with Id equal to `subscriptionId`.
+
+### followARecord(oauth,subjectId,callback)
+Follow a rcord with Id equal to `subjectId`.
+
+### sendPrivateMessage(oauth,body,recipients,callback)
+Send private message to a mulitiple receipients.
+`recipients` is an array which contains userId of recipients.
+```
+var recipients = ['00590000000HQ1LAAW','00590000000z1KOAAY'];
+```
+`body` is the message which you want to send.
+
+### getCurrentChatterUser(oauth, callback)
+Gets the current Chatter User Object.
+
+### getAllChatterFeedItems(oauth, callback)
+Gets all the Chatter feed Items.
+
 ## Todo
 
 * **nforce** cli implementation

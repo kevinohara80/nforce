@@ -304,6 +304,439 @@ Connection.prototype.getSObjects = function(oauth, callback) {
   });
 }
 
+
+// Chatter API Starts
+
+// Post feed item
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_update_status
+// /chatter/feeds/news/userId/feed-items
+Connection.prototype.postFeedItem = function(oauth,messageSegments,userId,callback) {
+    var type, opts, entity, name, fieldvalues;
+    
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+    
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion +'/chatter/feeds/news/' + userId +'/feed-items';
+    var bodyDict = {'messageSegments':messageSegments};
+    var body = {'body':bodyDict};
+    console.log('body = '+body);
+    
+    opts = {
+    uri: uri  ,
+    method: 'POST',
+    body: JSON.stringify(body)
+    };
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Add comments
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_add_comment
+// /chatter/feed-items/feedItemId/comments
+Connection.prototype.addCommentsToFeedById = function(oauth,messageSegments,feedItemId,callback) {
+    var type, opts, entity, name, fieldvalues;
+    
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+    
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion +'/chatter/feed-items/' + feedItemId +'/comments';
+    var bodyDict = {'messageSegments':messageSegments};
+    var body = {'body':bodyDict};
+    console.log('body = '+body);
+    
+    opts = {
+        uri: uri  ,
+        method: 'POST',
+        body: JSON.stringify(body)
+    };
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Post @mentions
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_post_mentions
+// /chatter/feeds/user-profile/userId/feed-items
+Connection.prototype.mentionUserInFeedItem = function(oauth,messageSegments,userId,callback) {
+    var type, opts, entity, name, fieldvalues;
+    
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+    
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion +'/chatter/feeds/user-profile/' + userId +'/feed-items';
+    var bodyDict = {'messageSegments':messageSegments};
+    var body = {'body':bodyDict};
+    console.log('body = '+body);
+    
+    opts = {
+    uri: uri  ,
+    method: 'POST',
+    body: JSON.stringify(body)
+    };
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Post @mentions
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_post_mentions
+// /chatter/feed-items/feedItemId/comments
+Connection.prototype.mentionUserInComments = function(oauth,messageSegments,feedItemId,callback) {
+    var type, opts, entity, name, fieldvalues;
+    
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+    
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion +'/chatter/feed-items/' + feedItemId +'/comments';
+    var bodyDict = {'messageSegments':messageSegments};
+    var body = {'body':bodyDict};
+    console.log('body = '+body);
+    
+    opts = {
+    uri: uri  ,
+    method: 'POST',
+    body: JSON.stringify(body)
+    };
+    return apiRequest(opts, oauth, null, callback);
+}
+// Like feed items
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_like
+// /chatter/feed-items/feedItemId/likes
+Connection.prototype.likeFeedItems = function(oauth,feedItemId,callback) {
+    var type, opts, entity, name, fieldvalues;
+    
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion +'/chatter/feed-items/' + feedItemId +'/likes';
+    opts = {
+        uri: uri  ,
+        method: 'POST',
+    };
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Share a feed Item
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_rechat
+// /chatter/feeds/user-profile/userId/feed-items
+Connection.prototype.shareFeedItem = function(oauth,feedItemId,userId,callback) {
+    var  opts,  name;
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion +'/chatter/feeds/user-profile/' + userId +'/feed-items';
+    opts = {
+        uri: uri  ,
+        method: 'POST',
+        body:JSON.stringify({'originalFeedItemId':feedItemId})
+    };
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Get my News feed
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_get_news
+// /chatter/feeds/news/me/feed-items
+Connection.prototype.getNewsFeed = function(oauth, callback) {
+    var self = this;
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 1) callback = args[0];
+    }
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/chatter/feeds/news/me/feed-items';
+    var opts = { uri: uri, method: 'GET' }
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Search a record feed
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_search_record
+// /chatter/feeds/record/me/feed-items
+Connection.prototype.searchARecordFeed = function(oauth,searchString,callback) {
+    var self = this;
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 1) callback = args[0];
+    }
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/chatter/feeds/record/me/feed-items?q='+searchString;
+    var opts = { uri: uri, method: 'GET' }
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Get feed items for a record 
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_get_feed_items
+// /chatter/feeds/record/recordId/feed-items
+Connection.prototype.getFeedItemsForARecord = function(oauth,recordId,callback) {
+    var self = this;
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 1) callback = args[0];
+    }
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/chatter/feeds/record/'+recordId+'/feed-items';
+    var opts = { uri: uri, method: 'GET' }
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Get list of what user is following
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_get_followers
+// /chatter/users/userId/following
+Connection.prototype.getListOfWhatUserIsFollowing = function(oauth,userId,callback) {
+    var self = this;
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 1) callback = args[0];
+    }
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/chatter/users/'+userId+'/following';
+    var opts = { uri: uri, method: 'GET' }
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Get Chatter activity statistics
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_get_activity
+// /chatter/users/userId
+Connection.prototype.getActivityStatisticsForUser = function(oauth,userId,callback) {
+    var self = this;
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 1) callback = args[0];
+    }
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/chatter/users/'+userId;
+    var opts = { uri: uri, method: 'GET' }
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Get recommendation
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_get_recommendations
+// /chatter/users/me/recommendations/follow/users
+Connection.prototype.getRecommendations = function(oauth,callback) {
+    var self = this;
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 1) callback = args[0];
+    }
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/chatter/users/me/recommendations/follow/users';
+    var opts = { uri: uri, method: 'GET' }
+    return apiRequest(opts, oauth, null, callback);
+}
+
+
+// Join a group
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_join_groups
+// /chatter/groups/groupId/members
+Connection.prototype.joinGroup = function(oauth,userId,groupId,callback) {
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion +'/chatter/groups/' + groupId +'/members';
+    var opts = {
+    uri: uri  ,
+    method: 'POST',
+    body:JSON.stringify({'userId':userId})
+    };
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Request to join a private group
+// /chatter/groups/groupId/members/requests
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_join_private_group
+Connection.prototype.requestToJoinGroup = function(oauth,userId,groupId,callback) {
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion +'/chatter/groups/' + groupId +'/members/requests';
+    var opts = {
+    uri: uri  ,
+    method: 'POST'
+    };
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Respond to request to join a private group
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_respond_join_private_group
+// /chatter/group-memberships-requests/requestId
+Connection.prototype.respondToJoinGroup = function(oauth,requestId,reply,callback) {
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion +'/chatter/group-memberships-requests/'+requestId;
+    var opts = {
+    uri: uri  ,
+    method: 'PATCH',
+    body:JSON.stringify({'status':reply})
+    };
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Post to a group
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_post_to_groups
+// /chatter/feeds/record/groupId/feed-items
+Connection.prototype.postToAGroup = function(oauth,groupId,messageSegments,callback) {
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion +'/chatter/feeds/record/'+groupId+'/feed-items';
+    var bodyDict = {'messageSegments':messageSegments};
+    var body = {'body':bodyDict};
+    var opts = {
+        uri: uri  ,
+        method: 'POST',
+        body:JSON.stringify(body)
+    };
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Follow a record
+// /chatter/users/me/following
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_follow_records
+Connection.prototype.followARecord = function(oauth,subjectId,callback) {
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion +'/chatter/users/me/following';
+    var opts = {
+    uri: uri  ,
+    method: 'POST',
+    body:JSON.stringify({'subjectId':subjectId})
+    };
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Unfollow a record
+// /chatter/subscriptions/subscriptionId
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_unfollow_records
+Connection.prototype.unFollowARecord = function(oauth,subscriptionId,callback) {
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion +'/chatter/subscriptions/'+subscriptionId;
+    var opts = {
+    uri: uri  ,
+    method: 'DELETE'
+    };
+    return apiRequest(opts, oauth, null, callback);
+}
+
+// Send a Private message.
+// /chatter/users/me/messages/
+// http://www.salesforce.com/us/developer/docs/chatterapi/Content/connect_resources_how_to.htm#cc_send_message
+Connection.prototype.sendPrivateMessage = function(oauth,body,recipients,callback) {
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = oauth.instance_url + '/services/data/' + this.apiVersion +'/chatter/users/me/messages/';
+    var opts = {
+    uri: uri  ,
+    method: 'POST',
+    body:JSON.stringify({'body':body,'recipients':recipients})
+    };
+    return apiRequest(opts, oauth, null, callback);
+}
+
+Connection.prototype.getCurrentChatterUser = function(oauth, callback) {
+    var uri, opts;
+    var self = this;
+    
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 1) callback = args[0];
+    }
+    
+    if(!callback) callback = function(){}
+        
+        
+        if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    
+    uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/chatter/users/me';
+    opts = { uri: uri, method: 'GET' }
+    
+    return apiRequest(opts, oauth, null, function(err, resp){
+
+                      if(err) {
+                      callback(err, null);
+                      } else {
+                      console.log('resp '+JSON.stringify(resp));
+                      callback(null, resp);
+                      }
+                      });
+}
+
+//Get Chatter Feeds
+Connection.prototype.getAllChatterFeedItems = function(oauth, callback) {
+    var uri, opts;
+    var self = this;
+    
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 1) callback = args[0];
+    }
+    
+    if(!callback) callback = function(){}
+        if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/chatter/feeds/record/me/feed-items';
+    opts = { uri: uri, method: 'GET' }
+    
+    return apiRequest(opts, oauth, null, function(err, resp){
+                      if(err) {
+                      callback(err, null);
+                      } else {
+                      //console.log('resp '+JSON.stringify(resp));
+                      callback(null, resp);
+                      }
+                      });
+}
+
+// Chatter API Ends ----------
+
 Connection.prototype.getMetadata = function(data, oauth, callback) {
   var uri, opts;
 
