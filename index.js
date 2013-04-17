@@ -942,6 +942,44 @@ Connection.prototype.expressOAuth = function(opts) {
   }
 }
 
+Connection.prototype.updatePassword = function(data, oauth, callback) {
+  var type, opts, entity, name, id, fieldvalues;
+  
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+  
+  if(!callback) callback = function(){}
+  
+  if(typeof data.attributes.type !== 'string') {
+    return callback(new Error('Type must be in the form of a string'), null);
+  }
+  
+  type = data.attributes.type.toLowerCase();
+  
+  if(!(id = findId(data))) {
+    return callback(new Error('You must specify an id in the form of a string'));
+  }
+  
+  fieldvalues = data.getFieldValues();
+  
+  if(typeof fieldvalues !== 'object') {
+    return callback(new Error('fieldValues must be in the form of an object'), null);
+  }
+  
+  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  
+  opts = { 
+    uri: oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/User/' + id + '/password', 
+    method: 'POST'
+  };
+  
+  opts.body = JSON.stringify(fieldvalues);  
+  return apiRequest(opts, oauth, data, callback);
+}
+
 // utility methods
 
 var validateOAuth = function(oauth) {
