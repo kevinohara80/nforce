@@ -36,11 +36,9 @@ var Connection = function(opts) {
   } else {
     this.redirectUri = opts.redirectUri;
   }
-  // Allow custom login and test uris to be passed in
-  // Addresses issue #5
-  // @zachelrath 11/13/12
-  opts.loginUri && (LOGIN_URI = opts.loginUri);
-  opts.testLoginUri && (TEST_LOGIN_URI = opts.testLoginUri);
+
+  this.loginUri = opts.loginUri || LOGIN_URI;
+  this.testLoginUri = opts.testLoginUri || TEST_LOGIN_URI;
 
   if(typeof opts.cacheMetadata !== 'undefined') {
     if(typeof opts.cacheMetadata !== 'boolean') throw new Error('cacheMetadata must be a boolean');
@@ -140,7 +138,7 @@ Connection.prototype.authenticate = function(opts, callback) {
     return callback(new Error('You must either supply a code, or username and password'));
   }
 
-  uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
+  uri = (self.environment == 'sandbox') ? self.testLoginUri : self.loginUri;
 
   reqOpts = {
     uri: uri,
@@ -151,21 +149,33 @@ Connection.prototype.authenticate = function(opts, callback) {
     }
   }
 
-  return request(reqOpts, function(err, res, body){
-    if(!err && res.statusCode == 200) {
-      if(body) body = JSON.parse(body);
-      if(self.mode === 'single') self.oauth = body;
-      callback(null, body);
-    } else if(!err) {
-      if(body) body = JSON.parse(body);
-      err = new Error(body.error + ' - ' + body.error_description);
-      err.statusCode = res.statusCode;
-      callback(err, null);
-    } else {
-      callback(err, null);
-    }
-  });
+  function JSONParser(err, res, body){
+    if(err){ return callback(err, null); }
 
+    var error = null, data = null;
+    try {
+      data = JSON.parse(body);
+    } catch( e ){
+      error = new Error('unparsable json');
+      error.statusCode = res.statusCode;
+      data = body;
+    }
+
+    if(!error){
+      if(res.statusCode == 200) {
+        if(self.mode === 'single') self.oauth = data;
+        callback(null, data);
+      } else {
+        error = new Error(data.error + ' - ' + data.error_description);
+        error.statusCode = res.statusCode;
+        callback(error, null);
+      }
+    } else {
+      callback(error, data);
+    }
+  };
+
+  return request(reqOpts, JSONParser);
 }
 
 
@@ -192,7 +202,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
     'refresh_token': oauth.refresh_token
   }
 
-  uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
+  uri = (self.environment == 'sandbox') ? self.testLoginUri : self.loginUri;
 
   reqOpts = {
     uri: uri,
