@@ -8,6 +8,7 @@ var QueryStream = require('./lib/querystream');
 var FDCStream   = require('./lib/fdcstream');
 var faye        = require('faye');
 var mime        = require('mime');
+var utilities   = require('./lib/utilities');
 
 // constants
 
@@ -149,33 +150,7 @@ Connection.prototype.authenticate = function(opts, callback) {
     }
   }
 
-  function JSONParser(err, res, body){
-    if(err){ return callback(err, null); }
-
-    var error = null, data = null;
-    try {
-      data = JSON.parse(body);
-    } catch( e ){
-      error = new Error('unparsable json');
-      error.statusCode = res.statusCode;
-      data = body;
-    }
-
-    if(!error){
-      if(res.statusCode == 200) {
-        if(self.mode === 'single') self.oauth = data;
-        callback(null, data);
-      } else {
-        error = new Error(data.error + ' - ' + data.error_description);
-        error.statusCode = res.statusCode;
-        callback(error, null);
-      }
-    } else {
-      callback(error, data);
-    }
-  };
-
-  return request(reqOpts, JSONParser);
+  return request(reqOpts, utilities.createJSONParser(self, callback));
 }
 
 
@@ -213,33 +188,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
     }
   }
 
-  function JSONParser(err, res, body){
-    if(err) { return callback(err, null); }
-
-    var error = null, data = null;
-    try {
-      data = JSON.parse(body);
-    } catch( e ){
-      error = new Error('unparsable json');
-      error.statusCode = res.statusCode;
-      data = body;
-    }
-
-    if(!error){
-      if(res.statusCode == 200) {
-        if(self.mode === 'single') self.oauth = data;
-        callback(null, data);
-      } else {
-        error = new Error(data.error + ' - ' + data.error_description);
-        error.statusCode = res.statusCode;
-        callback(error, null);
-      }
-    } else {
-      callback(error, data);
-    }
-  };
-
-  return request(reqOpts, JSONParser);
+  return request(reqOpts, utilities.createJSONParser(self, callback));
 }
 
 // api methods
