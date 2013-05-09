@@ -213,21 +213,33 @@ Connection.prototype.refreshToken = function(oauth, callback) {
     }
   }
 
-  return request(reqOpts, function(err, res, body){
-    if(!err && res.statusCode == 200) {
-      if(body) body = JSON.parse(body);
-      if(self.mode === 'single') self.oauth = body;
-      callback(null, body);
-    } else if(!err) {
-      if(body) body = JSON.parse(body);
-      err = new Error(body.error + ' - ' + body.error_description);
-      err.statusCode = res.statusCode;
-      callback(err, null);
-    } else {
-      callback(err, null);
-    }
-  });
+  function JSONParser(err, res, body){
+    if(err) { return callback(err, null); }
 
+    var error = null, data = null;
+    try {
+      data = JSON.parse(body);
+    } catch( e ){
+      error = new Error('unparsable json');
+      error.statusCode = res.statusCode;
+      data = body;
+    }
+
+    if(!error){
+      if(res.statusCode == 200) {
+        if(self.mode === 'single') self.oauth = data;
+        callback(null, data);
+      } else {
+        error = new Error(data.error + ' - ' + data.error_description);
+        error.statusCode = res.statusCode;
+        callback(error, null);
+      }
+    } else {
+      callback(error, data);
+    }
+  };
+
+  return request(reqOpts, JSONParser);
 }
 
 // api methods
