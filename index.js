@@ -1031,7 +1031,11 @@ var apiRequest = function(opts, oauth, sobject, callback) {
 
     if(res.statusCode >= 200 && res.statusCode <= 204) {
       if(body) body = JSON.parse(body);
-      // attach the id back to the sobject on insert
+      } catch( e ) {
+        var error = new Error('unparsable json');
+        error.statusCode = res.statusCode;
+        return callback(error, body);
+      }
       if(sobject && body && body.id && !sobject.Id && !sobject.id && !sobject.ID) sobject.Id = body.id;
       return callback(null, body);
     } 
