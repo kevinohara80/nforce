@@ -9,6 +9,7 @@ var FDCStream   = require('./lib/fdcstream');
 var faye        = require('faye');
 var mime        = require('mime');
 var utilities   = require('./lib/utilities');
+var errors      = require('./lib/errors');
 
 // constants
 
@@ -1033,9 +1034,7 @@ var apiRequest = function(opts, oauth, sobject, callback) {
       try {
       if(body) body = JSON.parse(body);
       } catch( e ) {
-        var error = new Error('unparsable json');
-        error.statusCode = res.statusCode;
-        return callback(error, body);
+        return errors.unparsableJSON({statusCode: res.statusCode, body: body}, callback);
       }
       if(sobject && body && body.id && !sobject.Id && !sobject.id && !sobject.ID) sobject.Id = body.id;
       return callback(null, body);
@@ -1050,9 +1049,7 @@ var apiRequest = function(opts, oauth, sobject, callback) {
         err.messageBody = body[0].message;
         return callback(err, null);
       } catch( e ) {
-        var error = new Error('unparsable json');
-        error.statusCode = res.statusCode;
-        return callback(error, body);
+        return errors.unparsableJSON({statusCode: res.statusCode, body: body}, callback);
       }
     } 
     
