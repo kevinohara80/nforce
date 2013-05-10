@@ -169,6 +169,23 @@ describe('Connection #upsert', function(){
       });
     });
 
+    it('responds with specific error when receiving unparsable JSON', function(done){
+      helper.setFakewebResponse({uri: apiUri, statusCode: 202, body: '<html></html>'});
+      org.upsert(sobject, oauth, function(err, data){
+        err.should.match(/unparsable json/i);
+        data.should.equal('<html></html>');
+        done();
+      });
+    });
+
+    it('sets a status code when receiving unparsable JSON', function(done){
+      helper.setFakewebResponse({uri: apiUri, statusCode: 204, body: '<html></html>'});
+      org.upsert(sobject, oauth, function(err, data){
+        err.statusCode.should.equal(204);
+        done();
+      });
+    });
+
   });
 
   describe('when another status is received', function(){
@@ -181,6 +198,23 @@ describe('Connection #upsert', function(){
         err.errorCode.should.equal(503);
         err.message.should.match(/proxy error/i);
         should.not.exist(data);
+        done();
+      });
+    });
+
+    it('responds with specific error when receiving unparsable JSON', function(done){
+      helper.setFakewebResponse({uri: apiUri, statusCode: 500, body: '<html></html>'});
+      org.upsert(sobject, oauth, function(err, data){
+        err.should.match(/unparsable json/i);
+        data.should.equal('<html></html>');
+        done();
+      });
+    });
+
+    it('sets a status code when receiving unparsable JSON', function(done){
+      helper.setFakewebResponse({uri: apiUri, statusCode: 500, body: '<html></html>'});
+      org.upsert(sobject, oauth, function(err, data){
+        err.statusCode.should.equal(500);
         done();
       });
     });

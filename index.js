@@ -1030,6 +1030,7 @@ var apiRequest = function(opts, oauth, sobject, callback) {
     }
 
     if(res.statusCode >= 200 && res.statusCode <= 204) {
+      try {
       if(body) body = JSON.parse(body);
       } catch( e ) {
         var error = new Error('unparsable json');
@@ -1041,12 +1042,18 @@ var apiRequest = function(opts, oauth, sobject, callback) {
     } 
 
     if(body) {
-      body = JSON.parse(body);
-      err = new Error(body[0].message);
-      err.errorCode = body[0].errorCode;
-      err.statusCode = res.statusCode;
-      err.messageBody = body[0].message;
-      return callback(err, null);
+      try {
+        body = JSON.parse(body);
+        err = new Error(body[0].message);
+        err.errorCode = body[0].errorCode;
+        err.statusCode = res.statusCode;
+        err.messageBody = body[0].message;
+        return callback(err, null);
+      } catch( e ) {
+        var error = new Error('unparsable json');
+        error.statusCode = res.statusCode;
+        return callback(error, body);
+      }
     } 
     
     return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));

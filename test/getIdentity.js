@@ -88,6 +88,23 @@ describe('Connection #getIdentity', function(){
       });
     });
 
+    it('responds with specific error when receiving unparsable JSON', function(done){
+      helper.setFakewebResponse({uri: 'http://example:80/', statusCode: 202, body: '<html></html>'});
+      org.getIdentity(oauth, function(err, body){
+        err.should.match(/unparsable json/i);
+        body.should.equal('<html></html>');
+        done();
+      });
+    });
+
+    it('sets a status code when receiving unparsable JSON', function(done){
+      helper.setFakewebResponse({uri: 'http://example:80/', statusCode: 204, body: '<html></html>'});
+      org.getIdentity(oauth, function(err, body){
+        err.statusCode.should.equal(204);
+        done();
+      });
+    });
+
   });
 
   describe('when another status is received', function(){
@@ -100,6 +117,23 @@ describe('Connection #getIdentity', function(){
         err.errorCode.should.equal(503);
         err.message.should.match(/proxy error/i);
         should.not.exist(body);
+        done();
+      });
+    });
+
+    it('responds with specific error when receiving unparsable JSON', function(done){
+      helper.setFakewebResponse({uri: 'http://example:80/', statusCode: 500, body: '<html></html>'});
+      org.getIdentity(oauth, function(err, body){
+        err.should.match(/unparsable json/i);
+        body.should.equal('<html></html>');
+        done();
+      });
+    });
+
+    it('sets a status code when receiving unparsable JSON', function(done){
+      helper.setFakewebResponse({uri: 'http://example:80/', statusCode: 500, body: '<html></html>'});
+      org.getIdentity(oauth, function(err, body){
+        err.statusCode.should.equal(500);
         done();
       });
     });
