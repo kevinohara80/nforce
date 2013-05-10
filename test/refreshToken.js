@@ -1,30 +1,5 @@
-var nforce = require('../');
 var should = require('should');
-var fakeweb = require('node-fakeweb');
-
-function setFakewebResponse(options){
-  fakeweb.allowNetConnect = false;
-  fakeweb.registerUri({
-    uri: 'https://login.salesforce.com:443/services/oauth2/token',
-    statusCode: options.statusCode,
-    body: options.body
-  });
-};
-
-function createConnection(options){
-  var org = nforce.createConnection({
-    clientId: 'SOME_OAUTH_CLIENT_ID',
-    clientSecret: 'SOME_OAUTH_CLIENT_SECRET',
-    redirectUri: 'http://localhost:3000/oauth/_callback',
-    apiVersion: 'v24.0',
-    environment: options.environment || 'production',
-    mode: options.mode,
-    loginUri: options.loginUri,
-    testLoginUri: options.testLoginUri
-  });
-  org.oauth = options.oauth;
-  return org;
-};
+var helper = require('./test-helper');
 
 describe('Connection #refreshToken', function(){
   var org, oauth;
@@ -35,7 +10,7 @@ describe('Connection #refreshToken', function(){
       instance_url: 'http://instance.salesforce.com/',
       refresh_token: '1234567890'
     };
-    org = createConnection({});
+    org = helper.createConnection({});
     done();
   });
 
@@ -77,7 +52,7 @@ describe('Connection #refreshToken', function(){
   describe('with a 200 response code', function(){
 
     it('parses the response body', function(done){
-      setFakewebResponse({statusCode: 200, body: '{"responseKey":"responseValue"}'});
+      helper.setFakewebResponse({statusCode: 200, body: '{"responseKey":"responseValue"}'});
       org.refreshToken(oauth, function(err, res){
         should.not.exist(err);
         res.responseKey.should.equal("responseValue");
@@ -86,8 +61,8 @@ describe('Connection #refreshToken', function(){
     });
 
     it('sets oauth to the body when mode is single', function(done){
-      org = createConnection({mode: 'single', oauth: oauth});
-      setFakewebResponse({statusCode: 200, body: '{"responseKey":"responseValue"}'});
+      org = helper.createConnection({mode: 'single', oauth: oauth});
+      helper.setFakewebResponse({statusCode: 200, body: '{"responseKey":"responseValue"}'});
       org.refreshToken(oauth, function(err, res){
         org.oauth.responseKey.should.equal('responseValue');
         done();
@@ -95,7 +70,7 @@ describe('Connection #refreshToken', function(){
     });
 
     it('responds with error when receiving unparsable JSON', function(done){
-      setFakewebResponse({statusCode: 200, body: '<html></html>'});
+      helper.setFakewebResponse({statusCode: 200, body: '<html></html>'});
       org.refreshToken(oauth, function(err, res){
         err.should.match(/unparsable json/i);
         res.should.equal('<html></html>');
@@ -104,7 +79,7 @@ describe('Connection #refreshToken', function(){
     });
 
     it('sets a status code when receiving unparsable JSON', function(done){
-      setFakewebResponse({statusCode: 200, body: '<html></html>'});
+      helper.setFakewebResponse({statusCode: 200, body: '<html></html>'});
       org.refreshToken(oauth, function(err, res){
         err.statusCode.should.equal(200);
         done();
@@ -116,7 +91,7 @@ describe('Connection #refreshToken', function(){
   describe('with a non-200 response code', function(){
 
     it('returns without body', function(done){
-      setFakewebResponse({statusCode: 400, body: '{"error":"errorValue"}'});
+      helper.setFakewebResponse({statusCode: 400, body: '{"error":"errorValue"}'});
       org.refreshToken(oauth, function(err, res){
         should.not.exist(res);
         done();
@@ -124,7 +99,7 @@ describe('Connection #refreshToken', function(){
     });
 
     it('parses the response body', function(done){
-      setFakewebResponse({statusCode: 400, body: '{"error":"errorValue"}'});
+      helper.setFakewebResponse({statusCode: 400, body: '{"error":"errorValue"}'});
       org.refreshToken(oauth, function(err, res){
         err.should.match(/errorValue/);
         done();
@@ -132,7 +107,7 @@ describe('Connection #refreshToken', function(){
     });
 
     it('sets a status code on the error', function(done){
-      setFakewebResponse({statusCode: 400, body: '{"error":"errorValue"}'});
+      helper.setFakewebResponse({statusCode: 400, body: '{"error":"errorValue"}'});
       org.refreshToken(oauth, function(err, res){
         err.statusCode.should.equal(400);
         done();
@@ -140,7 +115,7 @@ describe('Connection #refreshToken', function(){
     });
 
     it('responds with specific error when receiving unparsable JSON', function(done){
-      setFakewebResponse({statusCode: 400, body: '<html></html>'});
+      helper.setFakewebResponse({statusCode: 400, body: '<html></html>'});
       org.refreshToken(oauth, function(err, res){
         err.should.match(/unparsable json/i);
         res.should.equal('<html></html>');
@@ -149,7 +124,7 @@ describe('Connection #refreshToken', function(){
     });
 
     it('sets a status code when receiving unparsable JSON', function(done){
-      setFakewebResponse({statusCode: 400, body: '<html></html>'});
+      helper.setFakewebResponse({statusCode: 400, body: '<html></html>'});
       org.refreshToken(oauth, function(err, res){
         err.statusCode.should.equal(400);
         done();
@@ -159,8 +134,8 @@ describe('Connection #refreshToken', function(){
   });
 
   it('returns the original error', function(done){
-    org = createConnection({loginUri: 'bad uri'});
-    setFakewebResponse({statusCode: 200, body: '{"responseKey":"responseValue"}'});
+    org = helper.createConnection({loginUri: 'bad uri'});
+    helper.setFakewebResponse({statusCode: 200, body: '{"responseKey":"responseValue"}'});
     org.refreshToken(oauth, function(err, res){
       should.exist(err);
       should.not.exist(res);
@@ -169,8 +144,8 @@ describe('Connection #refreshToken', function(){
   });
 
   it('uses the test uri when sandbox environment is specified', function(done){
-    org = createConnection({testLoginUri: 'http://hello/', environment: 'sandbox'});
-    setFakewebResponse({uri: 'http://hello:80/', statusCode: 200, body: '{"responseKey":"responseValue"}'});
+    org = helper.createConnection({testLoginUri: 'http://hello/', environment: 'sandbox'});
+    helper.setFakewebResponse({uri: 'http://hello:80/', statusCode: 200, body: '{"responseKey":"responseValue"}'});
     org.refreshToken(oauth, function(err, res){
       should.not.exist(err);
       res.responseKey.should.equal( "responseValue" );

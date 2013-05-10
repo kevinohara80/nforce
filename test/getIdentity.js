@@ -1,29 +1,5 @@
-var nforce = require('../');
 var should = require('should');
-var fakeweb = require('node-fakeweb');
-
-function setFakewebResponse(options){
-  fakeweb.allowNetConnect = false;
-  fakeweb.registerUri({
-    uri: options.uri || 'https://login.salesforce.com:443/services/oauth2/token',
-    statusCode: options.statusCode,
-    body: options.body,
-    headers: options.headers
-  });
-};
-
-function createConnection(options){
-  return nforce.createConnection({
-    clientId: 'SOME_OAUTH_CLIENT_ID',
-    clientSecret: 'SOME_OAUTH_CLIENT_SECRET',
-    redirectUri: 'http://localhost:3000/oauth/_callback',
-    apiVersion: 'v24.0',
-    environment: options.environment || 'production',
-    mode: options.mode,
-    loginUri: options.loginUri,
-    testLoginUri: options.testLoginUri
-  });
-};
+var helper = require('./test-helper');
 
 describe('Connection #getIdentity', function(){
   var oauth, org;
@@ -35,7 +11,7 @@ describe('Connection #getIdentity', function(){
       refresh_token: '1234567890',
       id: 'http://example/'
     };
-    org = createConnection({});
+    org = helper.createConnection({});
     done();
   });
 
@@ -93,7 +69,7 @@ describe('Connection #getIdentity', function(){
   });
 
   it('returns the error in the header of the response', function(done){
-    setFakewebResponse({uri: 'http://example:80/', headers: {error: "example error"}, body: ''});
+    helper.setFakewebResponse({uri: 'http://example:80/', headers: {error: "example error"}, body: ''});
     org.getIdentity(oauth, function(err, body){
       err.should.match(/example error/i);
       should.not.exist(body);
@@ -104,7 +80,7 @@ describe('Connection #getIdentity', function(){
   describe('when receiving a successful response', function(){
 
     it('parses the response body', function(done){
-      setFakewebResponse({uri: 'http://example:80/', statusCode: 200, body: '{"responseKey":"responseValue"}'});
+      helper.setFakewebResponse({uri: 'http://example:80/', statusCode: 200, body: '{"responseKey":"responseValue"}'});
       org.getIdentity(oauth, function(err, body){
         should.not.exist(err);
         body.responseKey.should.equal('responseValue');
@@ -118,7 +94,7 @@ describe('Connection #getIdentity', function(){
 
     it('returns an error with a body', function(done){
       var errorBody = '[{"errorCode":503,"message":"proxy error"}]';
-      setFakewebResponse({uri: 'http://example:80/', statusCode: 500, body: errorBody});
+      helper.setFakewebResponse({uri: 'http://example:80/', statusCode: 500, body: errorBody});
       org.getIdentity(oauth, function(err, body){
         err.statusCode.should.equal(500);
         err.errorCode.should.equal(503);
@@ -129,7 +105,7 @@ describe('Connection #getIdentity', function(){
     });
 
     it('returns an error if no body was received', function(done){
-      setFakewebResponse({uri: 'http://example:80/', statusCode: 500, body: ''});
+      helper.setFakewebResponse({uri: 'http://example:80/', statusCode: 500, body: ''});
       org.getIdentity(oauth, function(err, body){
         err.message.should.match(/500/);
         should.not.exist(body);
