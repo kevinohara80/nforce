@@ -1023,16 +1023,12 @@ var apiRequest = function(opts, oauth, sobject, callback) {
   }
   
   return request(opts, function(err, res, body) {
-    
-    // request returned an error
     if(err) return callback(err, null);
 
-    // salesforce returned no body but an error in the header
     if(!body && res.headers && res.headers.error) {
       return callback(new Error(res.headers.error), null);
     }
 
-    // salesforce returned an ok of some sort
     if(res.statusCode >= 200 && res.statusCode <= 204) {
       if(body) body = JSON.parse(body);
       // attach the id back to the sobject on insert
@@ -1040,7 +1036,6 @@ var apiRequest = function(opts, oauth, sobject, callback) {
       return callback(null, body);
     } 
 
-    // salesforce returned an error with a body
     if(body) {
       body = JSON.parse(body);
       err = new Error(body[0].message);
@@ -1050,9 +1045,7 @@ var apiRequest = function(opts, oauth, sobject, callback) {
       return callback(err, null);
     } 
     
-    // we don't know what happened
     return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
-
   });
 }
 
