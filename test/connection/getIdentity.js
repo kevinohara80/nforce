@@ -1,5 +1,5 @@
 var should = require('should');
-var helper = require('./test-helper');
+var helper = require('../test-helper');
 
 describe('Connection #getIdentity', function(){
   var oauth, org;

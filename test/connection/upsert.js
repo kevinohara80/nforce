@@ -1,6 +1,6 @@
-var nforce = require('../');
+var nforce = require('../../');
 var should = require('should');
-var helper = require('./test-helper');
+var helper = require('../test-helper');
 
 function createSampleSObject(options){
   options.type = options.hasOwnProperty('type') ? options.type : 'string';
