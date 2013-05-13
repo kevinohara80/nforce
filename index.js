@@ -1087,6 +1087,8 @@ var apiRequest = function(opts, oauth, sobject, callback) {
 
 // exports
 
+
+
 module.exports.createConnection = function(opts) {
   return new Connection(opts);
 }
@@ -1103,6 +1105,34 @@ module.exports.createSObject = function(type, fields) {
     }
   }
   return rec;
+}
+
+// canvas signed request midddleware for express
+module.exports.signed_request = function(options) {
+ 
+  if(!options) options = {};
+ 
+  return function(req, res, next) {
+    if(req.method === 'POST' && req.body && req.body.signed_request) {
+      if(!req.body.signed_request) return next();
+      var arr = req.body.signed_request.split('.');
+      var srData = JSON.parse(new Buffer(arr[1], 'base64').toString('ascii'));
+      // build up our oauth object for nforce
+      var oauth = {
+        access_token: srData.client.oauthToken || '',
+        instance_url: srData.client.instanceUrl || ''
+      };
+      // attach full signed request to request and, if available, session
+      req.signed_request = srData;
+      if(req.session) req.session.signed_request = srData;
+      // attach nforce oauth to request and, if available, session
+      req.oauth = oauth;
+      if(req.session) req.session.oauth = oauth;
+      next();
+    } else {
+      next();
+    }
+  }
 }
 
 module.exports.version = require('./package.json').version;
