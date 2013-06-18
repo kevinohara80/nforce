@@ -458,9 +458,11 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 * Zach McElrath -> [zachelrath](https://github.com/zachelrath)
 * Chris Bland -> [chrisbland](https://github.com/chrisbland)
 * Jeremy Neander -> [jneander](https://github.com/jneander)
+* Chris Hickman -> [chrishic](https://github.com/chrishic)
 
 ## Changelog
 
+* `v0.4.4`: Fixes query stream issues
 * `v0.4.3`: Fix express oauth issue. Whoops, my bad!
 * `v0.4.2`: Fix for upsert issue
 * `v0.4.1`: Bug fix for handling SFDC 500 response
