@@ -704,7 +704,9 @@ Connection.prototype.query = function(query, oauth, callback) {
 
   var queryNext = function(url) {
     self.getUrl(url, oauth, function(err, resp) {
-      if(err) return callback(err, resp);
+      if (err) {
+        return stream.error(err);
+      }
       if(resp.records && resp.records.length > 0) {
         stream.write(JSON.stringify(resp));
       }
@@ -720,25 +722,32 @@ Connection.prototype.query = function(query, oauth, callback) {
   opts = { uri: uri, method: 'GET', qs: { q: query } }
   
   apiRequest(opts, oauth, null, function(err, resp){
-    if(!err) {
-      if(resp.records && resp.records.length > 0) {
-        stream.write(JSON.stringify(resp));
-        for(var i=0; i<resp.records.length; i++) {
-          recs.push(new Record(resp.records[i]));
+    if (stream.isStreaming()) {
+      if (err) {
+        stream.error(err);
+      }
+      else {
+        if(resp) {
+          stream.write(JSON.stringify(resp));
         }
-        resp.records = recs;
+        if(resp.nextRecordsUrl) {
+          queryNext(resp.nextRecordsUrl);
+        } else {
+          stream.end();
+        }
       }
-      if(resp.nextRecordsUrl && stream.isStreaming()) {
-        queryNext(resp.nextRecordsUrl);
-      } else {
-        callback(err, resp);
-        stream.end();
+    }
+    else {
+      if(!err) {
+        if(resp.records && resp.records.length > 0) {
+          for(var i=0; i<resp.records.length; i++) {
+            recs.push(new Record(resp.records[i]));
+          }
+          resp.records = recs;
+        }
       }
-    } else {
-      stream.end();
       callback(err, resp);
     }
-
   });
 
   return stream;
@@ -1105,4 +1114,5 @@ module.exports.createSObject = function(type, fields) {
   return rec;
 }
 
+module.exports.Record = Record;
 module.exports.version = require('./package.json').version;
