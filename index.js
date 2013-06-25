@@ -122,7 +122,7 @@ Connection.prototype.authenticate = function(opts, callback) {
 
   bodyOpts = {
     'client_id': self.clientId,
-    'client_secret': self.clientSecret,
+    'client_secret': self.clientSecret
   }
 
   if(opts.code) {
@@ -811,7 +811,343 @@ Connection.prototype.getUrl = function(url, oauth, callback) {
   return apiRequest(opts, oauth, null, callback);
 }
 
-// chatter api methods
+
+
+
+// Chatter api methods
+
+// Chatter Get Requests
+
+Connection.prototype.getChatterNewsFeedItemsForProfileId = function(id, nextPage, oauth, callback) {
+
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+    if(typeof id !== 'string') {
+        return callback(new Error('Id Type must be in the form of a string'), null);
+    }
+
+    chatterGetRequest('/feeds/news/' + id + '/feed-items', nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.getChatterNewsFeedItemById = function(id, nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+
+    if(typeof id !== 'string') {
+        return callback(new Error('Id Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/feed-items/' + id , nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.getChatterCommentsByFeedItemId = function(id, nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+    if(typeof id !== 'string') {
+        return callback(new Error('Id Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/feed-items/feedItemId/' + id + '/comments', nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.getChatterLikesByFeedItemId = function(id, nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+
+    if(typeof id !== 'string') {
+        return callback(new Error('Id Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/feed-items/feedItemId/' + id + '/likes', nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.getChatterGroupFeedItems = function(id, nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+
+    if(typeof id !== 'string') {
+        return callback(new Error('Id Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/feeds/groups/' + id + '/feed-items', nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.getChatterGroups = function(nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+
+    if(typeof id !== 'string') {
+        return callback(new Error('Id Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/groups/', nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.getChatterPeopleFeedItemsById = function(id, nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+
+    if(typeof id !== 'string') {
+        return callback(new Error('Id Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/feeds/people/' + id + '/feed-items', nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.getChatterRecordFeedItemsById = function(id, nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+
+    if(typeof id !== 'string') {
+        return callback(new Error('Id Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/feeds/record/' + id + '/feed-items', nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.getChatterFeedsToId = function(id, nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+
+    if(typeof id !== 'string') {
+        return callback(new Error('Id Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/feeds/to/' + id + '/feed-items', nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.getChatterUserProfileById = function(id, nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+    if(typeof id !== 'string') {
+        return callback(new Error('Id Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/users/' + id, nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.getChatterGroupProfileById = function(id, nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+    if(typeof id !== 'string') {
+        return callback(new Error('Id Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/groups/' + id, nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.getChatterGroupsForProfileId = function(id, nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+    if(typeof id !== 'string') {
+        return callback(new Error('Id Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/users/' + id + '/groups', nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.getChatterFollowersByProfileId = function(id, nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+
+    if(typeof id !== 'string') {
+        return callback(new Error('Id Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/users/' + id + '/followers', nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.getChatterFollowingByProfileId = function(id, nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+    if(typeof id !== 'string') {
+        return callback(new Error('Id Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/users/' + id + '/following', nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.searchUsersByName = function(name, nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+    if(typeof name !== 'string') {
+        return callback(new Error('name Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/users?q=' + name, nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.searchGroupsByName = function(name, nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+    if(typeof name !== 'string') {
+        return callback(new Error('name Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/groups?q=' + name, nextPage, this.apiVersion, oauth, callback);
+};
+
+Connection.prototype.searchChatterNewsFeedItems = function(searchTerm, nextPage, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+    if(typeof searchTerm !== 'string') {
+        return callback(new Error('searchTerm Type must be in the form of a string'), null);
+    }
+    chatterGetRequest('/feed-items?q=' + id, searchTerm, this.apiVersion, oauth, callback);
+};
+
+// Chatter Post Requests
+
+Connection.prototype.postCommentMessageForFeedItemId = function(feedItemId, segments, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 3) callback = args[2];
+    }
+
+    if(typeof feedItemId !== 'string') {
+        return callback(new Error('feedItemId Type must be in the form of a string'), null);
+    }
+
+    var reqBody = {
+        body : {
+            messageSegments : segments
+        }
+    };
+
+    chatterPostRequest('/feed-items/' + feedItemId + '/comments',  reqBody,  this.apiVersion, oauth, callback);
+
+};
+
+Connection.prototype.likeFeedItemForId = function(feedItemId, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+
+    if(typeof feedItemId !== 'string') {
+        return callback(new Error('feedItemId Type must be in the form of a string'), null);
+    }
+
+    var reqBody = { };
+
+    chatterPostRequest('/feed-items/' + feedItemId + '/likes',  reqBody,  this.apiVersion, oauth, callback);
+
+};
+
+Connection.prototype.likeCommentForFeedItemForId = function(feedItemId, oauth, callback) {
+    if(!callback) callback = function(){};
+
+    if(this.mode === 'single') {
+        var args = Array.prototype.slice.call(arguments);
+        oauth = this.oauth;
+        if(args.length == 2) callback = args[1];
+    }
+
+    if(typeof feedItemId !== 'string') {
+        return callback(new Error('feedItemId Type must be in the form of a string'), null);
+    }
+
+    var reqBody = {};
+
+    chatterPostRequest('/comments/' + feedItemId + '/likes',  reqBody,  this.apiVersion, oauth, callback);
+
+};
+
+
+
 
 // apex rest
 
@@ -1093,6 +1429,34 @@ var apiRequest = function(opts, oauth, sobject, callback) {
 
   });
 }
+
+
+// Chatter Helper method
+
+var chatterGetRequest = function(chatterURI, nextPage, apiVersion, oauth, callback) {
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri = null;
+
+    if(nextPage) {
+        uri = oauth.instance_url + nextPage;
+    } else {
+        uri = oauth.instance_url + '/services/data/' + apiVersion + '/chatter' +  chatterURI;
+    }
+
+    var opts = { uri: uri, method: 'GET' };
+    apiRequest(opts, oauth, null, callback);
+
+};
+
+var chatterPostRequest = function(chatterURI, reqBody, apiVersion, oauth, callback) {
+    if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+    var uri =  oauth.instance_url + '/services/data/' + apiVersion + '/chatter' +  chatterURI;
+
+    var opts = { uri: uri, method: 'POST',  body : JSON.stringify(reqBody) };
+    apiRequest(opts, oauth, null, callback);
+
+};
+
 
 // exports
 

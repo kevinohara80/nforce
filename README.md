@@ -444,6 +444,89 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
   })
 ```
 
+## Chatter REST API Methods
+
+### getChatterNewsFeedItemsForProfileId(id, nextPage, [oauth], [callback])
+
+Get Feed Items for a Profile. `id` is a required String.
+
+### getChatterNewsFeedItemById(id, nextPage, [oauth], [callback])
+
+Get News Feed Items for a Profile. `id` is a required String.
+
+### getChatterCommentsByFeedItemId(id, nextPage, [oauth], [callback])
+
+Get Comments for a Feed Item. `id` is a required String.
+
+### getChatterLikesByFeedItemId(id, nextPage, oauth, callback)
+
+Get Likes for Feed Item. `id` is a required String.
+
+### getChatterGroupFeedItems(id, nextPage, oauth, callback)
+
+Get Group Feed Items. `id` is a required String.
+
+### getChatterGroups(nextPage, oauth, callback)
+
+Get All Chatter Groups.
+
+### getChatterPeopleFeedItemsById(id, nextPage, oauth, callback)
+
+Returns all the feed items from all the people the user of the id provided follows. `id` is a required String.
+
+### getChatterRecordFeedItemsById(id, nextPage, oauth, callback)
+
+Returns the feed-items for all the records the the user of the id provided, signed-in user is following, or all the feed-items of the specified recordId. `id` is a required String.
+
+### getChatterFeedsToId(id, nextPage, oauth, callback)
+
+Feed of all @mentions of the the user of the id provided and posts others make to the logged-in user's feed. `id` is a required String.
+
+### getChatterUserProfileById(id, nextPage, oauth, callback)
+
+Returns information about the  user of the id provided Chatterprofile. `id` is a required String.
+
+### getChatterGroupProfileById(id, nextPage, oauth, callback)
+
+Returns information about the specified groupId. `id` is a required String.
+
+### getChatterGroupsForProfileId(id, nextPage, oauth, callback)
+
+Returns the groups the specified userId is a member of. `id` is a required String.
+
+### getChatterFollowersByProfileId(id, nextPage, oauth, callback)
+
+Returns information about the followers for the specified userId. `id` is a required String.
+
+### getChatterFollowingByProfileId(id, nextPage, oauth, callback)
+
+Returns a list of people, groups, records, and files that the specified userId is following. `id` is a required String.
+
+### searchUsersByName(name, nextPage, oauth, callback)
+
+Returns a list of users by Name. `name` is a required String.
+
+### searchGroupsByName(name, nextPage, oauth, callback)
+
+Returns a list of groups by Name. `name` is a required String.
+
+### searchChatterNewsFeedItems(searchTerm, nextPage, oauth, callback)
+
+Returns a list of News Feed Items based on the Search Term. `searchTerm` is a required String.
+
+### postCommentMessageForFeedItemId(feedItemId, segments, oauth, callback)
+
+Posts a comment message to the specified Feed Item Id. `feedItemId` is a required String.
+
+### likeFeedItemForId(feedItemId, oauth, callback)
+
+Provides ability to like a Feed Item. `feedItemId` is a required String.
+
+### likeCommentForFeedItemForId(feedItemId, oauth, callback)
+
+Provides ability to like a Feed Item Comment. `feedItemId` is a required String.
+
+
 ## Todo
 
 * **nforce** cli implementation

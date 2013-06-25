@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta  content="text/html; charset=utf-8" />
+    <title>Chatter REST API Sample Application</title>
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet" />
+    <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var host = 'http://localhost:3000';
+
+            $('#getFeedByButton').click(function(e){
+                e.preventDefault();
+                var $result = $('#result');
+                $result.html('Loading Chatter Feed...');
+                var url = host+'/chatter/feeds/' + $('#chatterType').val() + '/' + $('#chatterID').val();
+                $.getJSON(url,{}, function(data) {
+                    $result.html(JSON.stringify(data,undefined, 2));
+                });
+            });
+            $('#getProfileByButton').click(function(e){
+                e.preventDefault();
+                var $result = $('#result');
+                $result.html('Loading Chatter Profile...');
+                var url = host+'/chatter/profile/' + $('#chatterProfileType').val() + '/' + $('#chatterProfileID').val();
+                $.getJSON(url,{}, function(data) {
+                    $result.html(JSON.stringify(data,undefined, 2));
+                });
+            });
+
+
+            $('#postCommentByFeedItemIdButton').click(function(e){
+                e.preventDefault();
+                var url = host + '/chatter/feeditems/' + $('#feedItemId').val() + '/comments?callback=?';
+                var $result = $('#result');
+                $result.html('Posting Feed Item Comment...');
+                $.post(url,
+                        {comment: $('#feedComment').val() },
+                        function(data) {
+                            $result.html(JSON.stringify(data,undefined, 2));
+                        }, 'json');
+            });
+
+
+            $('#likeFeedItemIdButton').click(function(e){
+                e.preventDefault();
+                var url = host + '/chatter/' + $('#likeType').val() + '/' + $('#likeFeedItemId').val() + '/likes?callback=?';
+                var $result = $('#result');
+                $result.html('Liking Item...');
+                $.post(url,
+                        {},
+                        function(data) {
+                            $result.html(JSON.stringify(data,undefined, 2));
+                        }, 'json');
+            });
+        });
+    </script>
+
+    <style>
+        label
+        {
+            display:block;
+        }
+
+            /* code for displaying code/json result. Could be removed in productions version */
+        .code
+        {
+            margin:15px;
+            font-family: Andale Mono, Lucida Console, Monaco, fixed, monospace;
+            color: #000000;
+            background-color: #eee;
+            font-size: 12px;
+            border: 1px dashed #999999;
+            line-height: 14px;
+            padding: 5px;
+
+            width: 95%;
+            white-space: pre-wrap; /* css-3 */
+            white-space: -moz-pre-wrap !important; /* Mozilla, since 1999 */
+            white-space: -o-pre-wrap; /* Opera 7 */
+            word-wrap: break-word; /* Internet Explorer 5.5+ */
+            height:500px;
+            overflow: scroll;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid">
+    <div class="tabbable">
+        <ul class="nav nav-pills">
+            <li class="active"><a href="#tab1" data-toggle="tab">Chatter Feed By</a></li>
+            <li><a href="#tab2" data-toggle="tab">Chatter Profile For</a></li>
+            <li><a href="#tab3" data-toggle="tab">Chatter Feed Item Comment</a></li>
+            <li><a href="#tab4" data-toggle="tab">Chatter Like Feed Item</a></li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="tab1">
+                <h3>Get Chatter Feed By Type:</h3>
+                <form>
+                    <label for="chatterType">Chatter Feed Type</label>
+                    <select name="chatterType" id="chatterType">
+                        <option value="whatfollow">What Follow For</option>
+                        <option value="people">People</option>
+                        <option value="groups">Groups</option>
+                        <option value="record">Record</option>
+                        <option value="tome">Feed To</option>
+                    </select>
+
+                    <label for="chatterID">Chatter ID</label>
+                    <input type="text" name="chatterID" id="chatterID"  value="me"/>
+
+                    <br />
+                    <button name="getFeedByButton" id="getFeedByButton" class="btn btn-info">Get Chatter Feed</button>
+                </form>
+            </div>
+            <div class="tab-pane" id="tab2">
+                <h3>Get Chatter Profile By Type:</h3>
+                <form>
+                    <label for="chatterProfileType">Chatter Profile Type</label>
+                    <select name="chatterProfileType" id="chatterProfileType">
+                        <option value="users">User</option>
+                        <option value="groups">Group</option>
+                    </select>
+
+                    <label for="chatterProfileID">Chatter ID</label>
+                    <input type="text" name="chatterID" id="chatterProfileID"  value="me"/>
+
+                    <br />
+                    <button name="getProfileByButton" id="getProfileByButton" class="btn btn-info">Get Chatter Profile</button>
+                </form>
+            </div>
+            <div class="tab-pane" id="tab3">
+                <h3>Post Comment:</h3>
+                <form>
+                    <label for="feedItemId">Feed Item Id</label>
+                    <input type="text" name="feedItemId" id="feedItemId"  value=""/>
+
+                    <label for="feedComment">Comment:</label>
+                    <input type="text" name="feedComment" id="feedComment"  value=""/>
+
+                    <br />
+                    <button name="postCommentByFeedItemIdButton" id="postCommentByFeedItemIdButton" class="btn btn-info">Post Comment</button>
+                </form>
+            </div>
+            <div class="tab-pane" id="tab4">
+                <h3>Like Item:</h3>
+                <form>
+                    <label for="likeType">What to Like</label>
+                    <select name="likeType" id="likeType">
+                        <option value="feeditems">Feed Item</option>
+                        <option value="comment">Comment</option>
+                    </select>
+                    <label for="likeFeedItemId">Feed Item Id</label>
+                    <input type="text" name="likeFeedItemId" id="likeFeedItemId"  value=""/>
+
+                    <br />
+                    <button name="likeFeedItemIdButton" id="likeFeedItemIdButton" class="btn btn-info">Like Feed Item</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="result" class="code">
+
+</div>
+
+</body>
+</html>

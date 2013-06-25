@@ -1,0 +1,33 @@
+[
+    {
+        "accessible": true,
+        "name": "Martin Fredrick",
+        "text": "@Martin Fredrick",
+        "type": "Mention",
+        "user": {
+            "companyName": null,
+            "firstName": "Martin",
+            "id": "005D0000001LJvRIAW",
+            "isActive": true,
+            "lastName": "Fredrick",
+            "mySubscription": {
+                "id": "0E8D0000000T59zKAC",
+                "url": "/services/data/v27.0/chatter/subscriptions/0E8D0000000T59zKAC"
+            },
+            "name": "Martin Fredrick",
+            "photo": {
+                "largePhotoUrl": "https://instance_name/profilephoto/729D000000007ux/F",
+                "photoVersionId": "729D000000007ux",
+                "smallPhotoUrl": "https://instance_name/profilephoto/729D000000007ux/T"
+            },
+            "title": "Senior Manager",
+            "type": "User",
+            "url": "/services/data/v27.0/chatter/users/005D0000001LJvRIAW",
+            "userType": "Internal"
+        }
+    },
+    {
+        "text": " Please review.",
+        "type": "Text"
+    }
+]
