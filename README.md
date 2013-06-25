@@ -100,6 +100,16 @@ org.query(q, oauth, function(err, resp){
 });
 ```
 
+## Using the Example Files
+
+Most of the files in the examples directory can be used by simply setting two environment variables, `SFUSER` and `SFPASS` with your Salesforce.com username and passsword respectively.
+
+```bash 
+$ export SFUSER=myusername@salesforce.com
+$ export SFPASS=mypassword
+$ node examples/crud.js
+```
+
 ## Authentication
 
 **nforce** supports two Salesforce OAuth 2.0 flows, username/password and authorization code. 
