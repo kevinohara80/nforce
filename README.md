@@ -102,7 +102,7 @@ org.query(q, oauth, function(err, resp){
 
 ## Using the Example Files
 
-Most of the files in the examples directory can be used by simply setting two environment variables, `SFUSER` and `SFPASS` with your Salesforce.com username and passsword respectively.
+Most of the files in the examples directory can be used by simply setting two environment variables then running the files. The two environment variables are `SFUSER` and `SFPASS` which are your Salesforce.com username and passsword, respectively. Example below:
 
 ```bash 
 $ export SFUSER=myusername@salesforce.com
@@ -468,6 +468,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 * Zach McElrath -> [zachelrath](https://github.com/zachelrath)
 * Chris Bland -> [chrisbland](https://github.com/chrisbland)
 * Jeremy Neander -> [jneander](https://github.com/jneander)
+* Austin McDaniel -> [amcdaniel2](https://github.com/amcdaniel2)
 * Chris Hickman -> [chrishic](https://github.com/chrishic)
 
 ## Changelog
