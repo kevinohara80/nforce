@@ -1,1 +1,1 @@
--G --require should
+-G --require should --recursive

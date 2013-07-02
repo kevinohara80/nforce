@@ -8,6 +8,8 @@ var QueryStream = require('./lib/querystream');
 var FDCStream   = require('./lib/fdcstream');
 var faye        = require('faye');
 var mime        = require('mime');
+var utilities   = require('./lib/utilities');
+var errors      = require('./lib/errors');
 
 // constants
 
@@ -36,11 +38,9 @@ var Connection = function(opts) {
   } else {
     this.redirectUri = opts.redirectUri;
   }
-  // Allow custom login and test uris to be passed in
-  // Addresses issue #5
-  // @zachelrath 11/13/12
-  opts.loginUri && (LOGIN_URI = opts.loginUri);
-  opts.testLoginUri && (TEST_LOGIN_URI = opts.testLoginUri);
+
+  this.loginUri = opts.loginUri || LOGIN_URI;
+  this.testLoginUri = opts.testLoginUri || TEST_LOGIN_URI;
 
   if(typeof opts.cacheMetadata !== 'undefined') {
     if(typeof opts.cacheMetadata !== 'boolean') throw new Error('cacheMetadata must be a boolean');
@@ -140,7 +140,7 @@ Connection.prototype.authenticate = function(opts, callback) {
     return callback(new Error('You must either supply a code, or username and password'));
   }
 
-  uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
+  uri = (self.environment == 'sandbox') ? self.testLoginUri : self.loginUri;
 
   reqOpts = {
     uri: uri,
@@ -151,21 +151,7 @@ Connection.prototype.authenticate = function(opts, callback) {
     }
   }
 
-  return request(reqOpts, function(err, res, body){
-    if(!err && res.statusCode == 200) {
-      if(body) body = JSON.parse(body);
-      if(self.mode === 'single') self.oauth = body;
-      callback(null, body);
-    } else if(!err) {
-      if(body) body = JSON.parse(body);
-      err = new Error(body.error + ' - ' + body.error_description);
-      err.statusCode = res.statusCode;
-      callback(err, null);
-    } else {
-      callback(err, null);
-    }
-  });
-
+  return request(reqOpts, utilities.createJSONParser(self, callback));
 }
 
 
@@ -192,7 +178,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
     'refresh_token': oauth.refresh_token
   }
 
-  uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
+  uri = (self.environment == 'sandbox') ? self.testLoginUri : self.loginUri;
 
   reqOpts = {
     uri: uri,
@@ -203,21 +189,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
     }
   }
 
-  return request(reqOpts, function(err, res, body){
-    if(!err && res.statusCode == 200) {
-      if(body) body = JSON.parse(body);
-      if(self.mode === 'single') self.oauth = body;
-      callback(null, body);
-    } else if(!err) {
-      if(body) body = JSON.parse(body);
-      err = new Error(body.error + ' - ' + body.error_description);
-      err.statusCode = res.statusCode;
-      callback(err, null);
-    } else {
-      callback(err, null);
-    }
-  });
-
+  return request(reqOpts, utilities.createJSONParser(self, callback));
 }
 
 // api methods
@@ -1061,36 +1033,36 @@ var apiRequest = function(opts, oauth, sobject, callback) {
   }
   
   return request(opts, function(err, res, body) {
-    
-    // request returned an error
     if(err) return callback(err, null);
 
-    // salesforce returned no body but an error in the header
     if(!body && res.headers && res.headers.error) {
       return callback(new Error(res.headers.error), null);
     }
 
-    // salesforce returned an ok of some sort
     if(res.statusCode >= 200 && res.statusCode <= 204) {
+      try {
       if(body) body = JSON.parse(body);
-      // attach the id back to the sobject on insert
+      } catch( e ) {
+        return errors.unparsableJSON({statusCode: res.statusCode, body: body}, callback);
+      }
       if(sobject && body && body.id && !sobject.Id && !sobject.id && !sobject.ID) sobject.Id = body.id;
       return callback(null, body);
     } 
 
-    // salesforce returned an error with a body
     if(body) {
-      body = JSON.parse(body);
-      err = new Error(body[0].message);
-      err.errorCode = body[0].errorCode;
-      err.statusCode = res.statusCode;
-      err.messageBody = body[0].message;
-      return callback(err, null);
+      try {
+        body = JSON.parse(body);
+        err = new Error(body[0].message);
+        err.errorCode = body[0].errorCode;
+        err.statusCode = res.statusCode;
+        err.messageBody = body[0].message;
+        return callback(err, null);
+      } catch( e ) {
+        return errors.unparsableJSON({statusCode: res.statusCode, body: body}, callback);
+      }
     } 
     
-    // we don't know what happened
     return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
-
   });
 }
 
