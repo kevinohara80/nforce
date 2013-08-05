@@ -28,6 +28,7 @@ function updateLead(ld) {
   org.update(ld, oauth, function(err, resp) {
     if(err) {
       console.error('--> unable to update lead');
+      throw err;
       console.error('--> ' + JSON.stringify(err));
     } else {
       console.log('--> lead updated');

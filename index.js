@@ -150,21 +150,8 @@ Connection.prototype.authenticate = function(opts, callback) {
       'Content-Type': 'application/x-www-form-urlencoded'
     }
   }
-
-  return request(reqOpts, function(err, res, body){
-    if(!err && res.statusCode == 200) {
-      if(body) body = JSON.parse(body);
-      if(self.mode === 'single') self.oauth = body;
-      callback(null, body);
-    } else if(!err) {
-      if(body) body = JSON.parse(body);
-      err = new Error(body.error + ' - ' + body.error_description);
-      err.statusCode = res.statusCode;
-      callback(err, null);
-    } else {
-      callback(err, null);
-    }
-  });
+  
+  return apiAuthRequest(reqOpts, callback);
 
 }
 
@@ -203,21 +190,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
     }
   }
 
-  return request(reqOpts, function(err, res, body){
-    if(!err && res.statusCode == 200) {
-      if(body) body = JSON.parse(body);
-      if(self.mode === 'single') self.oauth = body;
-      callback(null, body);
-    } else if(!err) {
-      if(body) body = JSON.parse(body);
-      err = new Error(body.error + ' - ' + body.error_description);
-      err.statusCode = res.statusCode;
-      callback(err, null);
-    } else {
-      callback(err, null);
-    }
-  });
-
+  return apiAuthRequest(reqOpts, callback);
 }
 
 // api methods
@@ -1011,6 +984,47 @@ var findId = function(data) {
   }
 }
 
+var isJsonResponse = function(res) {
+  return res.headers && res.headers['content-type'] 
+    && res.headers['content-type'].split(';')[0].toLowerCase() === 'application/json';
+}
+
+var errors = {
+  nonJsonResponse: function() {
+    return new Error('Non-JSON response from Salesforce');
+  },
+  invalidJson: function() {
+    return new Error('Invalid JSON response from Salesforce');
+  }
+}
+
+var apiAuthRequest = function(opts, callback) {
+  var self = this;
+  return request(opts, function(err, res, body){
+    if(!err) {
+      if(body && isJsonResponse(res)) {
+        try {
+          body = JSON.parse(body);
+        } catch (e) {
+          return callback(errors.invalidJson());
+        }
+      } else {
+        return callback(errors.nonJsonResponse());
+      }
+      if(res.statusCode === 200) {
+        if(self.mode === 'single') self.oauth = body;
+        return callback(null, body);
+      } else {
+        var e = new Error(body.error + ' - ' + body.error_description);
+        e.statusCode = res.statusCode;
+        return callback(e, null);
+      }
+    } else {
+      callback(err, null);
+    }
+  });
+}
+
 var apiBlobRequest = function(opts, oauth, callback) {
 
   opts.headers = {
@@ -1034,12 +1048,18 @@ var apiBlobRequest = function(opts, oauth, callback) {
 
     // salesforce returned an error with a body
     if(body) {
-      body = JSON.parse(body);
-      err = new Error(body[0].message);
-      err.errorCode = body[0].errorCode;
-      err.statusCode = res.statusCode;
-      err.messageBody = body[0].message;
-      return callback(err, null);
+      if(isJsonResponse(res)) {
+        try {
+          body = JSON.parse(body);
+        } catch (e) {
+          return callback(errors.invalidJson());
+        }
+        err = new Error(body[0].message);
+        err.errorCode = body[0].errorCode;
+        err.statusCode = res.statusCode;
+        err.messageBody = body[0].message;
+        return callback(err, null);
+      } 
     } 
     
     // we don't know what happened
@@ -1051,7 +1071,8 @@ var apiBlobRequest = function(opts, oauth, callback) {
 var apiRequest = function(opts, oauth, sobject, callback) {
 
   opts.headers = {
-    'Authorization': 'Bearer ' + oauth.access_token
+    'Authorization': 'Bearer ' + oauth.access_token,
+    'Accept': 'application/json;charset=UTF-8'
   }
 
   if(opts.multipart) {
@@ -1070,9 +1091,19 @@ var apiRequest = function(opts, oauth, sobject, callback) {
       return callback(new Error(res.headers.error), null);
     }
 
+    // attempt to parse the json now
+    if(isJsonResponse(res)) {
+      if(body) {
+        try {
+          body = JSON.parse(body);
+        } catch (e) {
+          return callback(errors.invalidJson());
+        }
+      }
+    } 
+
     // salesforce returned an ok of some sort
     if(res.statusCode >= 200 && res.statusCode <= 204) {
-      if(body) body = JSON.parse(body);
       // attach the id back to the sobject on insert
       if(sobject && body && body.id && !sobject.Id && !sobject.id && !sobject.ID) sobject.Id = body.id;
       return callback(null, body);
@@ -1080,12 +1111,11 @@ var apiRequest = function(opts, oauth, sobject, callback) {
 
     // salesforce returned an error with a body
     if(body) {
-      body = JSON.parse(body);
-      err = new Error(body[0].message);
-      err.errorCode = body[0].errorCode;
-      err.statusCode = res.statusCode;
-      err.messageBody = body[0].message;
-      return callback(err, null);
+      var e = new Error(body[0].message)
+      e.errorCode = body[0].errorCode;
+      e.statusCode = res.statusCode;
+      e.messageBody = body[0].message;
+      return callback(e, null);
     } 
     
     // we don't know what happened
