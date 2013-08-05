@@ -1,6 +1,7 @@
 var http        = require('http');
 var port        = process.env.PORT || 3000;
 var lastRequest = null;
+var nextResponse = null;
 
 var server;
 
@@ -22,9 +23,16 @@ module.exports.start = function(port, cb) {
     });
 
     req.on('end', function() {
-      res.writeHead(200, { 
-        'Content-Type': 'application/json'
-      });
+      if(nextResponse) {
+        res.writeHead(nextResponse.code, nextResponse.headers);
+        if(nextResponse.body) {
+          res.write(nextResponse.body, 'utf8')
+        }
+      } else {
+        res.writeHead(200, { 
+          'Content-Type': 'application/json'
+        });
+      } 
       res.end();
     });
  
@@ -39,7 +47,8 @@ module.exports.getClient = function() {
   return {
     clientId: 'ADFJSD234ADF765SFG55FD54S',
     clientSecret: 'adsfkdsalfajdskfa',
-    redirectUri: 'http://localhost:' + port + '/oauth/_callback'
+    redirectUri: 'http://localhost:' + port + '/oauth/_callback',
+    loginUri: 'http://localhost:' + port + '/login/uri'
   }
 }
 
@@ -54,6 +63,14 @@ module.exports.getOAuth = function() {
   }
 }
 
+module.exports.setResponse = function(code, headers, body) {
+  nextResponse = {
+    code: code,
+    headers: headers,
+    body: body
+  }
+}
+
 // return the last cached request
 module.exports.getLastRequest = function() {
   return lastRequest;
@@ -62,6 +79,7 @@ module.exports.getLastRequest = function() {
 // reset the cache
 module.exports.reset = function() {
   lastRequest = null;
+  nextResponse = null;
 }
 
 // close the server
