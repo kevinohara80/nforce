@@ -3,6 +3,7 @@
 var request     = require('request');
 var qs          = require('querystring');
 var url         = require('url');
+var util        = require('util');
 var Record      = require('./lib/record');
 var QueryStream = require('./lib/querystream');
 var FDCStream   = require('./lib/fdcstream');
@@ -151,23 +152,15 @@ Connection.prototype.authenticate = function(opts, callback) {
     }
   }
 
-  return request(reqOpts, function(err, res, body){
-    if(!err && res.statusCode == 200) {
-      if(body) body = JSON.parse(body);
-      if(self.mode === 'single') self.oauth = body;
-      callback(null, body);
-    } else if(!err) {
-      if(body) body = JSON.parse(body);
-      err = new Error(body.error + ' - ' + body.error_description);
-      err.statusCode = res.statusCode;
-      callback(err, null);
-    } else {
-      callback(err, null);
+  var expectedStatusCode = 200;
+  return guardedRequest(reqOpts, expectedStatusCode, function(err, body) {
+    if (err) {
+      return callback(err);
     }
+    if(self.mode === 'single') self.oauth = body;
+    callback(null, body);
   });
-
 }
-
 
 Connection.prototype.refreshToken = function(oauth, callback) {
   var uri, reqOpts, bodyOpts;
@@ -203,19 +196,13 @@ Connection.prototype.refreshToken = function(oauth, callback) {
     }
   }
 
-  return request(reqOpts, function(err, res, body){
-    if(!err && res.statusCode == 200) {
-      if(body) body = JSON.parse(body);
-      if(self.mode === 'single') self.oauth = body;
-      callback(null, body);
-    } else if(!err) {
-      if(body) body = JSON.parse(body);
-      err = new Error(body.error + ' - ' + body.error_description);
-      err.statusCode = res.statusCode;
-      callback(err, null);
-    } else {
-      callback(err, null);
+  var expectedStatusCode = 200;
+  return guardedRequest(reqOpts, expectedStatusCode, function(err, body) {
+    if (err) {
+      return callback(err);
     }
+    if(self.mode === 'single') self.oauth = body;
+    callback(null, body);
   });
 
 }
@@ -243,12 +230,14 @@ Connection.prototype.getIdentity = function(oauth, callback) {
 Connection.prototype.getVersions = function(callback) {
   if(!callback) callback = function(){}
   
-  return request('http://na1.salesforce.com/services/data/', function(err, res, body){
-    if(!err && res.statusCode == 200) {
-      callback(null, JSON.parse(body));
-    } else {
-      callback(err, null);
+  var reqOpts = { uri: 'http://na1.salesforce.com/services/data/', method: 'GET' };
+
+  var expectedStatusCode = 200;
+  return guardedRequest(reqOpts, expectedStatusCode, function(err, body) {
+    if (err) {
+      return callback(err);
     }
+    callback(null, body);
   });
 }
 
@@ -1023,27 +1012,36 @@ var apiBlobRequest = function(opts, oauth, callback) {
     if(err) return callback(err, null);
 
     // salesforce returned no body but an error in the header
-    if(!body && res.headers && res.headers.error) {
+    if(!body && res && res.headers && res.headers.error) {
       return callback(new Error(res.headers.error), null);
     }
 
+    var statusCode = res ? res.statusCode : 500;
     // salesforce returned an ok of some sort
-    if(res.statusCode >= 200 && res.statusCode <= 204) {
+    if(statusCode >= 200 && statusCode <= 204) {
       return callback(null, body);
     } 
 
-    // salesforce returned an error with a body
     if(body) {
-      body = JSON.parse(body);
+      try {
+        body = JSON.parse(body);
+      }
+      catch (e) {
+        return callback(new Error(util.format('Salesforce returned unparsable JSON body. Error = %s.\nRaw response: %s.', e.toString(), body)));
+      }
+    }
+
+    // salesforce returned an error with a body
+    if(Array.isArray(body) && body.length > 0) {
       err = new Error(body[0].message);
       err.errorCode = body[0].errorCode;
-      err.statusCode = res.statusCode;
+      err.statusCode = statusCode;
       err.messageBody = body[0].message;
       return callback(err, null);
     } 
     
     // we don't know what happened
-    return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
+    return callback(new Error('Salesforce returned no body and status code ' + statusCode));
 
   });
 }
@@ -1066,33 +1064,70 @@ var apiRequest = function(opts, oauth, sobject, callback) {
     if(err) return callback(err, null);
 
     // salesforce returned no body but an error in the header
-    if(!body && res.headers && res.headers.error) {
+    if(!body && res && res.headers && res.headers.error) {
       return callback(new Error(res.headers.error), null);
     }
 
+    if(body) {
+      try {
+        body = JSON.parse(body);
+      }
+      catch (e) {
+        return callback(new Error(util.format('Salesforce returned unparsable JSON body. Error = %s.\nRaw response: %s.', e.toString(), body)));
+      }
+    }
+
+    var statusCode = res ? res.statusCode : 500;
     // salesforce returned an ok of some sort
-    if(res.statusCode >= 200 && res.statusCode <= 204) {
-      if(body) body = JSON.parse(body);
+    if(statusCode >= 200 && statusCode <= 204) {
       // attach the id back to the sobject on insert
       if(sobject && body && body.id && !sobject.Id && !sobject.id && !sobject.ID) sobject.Id = body.id;
       return callback(null, body);
     } 
 
     // salesforce returned an error with a body
-    if(body) {
-      body = JSON.parse(body);
+    if(Array.isArray(body) && body.length > 0) {
       err = new Error(body[0].message);
       err.errorCode = body[0].errorCode;
-      err.statusCode = res.statusCode;
+      err.statusCode = statusCode;
       err.messageBody = body[0].message;
       return callback(err, null);
     } 
     
     // we don't know what happened
-    return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
+    return callback(new Error('Salesforce returned no body and status code ' + statusCode));
 
   });
 }
+
+var guardedRequest = function(reqOpts, expectedStatusCode, callback) {
+  return request(reqOpts, function(err, res, body){
+    if (err) {
+      return callback(err);
+    }
+
+    if(body) {
+      try {
+        body = JSON.parse(body);
+      }
+      catch (e) {
+        return callback(new Error(util.format('Salesforce returned unparsable JSON body. Error = %s.\nRaw response: %s.', e.toString(), body)));
+      }
+    }
+
+    var statusCode = res ? res.statusCode : 500;
+    if(statusCode != expectedStatusCode) {
+      var message = body ? body.error_description : '';
+      var errorCode = body ? body.error : '';
+      err = new Error(errorCode + ' - ' + message);
+      err.statusCode = statusCode;
+      return callback(err);
+    }
+
+    //  success
+    callback(null, body);
+  });
+};
 
 // exports
 
