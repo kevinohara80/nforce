@@ -340,7 +340,7 @@ This is a helper method to build the authentication uri for a authorization code
 
 * `display`: (String) Tailors the login page to the user's device type. Currently the only values supported are `page`, `popup`, and 'touch'
 * `immediate`: (Boolean) Avoid interacting with the user. Default is false.
-* `scope`: (Array) The scope parameter allows you to fine-tune what the client application can access. Supported values are `api`, `chatter_api`, `full`, `id`, `refresh_token`, `visualforce', and `web` 
+* `scope`: (Array) The scope parameter allows you to fine-tune what the client application can access. Supported values are `api`, `chatter_api`, `full`, `id`, `refresh_token`, `visualforce`, and `web` 
 * `state`: Any value that you wish to be sent with the callback
 
 ### authenticate(opts, [callback])
