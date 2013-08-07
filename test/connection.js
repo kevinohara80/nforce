@@ -166,4 +166,74 @@ describe('index', function(){
     
   });
 
+  describe('#getAuthUri', function() {
+
+    it('should return the correct authuri for production', function() {
+      var org = nforce.createConnection({
+        clientId: 'ADFJSD234ADF765SFG55FD54S',
+        clientSecret: 'ADFJSD234ADF765SFG55FD54S',
+        redirectUri: 'http://localhost:3000/oauth/_callback',
+        environment: 'production'
+      });
+      var uri = org.getAuthUri();
+      uri.should.match(/^https:\/\/login.salesforce.*/);
+    });
+
+    it('should return the correct authuri for sandbox', function() {
+      var org = nforce.createConnection({
+        clientId: 'ADFJSD234ADF765SFG55FD54S',
+        clientSecret: 'ADFJSD234ADF765SFG55FD54S',
+        redirectUri: 'http://localhost:3000/oauth/_callback',
+        environment: 'sandbox'
+      });
+      var uri = org.getAuthUri();
+      uri.should.match(/^https:\/\/test.salesforce.*/);
+    });
+
+    it('should allow for setting display', function() {
+      var org = nforce.createConnection({
+        clientId: 'ADFJSD234ADF765SFG55FD54S',
+        clientSecret: 'ADFJSD234ADF765SFG55FD54S',
+        redirectUri: 'http://localhost:3000/oauth/_callback',
+        environment: 'production'
+      });
+      var uri = org.getAuthUri({ display: 'popup' });
+      uri.should.match(/.*display\=popup*/);
+    });
+
+    it('should allow for setting immediate', function() {
+      var org = nforce.createConnection({
+        clientId: 'ADFJSD234ADF765SFG55FD54S',
+        clientSecret: 'ADFJSD234ADF765SFG55FD54S',
+        redirectUri: 'http://localhost:3000/oauth/_callback',
+        environment: 'production'
+      });
+      var uri = org.getAuthUri({ immediate: true });
+      uri.should.match(/.*immediate\=true*/);
+    });
+
+    it('should allow for setting scope', function() {
+      var org = nforce.createConnection({
+        clientId: 'ADFJSD234ADF765SFG55FD54S',
+        clientSecret: 'ADFJSD234ADF765SFG55FD54S',
+        redirectUri: 'http://localhost:3000/oauth/_callback',
+        environment: 'production'
+      });
+      var uri = org.getAuthUri({ scope: [ 'visualforce', 'web' ] });
+      uri.should.match(/.*scope=visualforce\%20web.*/);
+    });
+
+    it('should allow for setting state', function() {
+      var org = nforce.createConnection({
+        clientId: 'ADFJSD234ADF765SFG55FD54S',
+        clientSecret: 'ADFJSD234ADF765SFG55FD54S',
+        redirectUri: 'http://localhost:3000/oauth/_callback',
+        environment: 'production'
+      });
+      var uri = org.getAuthUri({ state: 'something' });
+      uri.should.match(/.*state=something.*/);
+    });
+
+  });
+
 });
