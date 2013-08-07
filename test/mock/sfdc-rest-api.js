@@ -2,6 +2,10 @@ var http        = require('http');
 var port        = process.env.PORT || 3000;
 var lastRequest = null;
 var nextResponse = null;
+var closeOnRequest = false;
+var isListening = false;
+
+var sockets = [];
 
 var server;
 
@@ -23,6 +27,16 @@ module.exports.start = function(port, cb) {
     });
 
     req.on('end', function() {
+
+      if(closeOnRequest) {
+        if(sockets.length) {
+          for(var i=0; i<sockets.length; i++) {
+            sockets[i].destroy();
+          }
+        }
+        return server.close();
+      }
+
       if(nextResponse) {
         res.writeHead(nextResponse.code, nextResponse.headers);
         if(nextResponse.body) {
@@ -36,6 +50,21 @@ module.exports.start = function(port, cb) {
       res.end();
     });
  
+  });
+
+  server.on('listening', function() {
+    isListening = true;
+  });
+
+  server.on('close', function() {
+    isListening = false;
+  });
+
+  server.on('connection', function(socket) {
+    sockets.push(socket);
+    socket.on('close', function () {
+      sockets.splice(sockets.indexOf(socket), 1);
+    });
   });
 
   server.listen(port, cb);
@@ -76,14 +105,26 @@ module.exports.getLastRequest = function() {
   return lastRequest;
 }
 
+// simulate a socket close on a request
+module.exports.closeOnRequest = function(close) {
+  closeOnRequest = close;
+}
+
 // reset the cache
 module.exports.reset = function() {
   lastRequest = null;
   nextResponse = null;
+  closeOnRequest = false;
+  sockets = [];
 }
 
 // close the server
 module.exports.stop = function(cb) {
-  server.close(cb);
-  server = null;
+  if(!isListening) {
+    server = null;
+    return cb();
+  } else {
+    server.close(cb);
+    server = null;
+  }
 }

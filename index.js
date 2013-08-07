@@ -995,33 +995,40 @@ var errors = {
   },
   invalidJson: function() {
     return new Error('Invalid JSON response from Salesforce');
+  },
+  emptyResponse: function() {
+    return new Error('Unexpected empty response');
   }
 }
 
 var apiAuthRequest = function(opts, callback) {
   var self = this;
   return request(opts, function(err, res, body){
-    if(!err) {
-      if(body && isJsonResponse(res)) {
-        try {
-          body = JSON.parse(body);
-        } catch (e) {
-          return callback(errors.invalidJson());
-        }
-      } else {
-        return callback(errors.nonJsonResponse());
-      }
-      if(res.statusCode === 200) {
-        if(self.mode === 'single') self.oauth = body;
-        return callback(null, body);
-      } else {
-        var e = new Error(body.error + ' - ' + body.error_description);
-        e.statusCode = res.statusCode;
-        return callback(e, null);
+    // request returned an error
+    if(err) return callback(err);
+
+    // request didn't return a response. sumptin bad happened
+    if(!res) return callback(errors.emptyResponse());
+
+    if(body && isJsonResponse(res)) {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        return callback(errors.invalidJson());
       }
     } else {
-      callback(err, null);
+      return callback(errors.nonJsonResponse());
     }
+
+    if(res.statusCode === 200) {
+      if(self.mode === 'single') self.oauth = body;
+      return callback(null, body);
+    } else {
+      var e = new Error(body.error + ' - ' + body.error_description);
+      e.statusCode = res.statusCode;
+      return callback(e, null);
+    }
+
   });
 }
 
@@ -1035,6 +1042,9 @@ var apiBlobRequest = function(opts, oauth, callback) {
   return request(opts, function(err, res, body) {
     // request returned an error
     if(err) return callback(err, null);
+
+    // request didn't return a response. sumptin bad happened
+    if(!res) return callback(errors.emptyResponse());
 
     // salesforce returned no body but an error in the header
     if(!body && res.headers && res.headers.error) {
@@ -1085,6 +1095,9 @@ var apiRequest = function(opts, oauth, sobject, callback) {
     
     // request returned an error
     if(err) return callback(err, null);
+
+    // request didn't return a response. Sumptin bad happened
+    if(!res) return callback(errors.emptyResponse());
 
     // salesforce returned no body but an error in the header
     if(!body && res.headers && res.headers.error) {

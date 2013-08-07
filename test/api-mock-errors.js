@@ -11,7 +11,7 @@ var oauth = api.getOAuth();
 
 describe('api-mock-errors', function() {
 
-  before(function(done) {
+  beforeEach(function(done) {
     api.start(port, done);
   });
 
@@ -53,13 +53,22 @@ describe('api-mock-errors', function() {
 
   });
 
-  // reset the lastRequest
-  afterEach(function() {
-    api.reset();
+  describe('closed socket', function() {
+
+    it('should return an error on closed socket', function(done) {
+      api.closeOnRequest(true);
+      org.query('SELECT Id FROM Account', oauth, function(err, res) {
+        err.should.exist;
+        err.message.should.equal('socket hang up');
+        done();
+      });
+    });
+
   });
 
-  // close mock server
-  after(function(done) {
+  // reset the lastRequest
+  afterEach(function(done) {
+    api.reset();
     api.stop(done);
   });
 
