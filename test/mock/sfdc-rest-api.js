@@ -77,7 +77,8 @@ module.exports.getClient = function() {
     clientId: 'ADFJSD234ADF765SFG55FD54S',
     clientSecret: 'adsfkdsalfajdskfa',
     redirectUri: 'http://localhost:' + port + '/oauth/_callback',
-    loginUri: 'http://localhost:' + port + '/login/uri'
+    loginUri: 'http://localhost:' + port + '/login/uri',
+    apiVersion: '27.0'
   }
 }
 
