@@ -1038,7 +1038,8 @@ var apiAuthRequest = function(opts, callback) {
     }
 
     if(res.statusCode === 200) {
-      if(self.mode === 'single') self.oauth = body;
+      // detect oauth response for single mode
+      if(self.mode === 'single' && body.access_token) self.oauth = body;
       return callback(null, body);
     } else {
       var e = new Error(body.error + ' - ' + body.error_description);
