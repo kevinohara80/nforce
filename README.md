@@ -478,6 +478,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 
 ## Changelog
 
+* `v0.5.0`: Safer error handling. OAuth extra param support.
 * `v0.4.4`: Fixes query stream issues
 * `v0.4.3`: Fix express oauth issue. Whoops, my bad!
 * `v0.4.2`: Fix for upsert issue
