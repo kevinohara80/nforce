@@ -840,7 +840,7 @@ Connection.prototype.apexRest = function(restRequest, oauth, callback) {
   opts = { uri: uri, method: restRequest.method}
   
   if(restRequest.body!=null) {
-    opts.body = JSON.stringify(restRequest.body);
+    opts.body = typeof restRequest.body === 'string' ? restRequest.body : JSON.stringify(restRequest.body);
   }
 
   if(restRequest.urlParams!=null) {
