@@ -475,9 +475,11 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 * Jeremy Neander -> [jneander](https://github.com/jneander)
 * Austin McDaniel -> [amcdaniel2](https://github.com/amcdaniel2)
 * Chris Hickman -> [chrishic](https://github.com/chrishic)
+* Daniel -> [bitbay](https://github.com/bitbay)
 
 ## Changelog
 
+* `v0.5.2`: Fixed Apex REST bug because Jeff Douglas demanded it.
 * `v0.5.1`: Fix a bug in getVersions for single user mode
 * `v0.5.0`: Safer error handling. OAuth extra param support.
 * `v0.4.4`: Fixes query stream issues
