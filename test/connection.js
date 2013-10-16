@@ -113,14 +113,14 @@ describe('index', function(){
     
     it('should create an SObject of type Account', function(){
       var acc = nforce.createSObject('Account');
-      acc.should.be.a('object');
+      acc.should.have.type('object');
       acc.should.have.property('attributes');
       acc.attributes.type.should.equal('Account');
     });
     
     it('should create an SObject of type Test_Object__c', function(){
       var obj = nforce.createSObject('Test_Object__c');
-      obj.should.be.a('object');
+      obj.should.have.type('object');
       obj.should.have.property('attributes');
       obj.attributes.type.should.equal('Test_Object__c');
     });
@@ -130,7 +130,7 @@ describe('index', function(){
         Name: 'Test Me',
         Custom_Field__c: 'Blah'
       });
-      obj.should.be.a('object');
+      obj.should.have.type('object');
       obj.should.have.property('attributes');
       obj.attributes.type.should.equal('Test_Object__c');
       obj.should.have.property('Name');
