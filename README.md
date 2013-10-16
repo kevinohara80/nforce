@@ -479,6 +479,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 
 ## Changelog
 
+* `v0.5.3`: API version 29 support
 * `v0.5.2`: Fixed Apex REST bug because Jeff Douglas demanded it.
 * `v0.5.1`: Fix a bug in getVersions for single user mode
 * `v0.5.0`: Safer error handling. OAuth extra param support.
