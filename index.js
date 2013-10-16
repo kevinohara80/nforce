@@ -671,7 +671,7 @@ Connection.prototype.getContentVersionBody = function(id, oauth, callback) {
   });
 }
 
-Connection.prototype.query = function(query, oauth, callback) {
+Connection.prototype._queryHandler = function(query, oauth, all, callback) {
   var uri, opts, stream;
   var self = this;
   var recs = [];
@@ -679,7 +679,7 @@ Connection.prototype.query = function(query, oauth, callback) {
   if(this.mode === 'single') {
     var args = Array.prototype.slice.call(arguments);
     oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
+    if(args.length == 3) callback = args[2];
   }
 
   if(!callback) callback = function(){}
@@ -709,6 +709,10 @@ Connection.prototype.query = function(query, oauth, callback) {
   }
 
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/query';
+
+  // support queryAll
+  if(all) uri += 'All';
+
   opts = { uri: uri, method: 'GET', qs: { q: query } }
   
   apiRequest(opts, oauth, null, function(err, resp){
@@ -741,7 +745,14 @@ Connection.prototype.query = function(query, oauth, callback) {
   });
 
   return stream;
+}
 
+Connection.prototype.query = function(query, oauth, callback) {
+  return this._queryHandler(query, oauth, false, callback);
+}
+
+Connection.prototype.queryAll = function(query, oauth, callback) {
+  return this._queryHandler(query, oauth, true, callback);
 }
 
 Connection.prototype.search = function(search, oauth, callback) {

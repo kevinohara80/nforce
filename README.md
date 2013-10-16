@@ -419,6 +419,10 @@ Get the binary data for an contentversion for the given `id`
 
 Execute a SOQL query for records. `query` should be a SOQL string. Large queries can be streamed using the `pipe()` method.
 
+### queryAll(query, [oauth], [callback])
+
+Same as query but includes deleted records
+
 ### search(search, [oauth], [callback])
 
 Execute a SOSL search for records. `search` should be a SOSL string.
@@ -479,6 +483,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 
 ## Changelog
 
+* `v0.6.0`: Support for queryAll
 * `v0.5.3`: API version 29 support
 * `v0.5.2`: Fixed Apex REST bug because Jeff Douglas demanded it.
 * `v0.5.1`: Fix a bug in getVersions for single user mode
