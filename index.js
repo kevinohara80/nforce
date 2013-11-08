@@ -980,6 +980,22 @@ Connection.prototype.updatePassword = function(data, oauth, callback) {
   return apiRequest(opts, oauth, data, callback);
 }
 
+//method for fetching ApexLogs
+Connection.prototype.fetchLog = function(logId, oauth, callback) {
+  var uri, opts, params, method;
+
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+  if(!callback) callback = function(){};
+  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  uri = oauth.instance_url + '/services/data/v28.0/sobjects/ApexLog/' + logId +'/Body';
+  console.log(uri);
+  opts = { uri: uri, method: 'GET'};
+  return apiRequest(opts, oauth, null, callback);
+}
 // utility methods
 
 var validateOAuth = function(oauth) {
