@@ -1053,7 +1053,7 @@ var apiBlobRequest = function(opts, oauth, callback) {
     } 
     
     // we don't know what happened
-    return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
+    return callback(new Error('Salesforce returned no body and status code ' + res.statusCode), null);
 
   });
 }
