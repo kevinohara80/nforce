@@ -1099,7 +1099,7 @@ var apiRequest = function(opts, oauth, sobject, callback) {
     } 
     
     // we don't know what happened
-    return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
+    return callback(new Error('Salesforce returned no body and status code ' + res.statusCode), null);
 
   });
 }
@@ -1137,7 +1137,7 @@ module.exports.signed_request = function(options) {
       //Split the signed request body in to two parts
       var signed_body = req.body.signed_request.split('.');
       //ensure that the signature and oauth are included
-      if(signed_body.length != 2) next();
+      if(signed_body.length !== 2) next();
       var signature = signed_body[0];
       var srData = JSON.parse(new Buffer(arr[1], 'base64').toString('ascii'));
       // build up our oauth object for nforce
