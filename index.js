@@ -18,7 +18,7 @@ var AUTH_ENDPOINT      = 'https://login.salesforce.com/services/oauth2/authorize
 var TEST_AUTH_ENDPOINT = 'https://test.salesforce.com/services/oauth2/authorize';
 var LOGIN_URI          = 'https://login.salesforce.com/services/oauth2/token';
 var TEST_LOGIN_URI     = 'https://test.salesforce.com/services/oauth2/token';
-var API_VERSIONS       = ['v20.0', 'v21.0', 'v22.0', 'v23.0', 'v24.0', 'v25.0', 'v26.0', 'v27.0'];
+var API_VERSIONS       = ['v20.0', 'v21.0', 'v22.0', 'v23.0', 'v24.0', 'v25.0', 'v26.0', 'v27.0', 'v28.0', 'v29.0'];
 
 // nforce connection object
 
@@ -836,18 +836,18 @@ Connection.prototype.apexRest = function(restRequest, oauth, callback) {
     return callback(new Error('Only GET, POST, PATCH, & PUT are supported, you specified: '+ method), null);
   }
   //default to GET
-  if(restRequest.method==null || typeof restRequest.method !== 'string'){
+  if(restRequest.method == null || typeof restRequest.method !== 'string'){
     restRequest.method = 'GET';
   }
   
   uri = oauth.instance_url + '/services/apexrest/' + restRequest.uri;
-  opts = { uri: uri, method: restRequest.method}
+  opts = { uri: uri, method: restRequest.method};
   
-  if(restRequest.body!=null) {
+  if(restRequest.body != null) {
     opts.body = JSON.stringify(restRequest.body);
   }
 
-  if(restRequest.urlParams!=null) {
+  if(restRequest.urlParams != null) {
     if(!Array.isArray(restRequest.urlParams)) {
       return callback(new Error('URL parmams must be an array in form of [{key:\'key\', value:\'value\'}]'), null);
     }
@@ -855,7 +855,7 @@ Connection.prototype.apexRest = function(restRequest, oauth, callback) {
     params = '?';
     
     for(i = 0; i<restRequest.urlParams.length; i++){
-      if(i>0) params+='&'
+      if(i>0) params+= '&';
       params+=restRequest.urlParams[i].key+'='+restRequest.urlParams[i].value;
     }
     
