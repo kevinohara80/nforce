@@ -8,6 +8,9 @@ var QueryStream = require('./lib/querystream');
 var FDCStream   = require('./lib/fdcstream');
 var faye        = require('faye');
 var mime        = require('mime');
+var base64url   = require('base64url');
+var crypto      = require('crypto');
+
 
 // constants
 
@@ -1130,20 +1133,30 @@ module.exports.signed_request = function(options) {
  
   return function(req, res, next) {
     if(req.method === 'POST' && req.body && req.body.signed_request) {
-      if(!req.body.signed_request) return next();
-      var arr = req.body.signed_request.split('.');
+      if(!req.body.signed_request) next();
+      //Split the signed request body in to two parts
+      var signed_body = req.body.signed_request.split('.');
+      //ensure that the signature and oauth are included
+      if(signed_body.length != 2) next();
+      var signature = signed_body[0];
       var srData = JSON.parse(new Buffer(arr[1], 'base64').toString('ascii'));
       // build up our oauth object for nforce
       var oauth = {
         access_token: srData.client.oauthToken || '',
         instance_url: srData.client.instanceUrl || ''
       };
+      // verify the signature
+      var verify_signature= crypto.createHmac('sha256', this.clientSecret).update(signed_body[1]).digest('base64');
+      if(verify_signature !== signature) next();
+
       // attach full signed request to request and, if available, session
       req.signed_request = srData;
-      if(req.session) req.session.signed_request = srData;
-      // attach nforce oauth to request and, if available, session
       req.oauth = oauth;
-      if(req.session) req.session.oauth = oauth;
+
+      if(req.session){
+        req.session.signed_request = srData;
+        req.session.oauth = oauth;
+      }       
       next();
     } else {
       next();
