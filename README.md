@@ -480,9 +480,11 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 * Austin McDaniel -> [amcdaniel2](https://github.com/amcdaniel2)
 * Chris Hickman -> [chrishic](https://github.com/chrishic)
 * Daniel -> [bitbay](https://github.com/bitbay)
+* Gonzalo Huerta-Canepa -> [gfhuertac](https://github.com/gfhuertac)
 
 ## Changelog
 
+* `v0.6.1`: Security fix for client secret in auth uri
 * `v0.6.0`: Support for queryAll
 * `v0.5.3`: API version 29 support
 * `v0.5.2`: Fixed Apex REST bug because Jeff Douglas demanded it.
