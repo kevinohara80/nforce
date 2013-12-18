@@ -102,7 +102,8 @@ Connection.prototype.getAuthUri = function(opts) {
   urlOpts = {
     'response_type': 'code',
     'client_id': self.clientId,
-    'client_secret': self.clientSecret,
+    //client secret is not needed according to http://wiki.developerforce.com/page/Digging_Deeper_into_OAuth_2.0_on_Force.com
+    //'client_secret': self.clientSecret,
     'redirect_uri': self.redirectUri
   }
 
