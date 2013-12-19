@@ -169,7 +169,7 @@ Connection.prototype.authenticate = function(opts, callback) {
     }
   }
   
-  return apiAuthRequest(reqOpts, callback);
+  return this._apiAuthRequest(reqOpts, callback);
 
 }
 
@@ -208,7 +208,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
     }
   }
 
-  return apiAuthRequest(reqOpts, callback);
+  return this._apiAuthRequest(reqOpts, callback);
 }
 
 // api methods
@@ -228,7 +228,7 @@ Connection.prototype.getIdentity = function(oauth, callback) {
   
   opts = { uri: oauth.id, method: 'GET'}
   
-  return apiRequest(opts, oauth, null, callback);
+  return this._apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.getVersions = function(callback) {
@@ -238,7 +238,7 @@ Connection.prototype.getVersions = function(callback) {
   
   opts = { uri : 'http://na1.salesforce.com/services/data/', method: 'GET' };
   
-  return apiAuthRequest(opts, callback);
+  return this._apiAuthRequest(opts, callback);
 }
 
 Connection.prototype.getResources = function(oauth, callback) {
@@ -257,7 +257,7 @@ Connection.prototype.getResources = function(oauth, callback) {
   uri = oauth.instance_url + '/services/data/' + this.apiVersion;
   opts = { uri: uri, method: 'GET' }
   
-  return apiRequest(opts, oauth, null, callback);
+  return this._apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.getSObjects = function(oauth, callback) {
@@ -278,7 +278,7 @@ Connection.prototype.getSObjects = function(oauth, callback) {
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects';
   opts = { uri: uri, method: 'GET' }
   
-  return apiRequest(opts, oauth, null, function(err, resp){
+  return this._apiRequest(opts, oauth, null, function(err, resp){
     if(err) {
       callback(err, null);
     } else {
@@ -313,7 +313,7 @@ Connection.prototype.getMetadata = function(data, oauth, callback) {
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data;
   opts = { uri: uri, method: 'GET' }
   
-  return apiRequest(opts, oauth, null, callback);
+  return this._apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.getDescribe = function(data, oauth, callback) {
@@ -336,7 +336,7 @@ Connection.prototype.getDescribe = function(data, oauth, callback) {
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data + '/describe';
   opts = { uri: uri, method: 'GET' }
   
-  return apiRequest(opts, oauth, null, callback);
+  return this._apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.insert = function(data, oauth, callback) {
@@ -387,7 +387,7 @@ Connection.prototype.insert = function(data, oauth, callback) {
     opts.body = JSON.stringify(fieldvalues);
   }
   
-  return apiRequest(opts, oauth, data, callback);
+  return this._apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.update = function(data, oauth, callback) {
@@ -443,7 +443,7 @@ Connection.prototype.update = function(data, oauth, callback) {
     opts.body = JSON.stringify(fieldvalues);
   }
   
-  return apiRequest(opts, oauth, data, callback);
+  return this._apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.upsert = function(data, oauth, callback) {
@@ -479,7 +479,7 @@ Connection.prototype.upsert = function(data, oauth, callback) {
     + type + '/' + data.attributes.externalIdField + '/' + data.attributes.externalId;
   opts = { uri: uri, method: 'PATCH', body: JSON.stringify(fieldvalues) }
   
-  return apiRequest(opts, oauth, data, callback);
+  return this._apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.delete = function(data, oauth, callback) {
@@ -509,7 +509,7 @@ Connection.prototype.delete = function(data, oauth, callback) {
     + type + '/' + data.getId();
   opts = { uri: uri, method: 'DELETE' }
   
-  return apiRequest(opts, oauth, data, callback);
+  return this._apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.getRecord = function(data, oauth, callback) {
@@ -550,7 +550,7 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
   
   opts = { uri: uri, method: 'GET'}
   
-  return apiRequest(opts, oauth, null, function(err, resp){
+  return this._apiRequest(opts, oauth, null, function(err, resp){
     if(!err) {
       resp = new Record(resp);
     }
@@ -613,7 +613,7 @@ Connection.prototype.getAttachmentBody = function(id, oauth, callback) {
     + '/sobjects/Attachment/' + id + '/body'
   opts = { uri: uri, method: 'GET' }
   
-  return apiBlobRequest(opts, oauth, function(err, resp) {
+  return this._apiBlobRequest(opts, oauth, function(err, resp) {
     callback(err, resp);
   });
 }
@@ -639,7 +639,7 @@ Connection.prototype.getDocumentBody = function(id, oauth, callback) {
     + '/sobjects/Document/' + id + '/body'
   opts = { uri: uri, method: 'GET' }
   
-  return apiBlobRequest(opts, oauth, function(err, resp) {
+  return this._apiBlobRequest(opts, oauth, function(err, resp) {
     callback(err, resp);
   });
 }
@@ -665,7 +665,7 @@ Connection.prototype.getContentVersionBody = function(id, oauth, callback) {
     + '/sobjects/ContentVersion/' + id + '/body'
   opts = { uri: uri, method: 'GET' }
   
-  return apiBlobRequest(opts, oauth, function(err, resp) {
+  return this._apiBlobRequest(opts, oauth, function(err, resp) {
     callback(err, resp);
   });
 }
@@ -674,12 +674,6 @@ Connection.prototype._queryHandler = function(query, oauth, all, callback) {
   var uri, opts, stream;
   var self = this;
   var recs = [];
-
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 3) callback = args[2];
-  }
 
   if(!callback) callback = function(){}
 
@@ -714,7 +708,7 @@ Connection.prototype._queryHandler = function(query, oauth, all, callback) {
 
   opts = { uri: uri, method: 'GET', qs: { q: query } }
   
-  apiRequest(opts, oauth, null, function(err, resp){
+  this._apiRequest(opts, oauth, null, function(err, resp){
     if (stream.isStreaming()) {
       if (err) {
         stream.error(err);
@@ -747,10 +741,20 @@ Connection.prototype._queryHandler = function(query, oauth, all, callback) {
 }
 
 Connection.prototype.query = function(query, oauth, callback) {
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length === 2) callback = args[1];
+  }
   return this._queryHandler(query, oauth, false, callback);
 }
 
 Connection.prototype.queryAll = function(query, oauth, callback) {
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length === 2) callback = args[1];
+  }
   return this._queryHandler(query, oauth, true, callback);
 }
 
@@ -774,7 +778,7 @@ Connection.prototype.search = function(search, oauth, callback) {
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/search';
   opts = { uri: uri, method: 'GET', qs: { q: search } }
   
-  return apiRequest(opts, oauth, null, function(err, resp){
+  return this._apiRequest(opts, oauth, null, function(err, resp){
     if(!err) {
       if(resp.length) {
         var recs = [];
@@ -808,7 +812,7 @@ Connection.prototype.getUrl = function(url, oauth, callback) {
   uri = oauth.instance_url + url;
   opts = { uri: uri, method: 'GET' }
   
-  return apiRequest(opts, oauth, null, callback);
+  return this._apiRequest(opts, oauth, null, callback);
 }
 
 // chatter api methods
@@ -868,7 +872,7 @@ Connection.prototype.apexRest = function(restRequest, oauth, callback) {
     opts.uri+=params;
   }
 
-  return apiRequest(opts, oauth, null, callback);
+  return this._apiRequest(opts, oauth, null, callback);
 }
 
 // streaming methods
@@ -986,7 +990,7 @@ Connection.prototype.updatePassword = function(data, oauth, callback) {
   };
   
   opts.body = JSON.stringify(fieldvalues);  
-  return apiRequest(opts, oauth, data, callback);
+  return this._apiRequest(opts, oauth, data, callback);
 }
 
 // utility methods
@@ -1028,8 +1032,10 @@ var errors = {
   }
 }
 
-var apiAuthRequest = function(opts, callback) {
+Connection.prototype._apiAuthRequest = function(opts, callback) {
+
   var self = this;
+
   return request(opts, function(err, res, body){
     // request returned an error
     if(err) return callback(err);
@@ -1049,7 +1055,9 @@ var apiAuthRequest = function(opts, callback) {
 
     if(res.statusCode === 200) {
       // detect oauth response for single mode
-      if(self.mode === 'single' && body.access_token) self.oauth = body;
+      if(self.mode === 'single' && body.access_token) {
+        self.oauth = body;
+      }
       return callback(null, body);
     } else {
       var e = new Error(body.error + ' - ' + body.error_description);
@@ -1060,7 +1068,7 @@ var apiAuthRequest = function(opts, callback) {
   });
 }
 
-var apiBlobRequest = function(opts, oauth, callback) {
+Connection.prototype._apiBlobRequest = function(opts, oauth, callback) {
 
   opts.headers = {
     'content-type': 'application/json',
@@ -1106,7 +1114,7 @@ var apiBlobRequest = function(opts, oauth, callback) {
   });
 }
 
-var apiRequest = function(opts, oauth, sobject, callback) {
+Connection.prototype._apiRequest = function(opts, oauth, sobject, callback) {
 
   opts.headers = {
     'Authorization': 'Bearer ' + oauth.access_token,
