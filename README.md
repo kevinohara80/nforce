@@ -484,6 +484,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 
 ## Changelog
 
+* `v0.6.2`: Fixes issue for single user mode and invalid oauth
 * `v0.6.1`: Security fix for client secret in auth uri
 * `v0.6.0`: Support for queryAll
 * `v0.5.3`: API version 29 support
