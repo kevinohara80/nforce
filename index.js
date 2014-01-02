@@ -1100,10 +1100,18 @@ Connection.prototype._apiBlobRequest = function(opts, oauth, callback) {
         } catch (e) {
           return callback(errors.invalidJson());
         }
-        err = new Error(body[0].message);
-        err.errorCode = body[0].errorCode;
+
+        if (Array.isArray(body) && body.length > 0) {
+          err = new Error(body[0].message);
+          err.errorCode = body[0].errorCode;
+          err.messageBody = body[0].message;
+        }
+        else {
+          //  didn't get a json response back -- just a simple string as the body
+          err = new Error(body);
+          err.messageBody = body;
+        }
         err.statusCode = res.statusCode;
-        err.messageBody = body[0].message;
         return callback(err, null);
       } 
     } 
@@ -1160,13 +1168,21 @@ Connection.prototype._apiRequest = function(opts, oauth, sobject, callback) {
 
     // salesforce returned an error with a body
     if(body) {
-      var e = new Error(body[0].message)
-      e.errorCode = body[0].errorCode;
+      var e;
+      if (Array.isArray(body) && body.length > 0) {
+        e = new Error(body[0].message);
+        e.errorCode = body[0].errorCode;
+        e.messageBody = body[0].message;
+      }
+      else {
+        //  didn't get a json response back -- just a simple string as the body
+        e = new Error(body);
+        e.messageBody = body;
+      }
       e.statusCode = res.statusCode;
-      e.messageBody = body[0].message;
       return callback(e, null);
     } 
-    
+
     // we don't know what happened
     return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
 
