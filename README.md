@@ -311,6 +311,7 @@ The createConnection method creates an *nforce* salesforce connection object. Yo
 * `environment`: Optional. Values can be 'production' or 'sandbox'. Default is production.
 * `loginUri`: Optional. Used to override the login URI if needed.
 * `testLoginUri`: Optional. Used to override the testLoginUri if needed.
+* `gzip`: Optional. If set to boolean 'true', then *nforce* will request that salesforce compress responses (using gzip) before transmitting over-the-wire.
 
 ### createSObject(type, [fieldValues])
 
