@@ -20,7 +20,6 @@
    4. Faker.definition.tv_channel  and Faker.definitions.ticker which contain Comcast TV Chanel listings and NYSE ticker respectively to demonstrate 
       how to create custom data types.  Of course these are not inserted into the lead because it would be a custom field.   But I think you get the picture.
  */
-
 var sys = require('sys');
 var fs = require('fs');
 var nforce = require('../');
@@ -28,22 +27,24 @@ var Faker = require('../lib/Faker');
 
 var sfuser = process.env.SFUSER;
 var sfpass = process.env.SFPASS;
+var clientId = process.env.CLIENTID;
+var clientSecret = process.env.CLIENTSECRET;
 
 
 var oauth = '';
 
 var org = nforce.createConnection({
-	clientId: process.env.CLIENTID,
-	clientSecret: process.env.CLIENTSECRET,
-	redirectUri: 'http://localhost:3000/oauth/_callback',
-	apiVersion: 'v27.0',  // optional, defaults to current salesforce API version
-	environment: 'production',  // optional, salesforce 'sandbox' or 'production', production default
-	mode: 'multi' // optional, 'single' or 'multi' user mode, multi default
+    clientId: clientId,
+    clientSecret: clientSecret,
+    redirectUri: 'http://localhost:3000/oauth/_callback',
+    apiVersion: 'v27.0', // optional, defaults to current salesforce API version
+    environment: 'production', // optional, salesforce 'sandbox' or 'production', production default
+    mode: 'multi' // optional, 'single' or 'multi' user mode, multi default
 });
 
 
 function insertLead(data) {
-    console.log('Attempting to insert lead '+data.firstName+' '+data.lastName );
+    console.log('Attempting to insert lead ' + data.firstName + ' ' + data.lastName);
     var ld = nforce.createSObject('Lead', {
         FirstName: data.firstName,
         LastName: data.lastName,
@@ -58,32 +59,32 @@ function insertLead(data) {
         Website: data.website,
         Latitude: data.address.geo.lat,
         Longitude: data.address.geo.lng,
-        batch__c: '003'   // kyle uses this 
+        batch__c: '003' // kyle uses this 
     });
     org.insert(ld, oauth, function (err, resp) {
         if (err) {
             console.error('--> unable to insert lead');
             console.error('--> ' + JSON.stringify(err));
         } else {
-            console.log(data.firstName+' '+data.lastName+'--> lead inserted');
+            console.log(data.firstName + ' ' + data.lastName + '--> lead inserted');
         }
     });
 }
 
 // generate Synthetic data using ../lib/Faker.js  Faker.Helpers.sfLead method.  You can reuse this or create your own.
 function generateData() {
-	var bigSet = [];
-	var newLeadCount = 20;
+    var bigSet = [];
+    var newLeadCount = 20;
 
-	for (var i = 0; i < newLeadCount; i++) {
-		bigSet.push(Faker.Helpers.sfLead());
-		console.log('created',bigSet[i].lastName);
-		insertLead(bigSet[i]);
-	}
+    for (var i = 0; i < newLeadCount; i++) {
+        bigSet.push(Faker.Helpers.sfLead());
+        console.log('created', bigSet[i].lastName);
+        insertLead(bigSet[i]);
+    }
 
-	fs.writeFile('leadOut.json',  JSON.stringify(bigSet), function () {
-		sys.puts("json data generated successfully to leadOut.json !");
-	});
+    fs.writeFile('leadOut.json', JSON.stringify(bigSet), function () {
+        sys.puts("json data generated successfully to leadOut.json !");
+    });
 }
 
 
@@ -91,15 +92,16 @@ function generateData() {
 
 console.log('Authenticating with Salesforce');
 
-org.authenticate({ username: sfuser, password: sfpass}, function (err, resp) {
-	if (err) {
-		console.error('--> unable to authenticate to sfdc');
-		console.error('--> ' + JSON.stringify(err));
-	} else {
-		console.log('--> authenticated!');
-		oauth = resp;
-		generateData();
-	}
+org.authenticate({
+    username: sfuser,
+    password: sfpass
+}, function (err, resp) {
+    if (err) {
+        console.error('--> unable to authenticate to sfdc');
+        console.error('--> ' + JSON.stringify(err));
+    } else {
+        console.log('--> authenticated!');
+        oauth = resp;
+        generateData();
+    }
 });
-
-
