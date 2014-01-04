@@ -59,7 +59,7 @@ function insertLead(data) {
         Website: data.website,
         Latitude: data.address.geo.lat,
         Longitude: data.address.geo.lng,
-        batch__c: '003' // kyle uses this 
+        //batch__c: '003' // kyle uses this 
     });
     org.insert(ld, oauth, function (err, resp) {
         if (err) {
