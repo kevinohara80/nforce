@@ -6,11 +6,14 @@ lib-cov
 *.out
 *.pid
 *.gz
+*.env
 
 pids
 logs
 results
+Procfile
 
 node_modules
 npm-debug.log
 examples/json
+examples/leadOut.json
