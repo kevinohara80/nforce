@@ -481,6 +481,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 * Chris Hickman -> [chrishic](https://github.com/chrishic)
 * Daniel -> [bitbay](https://github.com/bitbay)
 * Gonzalo Huerta-Canepa -> [gfhuertac](https://github.com/gfhuertac)
+* Kyle Bowerman -> [kbowerma](https://github.com/kbowerma)
 
 ## Changelog
 
