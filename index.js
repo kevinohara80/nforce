@@ -17,6 +17,36 @@ var LOGIN_URI          = 'https://login.salesforce.com/services/oauth2/token';
 var TEST_LOGIN_URI     = 'https://test.salesforce.com/services/oauth2/token';
 var API_VERSIONS       = ['v20.0', 'v21.0', 'v22.0', 'v23.0', 'v24.0', 'v25.0', 'v26.0', 'v27.0', 'v28.0', 'v29.0'];
 
+// nforce utility functions
+
+var util = {};
+
+util.isJsonResponse = function(res) {
+  return res.headers 
+    && res.headers['content-type'] 
+    && res.headers['content-type'].split(';')[0].toLowerCase() === 'application/json';
+}
+
+util.findId = function(data) {
+  if(data.getId && typeof data.getId === 'function') {
+    return data.getId();
+  } else if(data.Id) {
+    return data.Id
+  } if(data.id) {
+    return data.id;
+  } else if(data.ID) {
+    return data.ID;
+  }
+}
+
+util.validateOAuth = function(oauth) {
+  if(!oauth || !oauth.instance_url || !oauth.access_token) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
 // nforce connection object
 
 var Connection = function(opts) {
@@ -186,7 +216,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
 
   if(!callback) callback = function(){};
 
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   if(!oauth.refresh_token) return callback(new Error('You must supply a refresh token'));
 
   bodyOpts = {
@@ -224,7 +254,7 @@ Connection.prototype.getIdentity = function(oauth, callback) {
   
   if(!callback) callback = function(){}
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   opts = { uri: oauth.id, method: 'GET'}
   
@@ -252,7 +282,7 @@ Connection.prototype.getResources = function(oauth, callback) {
   
   if(!callback) callback = function(){}
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion;
   opts = { uri: uri, method: 'GET' }
@@ -273,7 +303,7 @@ Connection.prototype.getSObjects = function(oauth, callback) {
   if(!callback) callback = function(){}
   
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects';
   opts = { uri: uri, method: 'GET' }
@@ -308,7 +338,7 @@ Connection.prototype.getMetadata = function(data, oauth, callback) {
     return callback(new Error('Type must be in the form of a string'), null);
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data;
   opts = { uri: uri, method: 'GET' }
@@ -331,7 +361,7 @@ Connection.prototype.getDescribe = function(data, oauth, callback) {
     return callback(new Error('Type must be in the form of a string'), null);
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data + '/describe';
   opts = { uri: uri, method: 'GET' }
@@ -361,7 +391,7 @@ Connection.prototype.insert = function(data, oauth, callback) {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   opts = { 
     uri: oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + type, 
@@ -407,7 +437,7 @@ Connection.prototype.update = function(data, oauth, callback) {
   
   type = data.attributes.type.toLowerCase();
   
-  if(!(id = findId(data))) {
+  if(!(id = util.findId(data))) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   
@@ -417,7 +447,7 @@ Connection.prototype.update = function(data, oauth, callback) {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   opts = { 
     uri: oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + type + '/' + id, 
@@ -473,7 +503,7 @@ Connection.prototype.upsert = function(data, oauth, callback) {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + type + '/' + data.attributes.externalIdField + '/' + data.attributes.externalId;
@@ -499,11 +529,11 @@ Connection.prototype.delete = function(data, oauth, callback) {
   
   type = data.attributes.type.toLowerCase();
   
-  if(!(id = findId(data))) {
+  if(!(id = util.findId(data))) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + type + '/' + data.getId();
@@ -529,11 +559,11 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
   
   type = data.attributes.type.toLowerCase();
   
-  if(!(id = findId(data))) {
+  if(!(id = util.findId(data))) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + type + '/' + id;
@@ -577,7 +607,7 @@ Connection.prototype.getBody = function(data, oauth, callback) {
   
   type = data.attributes.type.toLowerCase();
   
-  if(!(id = findId(data))) {
+  if(!(id = util.findId(data))) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   
@@ -603,7 +633,7 @@ Connection.prototype.getAttachmentBody = function(id, oauth, callback) {
   
   if(!callback) callback = function(){};
   
-  if(typeof id === 'object') id = findId(id);
+  if(typeof id === 'object') id = util.findId(id);
   
   if(!id) {
     return callback(new Error('You must specify an id in the form of a string'));
@@ -655,7 +685,7 @@ Connection.prototype.getContentVersionBody = function(id, oauth, callback) {
 
   if(!callback) callback = function(){};
   
-  if(typeof id === 'object') id = findId(id);
+  if(typeof id === 'object') id = util.findId(id);
   
   if(!id) {
     return callback(new Error('You must specify an id in the form of a string'));
@@ -683,7 +713,7 @@ Connection.prototype._queryHandler = function(query, oauth, all, callback) {
     return callback(new Error('You must specify a query'));
   }
 
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
 
   var queryNext = function(url) {
     self.getUrl(url, oauth, function(err, resp) {
@@ -773,7 +803,7 @@ Connection.prototype.search = function(search, oauth, callback) {
     return callback(new Error('Search must be in string form'), null);
   }
 
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/search';
   opts = { uri: uri, method: 'GET', qs: { q: search } }
@@ -807,7 +837,7 @@ Connection.prototype.getUrl = function(url, oauth, callback) {
     return callback(new Error('Url must be in string form'), null);
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + url;
   opts = { uri: uri, method: 'GET' }
@@ -830,7 +860,7 @@ Connection.prototype.apexRest = function(restRequest, oauth, callback) {
 
   if(!callback) callback = function(){};
 
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   if(typeof restRequest !== 'object') {
     return callback(new Error('You must specify a restRequest object'), null);
@@ -972,7 +1002,7 @@ Connection.prototype.updatePassword = function(data, oauth, callback) {
   
   type = data.attributes.type.toLowerCase();
   
-  if(!(id = findId(data))) {
+  if(!(id = util.findId(data))) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   
@@ -982,7 +1012,7 @@ Connection.prototype.updatePassword = function(data, oauth, callback) {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   opts = { 
     uri: oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/User/' + id + '/password', 
@@ -991,33 +1021,6 @@ Connection.prototype.updatePassword = function(data, oauth, callback) {
   
   opts.body = JSON.stringify(fieldvalues);  
   return this._apiRequest(opts, oauth, data, callback);
-}
-
-// utility methods
-
-var validateOAuth = function(oauth) {
-  if(!oauth || !oauth.instance_url || !oauth.access_token) {
-    return false;
-  } else {
-    return true;
-  }
-}
-
-var findId = function(data) {
-  if(data.getId && typeof data.getId === 'function') {
-    return data.getId();
-  } else if(data.Id) {
-    return data.Id
-  } if(data.id) {
-    return data.id;
-  } else if(data.ID) {
-    return data.ID;
-  }
-}
-
-var isJsonResponse = function(res) {
-  return res.headers && res.headers['content-type'] 
-    && res.headers['content-type'].split(';')[0].toLowerCase() === 'application/json';
 }
 
 var errors = {
@@ -1043,7 +1046,7 @@ Connection.prototype._apiAuthRequest = function(opts, callback) {
     // request didn't return a response. sumptin bad happened
     if(!res) return callback(errors.emptyResponse());
 
-    if(body && isJsonResponse(res)) {
+    if(body && util.isJsonResponse(res)) {
       try {
         body = JSON.parse(body);
       } catch (e) {
@@ -1070,6 +1073,8 @@ Connection.prototype._apiAuthRequest = function(opts, callback) {
 
 Connection.prototype._apiBlobRequest = function(opts, oauth, callback) {
 
+  var self = this;
+
   opts.headers = {
     'content-type': 'application/json',
     'Authorization': 'Bearer ' + oauth.access_token
@@ -1094,7 +1099,7 @@ Connection.prototype._apiBlobRequest = function(opts, oauth, callback) {
 
     // salesforce returned an error with a body
     if(body) {
-      if(isJsonResponse(res)) {
+      if(util.isJsonResponse(res)) {
         try {
           body = JSON.parse(body);
         } catch (e) {
@@ -1115,6 +1120,8 @@ Connection.prototype._apiBlobRequest = function(opts, oauth, callback) {
 }
 
 Connection.prototype._apiRequest = function(opts, oauth, sobject, callback) {
+
+  var self = this;
 
   opts.headers = {
     'Authorization': 'Bearer ' + oauth.access_token,
@@ -1141,7 +1148,7 @@ Connection.prototype._apiRequest = function(opts, oauth, sobject, callback) {
     }
 
     // attempt to parse the json now
-    if(isJsonResponse(res)) {
+    if(util.isJsonResponse(res)) {
       if(body) {
         try {
           body = JSON.parse(body);
@@ -1174,6 +1181,16 @@ Connection.prototype._apiRequest = function(opts, oauth, sobject, callback) {
 }
 
 // exports
+
+module.exports.util = util;
+
+module.exports.extend = function(fnName, fn) {
+  if(Connection.prototype[fnName]) {
+    throw new Error('this function already exists in nforce');
+  } else {
+    Connection.prototype[fnName] = fn;
+  }
+}
 
 module.exports.createConnection = function(opts) {
   return new Connection(opts);
