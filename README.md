@@ -463,13 +463,6 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
   })
 ```
 
-## Todo
-
-* **nforce** cli implementation
-* Continue with caching capabilities for describe/metadata calls
-* Chatter support
-* Tooling API
-
 ## Contributors
 
 * Kevin O'Hara -> [kevinohara80](https://github.com/kevinohara80)
