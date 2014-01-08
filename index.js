@@ -8,6 +8,7 @@ var QueryStream = require('./lib/querystream');
 var FDCStream   = require('./lib/fdcstream');
 var faye        = require('faye');
 var mime        = require('mime');
+var _           = require('lodash');
 
 // constants
 
@@ -20,6 +21,8 @@ var API_VERSIONS       = ['v20.0', 'v21.0', 'v22.0', 'v23.0', 'v24.0', 'v25.0', 
 // nforce utility functions
 
 var util = {};
+
+var plugins = {};
 
 util.isJsonResponse = function(res) {
   return res.headers 
@@ -50,6 +53,7 @@ util.validateOAuth = function(oauth) {
 // nforce connection object
 
 var Connection = function(opts) {
+  var self = this;
   if(!opts) opts = {};
   if(!opts.clientId  || typeof opts.clientId !== 'string') {
     throw new Error('Invalid or missing clientId');
@@ -120,6 +124,23 @@ var Connection = function(opts) {
   } else {
     this.mode = 'multi';
   }
+
+  // load plugins
+
+  if(opts.plugins && opts.plugins.length) {
+    opts.plugins.forEach(function(pname) {
+      if(!plugins[pname]) throw new Error('plugin ' + pname + ' not found');
+      // clone the object
+      self[pname] = _.clone(plugins[pname]._fns);
+
+      // now bind to the connection object
+      _.forOwn(self[pname], function(fn, key) {
+        self[pname][key] = _.bind(self[pname][key], self);
+      });
+
+    });
+  }
+
 }
 
 // oauth methods
@@ -1184,13 +1205,42 @@ Connection.prototype._apiRequest = function(opts, oauth, sobject, callback) {
 
 module.exports.util = util;
 
-module.exports.extend = function(fnName, fn) {
-  if(Connection.prototype[fnName]) {
-    throw new Error('this function already exists in nforce');
-  } else {
-    Connection.prototype[fnName] = fn;
-  }
+// plugin system
+
+function Plugin(opts) {
+  this.namespace = opts.namespace;
+  this._fns = {};
+  this.util = _.clone(util);
 }
+
+Plugin.prototype.fn = function(fnName, fn) {
+  if(typeof fn !== 'function') {
+    throw new Error('invalid function provided');
+  }
+  if(typeof fnName !== 'string') {
+    throw new Error('invalid function name provided');
+  }
+  this._fns[fnName] = fn;
+}
+
+module.exports.plugin = function(opts) {
+  if(typeof opts === 'string') {
+    opts = { namespace: opts };
+  }
+  if(!opts || !opts.namespace) {
+    throw new Error('no namespace provided for plugin')
+  }
+  if(plugins[opts.namespace]) {
+    throw new Error('a plugin with namespace ' + opts.namespace + ' already exists');
+  }
+
+  plugins[opts.namespace] = new Plugin(opts);
+
+  return plugins[opts.namespace];
+
+}
+
+// connection creation
 
 module.exports.createConnection = function(opts) {
   return new Connection(opts);
