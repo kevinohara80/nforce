@@ -1155,7 +1155,7 @@ Connection.prototype._apiRequest = function(opts, oauth, sobject, callback) {
     opts.headers['content-type'] = 'application/json';
   }
   
-  if (opts.method === 'GET' && opts.gzip === true) {
+  if (opts.method === 'GET' && this.gzip === true) {
     opts.headers['Accept-Encoding'] = 'gzip';
     opts.encoding = null;
     delete opts.gzip;
