@@ -8,6 +8,7 @@ var QueryStream = require('./lib/querystream');
 var FDCStream   = require('./lib/fdcstream');
 var faye        = require('faye');
 var mime        = require('mime');
+var zlib        = require('zlib');
 var _           = require('lodash');
 
 // constants
@@ -68,7 +69,8 @@ var Connection = function(opts) {
     cacheMetadata: false,
     apiVersion:    _.last(API_VERSIONS),
     environment:   'production',
-    mode:          'multi'
+    mode:          'multi',
+    gzip:          false
   });
 
   // convert option values
@@ -87,6 +89,7 @@ var Connection = function(opts) {
   if(!_.isString(this.loginUri)) throw new Error('invalid or missing loginUri');
   if(!_.isString(this.testLoginUri)) throw new Error('invalid or missing testLoginUri');
   if(!_.isBoolean(this.cacheMetadata)) throw new Error('cacheMetadata must be a boolean');
+  if(!_.isBoolean(this.gzip)) throw new Error('gzip must be a boolean');
   if(!_.isString(this.environment) || _.indexOf(ENVS, this.environment) === -1) {
     throw new Error('invalid environment, only ' + ENVS.join(' and ') + ' are allowed');
   }
@@ -588,7 +591,7 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
     uri += '?' + qs.stringify(query);
   }
   
-  opts = { uri: uri, method: 'GET'}
+  opts = { uri: uri, method: 'GET' }
   
   return this._apiRequest(opts, oauth, null, function(err, resp){
     if(!err) {
@@ -891,8 +894,8 @@ Connection.prototype.apexRest = function(restRequest, oauth, callback) {
   }
   
   uri = oauth.instance_url + '/services/apexrest/' + restRequest.uri;
-  opts = { uri: uri, method: restRequest.method}
-  
+  opts = { uri: uri, method: restRequest.method }
+
   if(restRequest.body!=null) {
     opts.body = typeof restRequest.body === 'string' ? restRequest.body : JSON.stringify(restRequest.body);
   }
@@ -1152,6 +1155,12 @@ Connection.prototype._apiRequest = function(opts, oauth, sobject, callback) {
     opts.headers['content-type'] = 'application/json';
   }
   
+  if (opts.method === 'GET' && opts.gzip === true) {
+    opts.headers['Accept-Encoding'] = 'gzip';
+    opts.encoding = null;
+    delete opts.gzip;
+  }
+
   return request(opts, function(err, res, body) {
     
     // request returned an error
@@ -1165,43 +1174,54 @@ Connection.prototype._apiRequest = function(opts, oauth, sobject, callback) {
       return callback(new Error(res.headers.error), null);
     }
 
-    // attempt to parse the json now
-    if(util.isJsonResponse(res)) {
-      if(body) {
-        try {
-          body = JSON.parse(body);
-        } catch (e) {
-          return callback(errors.invalidJson());
+    var processResponse = function(data) {
+      // attempt to parse the json now
+      if(util.isJsonResponse(res)) {
+        if(data) {
+          try {
+            data = JSON.parse(data);
+          } catch (e) {
+            return callback(errors.invalidJson());
+          }
         }
       }
-    } 
 
-    // salesforce returned an ok of some sort
-    if(res.statusCode >= 200 && res.statusCode <= 204) {
-      // attach the id back to the sobject on insert
-      if(sobject && body && body.id && !sobject.Id && !sobject.id && !sobject.ID) sobject.Id = body.id;
-      return callback(null, body);
-    } 
-
-    // salesforce returned an error with a body
-    if(body) {
-      var e;
-      if (Array.isArray(body) && body.length > 0) {
-        e = new Error(body[0].message);
-        e.errorCode = body[0].errorCode;
-        e.messageBody = body[0].message;
+      // salesforce returned an ok of some sort
+      if(res.statusCode >= 200 && res.statusCode <= 204) {
+        // attach the id back to the sobject on insert
+        if(sobject && data && data.id && !sobject.Id && !sobject.id && !sobject.ID) sobject.Id = data.id;
+        return callback(null, data);
       }
-      else {
-        //  didn't get a json response back -- just a simple string as the body
-        e = new Error(body);
-        e.messageBody = body;
-      }
-      e.statusCode = res.statusCode;
-      return callback(e, null);
-    } 
 
-    // we don't know what happened
-    return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
+      // salesforce returned an error with a body
+      if (data) {
+        var e;
+        if (Array.isArray(data) && data.length > 0) {
+          e = new Error(data[0].message);
+          e.errorCode = data[0].errorCode;
+          e.messageBody = data[0].message;
+        } else {
+          //  didn't get a json response back -- just a simple string as the body
+          e = new Error(data);
+          e.messageBody = data;
+        }
+        e.statusCode = res.statusCode;
+        return callback(e, null);
+      }
+
+      // we don't know what happened
+      return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
+    };
+
+    if(res.headers && res.headers['content-encoding'] === 'gzip' && body) {
+      //  response is compressed - decompress it
+      zlib.gunzip(body, function(err, data) {
+        if (err) return callback(err);
+        processResponse(data);
+      });
+    } else {
+      processResponse(body);
+    }
 
   });
 }
