@@ -21,7 +21,8 @@
   "dependencies": {
     "request": "*",
     "faye": "~0.8.3",
-    "mime": "~1.2.9"
+    "mime": "~1.2.9",
+    "lodash": "~2.4.1"
   },
   "devDependencies": {
     "mocha": "*",
