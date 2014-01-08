@@ -1,8 +1,10 @@
 var nforce = require('../');
+var clientId = process.env.CLIENTID;
+var clientSecret = process.env.CLIENTSECRET;
 
 var org = nforce.createConnection({
-  clientId: '3MVG9rFJvQRVOvk5nd6A4swCyck.4BFLnjFuASqNZmmxzpQSFWSTe6lWQxtF3L5soyVLfjV3yBKkjcePAsPzi',
-  clientSecret: '9154137956044345875',
+  clientId: clientId,
+  clientSecret: clientSecret,
   redirectUri: 'http://localhost:3000/oauth/_callback',
   environment: 'production',
   apiVersion: 'v25.0'
