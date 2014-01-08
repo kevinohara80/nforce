@@ -13,6 +13,7 @@ nforce :: node.js salesforce REST API wrapper
 * Simple streaming
 * Multi-user design with single user mode
 * Express middleware
+* Plugin support
 
 ## Installation
 
@@ -317,6 +318,13 @@ The createConnection method creates an *nforce* salesforce connection object. Yo
 
 This creates an sObject record that you can use to insert, update, upsert, and delete. `type` should be the salesforce API name of the sObject that you are updating. `fieldValues` should be a hash of field names and values that you want to initialize your sObject with. You can also just assign fields and values by setting properties after you create the sObject.
 
+## plugin(namespace|opts)
+
+This creates an nforce plugin. Plugins allow you to extend the functionality of nforce. You need to initialize the plugin with a `namespace` or an options hash containing a namespace. Valid options include:
+
+* `namespace`: Required. This sets the namespace for your plugin
+* `override': Override *true* allows you to overwrite an existing plugin. Default is false.
+
 ## Salesforce sObject Methods
 
 ### getFieldValues()
@@ -463,6 +471,11 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
     }
   })
 ```
+
+## Todo
+
+* Refactor the Record class to remove getters/setters and provide a set() api
+* Move express middleware to a separate module
 
 ## Contributors
 
