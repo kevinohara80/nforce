@@ -17,6 +17,8 @@ var TEST_AUTH_ENDPOINT = 'https://test.salesforce.com/services/oauth2/authorize'
 var LOGIN_URI          = 'https://login.salesforce.com/services/oauth2/token';
 var TEST_LOGIN_URI     = 'https://test.salesforce.com/services/oauth2/token';
 var API_VERSIONS       = ['v20.0', 'v21.0', 'v22.0', 'v23.0', 'v24.0', 'v25.0', 'v26.0', 'v27.0', 'v28.0', 'v29.0'];
+var ENVS               = ['sandbox', 'production'];
+var MODES              = ['multi', 'single'];
 
 // nforce utility functions
 
@@ -31,7 +33,7 @@ util.isJsonResponse = function(res) {
 }
 
 util.findId = function(data) {
-  if(data.getId && typeof data.getId === 'function') {
+  if(data.getId && _.isFunction(data.getId)) {
     return data.getId();
   } else if(data.Id) {
     return data.Id
@@ -50,84 +52,71 @@ util.validateOAuth = function(oauth) {
   }
 }
 
+util._ = _;
+
 // nforce connection object
 
 var Connection = function(opts) {
   var self = this;
-  if(!opts) opts = {};
-  if(!opts.clientId  || typeof opts.clientId !== 'string') {
-    throw new Error('Invalid or missing clientId');
-  } else {
-    this.clientId = opts.clientId;
-  }
-  if(!opts.clientSecret || typeof opts.clientSecret !== 'string') {
-    throw new Error('Invalid or missing clientSecret');
-  } else {
-    this.clientSecret = opts.clientSecret;
-  }
-  if(!opts.redirectUri || typeof opts.redirectUri !== 'string') {
-    throw new Error('Invalid or missing redirectUri');
-  } else {
-    this.redirectUri = opts.redirectUri;
-  }
-  // Allow custom login and test uris to be passed in
-  // Addresses issue #5
-  // @zachelrath 11/13/12
-  opts.loginUri && (LOGIN_URI = opts.loginUri);
-  opts.testLoginUri && (TEST_LOGIN_URI = opts.testLoginUri);
 
-  if(typeof opts.cacheMetadata !== 'undefined') {
-    if(typeof opts.cacheMetadata !== 'boolean') throw new Error('cacheMetadata must be a boolean');
-    this.cacheMetadata = opts.cacheMetadata;
-  } else {
-    // caching is defaulted to false
-    this.cacheMetadata = true;
+  opts = _.defaults(opts || {}, {
+    clientId:      null,
+    clientSecret:  null,
+    redirectUri:   null,
+    loginUri:      LOGIN_URI,
+    testLoginUri:  TEST_LOGIN_URI,
+    cacheMetadata: false,
+    apiVersion:    _.last(API_VERSIONS),
+    environment:   'production',
+    mode:          'multi'
+  });
+
+  // convert option values
+
+  opts.apiVersion = opts.apiVersion.toString().toLowerCase().replace('v', '').replace('\.0', '');
+  opts.environment = opts.environment.toLowerCase();
+  opts.mode = opts.mode.toLowerCase()
+
+  self = _.assign(this, opts);
+
+  // validate options
+
+  if(!_.isString(this.clientId)) throw new Error('invalid or missing clientId');
+  if(!_.isString(this.clientSecret)) throw new Error('invalid or missing clientSecret');
+  if(!_.isString(this.redirectUri)) throw new Error('invalid or missing redirectUri');
+  if(!_.isString(this.loginUri)) throw new Error('invalid or missing loginUri');
+  if(!_.isString(this.testLoginUri)) throw new Error('invalid or missing testLoginUri');
+  if(!_.isBoolean(this.cacheMetadata)) throw new Error('cacheMetadata must be a boolean');
+  if(!_.isString(this.environment) || _.indexOf(ENVS, this.environment) === -1) {
+    throw new Error('invalid environment, only ' + ENVS.join(' and ') + ' are allowed');
   }
+  if(!_.isString(this.mode) || _.indexOf(MODES, this.mode) === -1) {
+    throw new Error('invalid mode, only ' + MODES.join(' and ') + ' are allowed');
+  }
+  
+  // setup cache
+
   if(this.cacheMetadata) {
     this._cache = {
       keyPrefixes: {},
       sObjects: {}
     }
   }
-  if(opts.apiVersion) {
-    if(typeof opts.apiVersion === 'number') {
-      opts.apiVersion = opts.apiVersion.toString();
-      if(opts.apiVersion.length === 2) opts.apiVersion = opts.apiVersion + '.0';
-    }
-    opts.apiVersion = opts.apiVersion.toLowerCase();
-    if(/^\d\d\.\d$/g.test(opts.apiVersion)) {
-      opts.apiVersion = 'v' + opts.apiVersion;
-    } else if(/^\d\d$/g.test(opts.apiVersion)) {
-      opts.apiVersion = 'v' + opts.apiVersion + '.0';
-    } else if(/^v\d\d$/g.test(opts.apiVersion)) {
-      opts.apiVersion = opts.apiVersion + '.0';
-    }
-    if(API_VERSIONS.indexOf(opts.apiVersion) === -1 ) {
-      throw new Error(opts.apiVersion + ' is an invalid api version');
-    } else {
-      this.apiVersion = opts.apiVersion;
-    }
-  } else {
-    this.apiVersion = API_VERSIONS[API_VERSIONS.length - 1];
+
+  // parse api version
+
+  try {
+    this.apiVersion = 'v' + parseInt(this.apiVersion, 10) + '.0';
+  } catch (err) {
+    throw new Error('invalid apiVersion number');
   }
-  if(opts.environment) {
-    if(opts.environment.toLowerCase() == 'sandbox' || opts.environment.toLowerCase() == 'production') {
-      this.environment = opts.environment.toLowerCase();
-    } else {
-      throw new Error(opts.environment + ' is an invalid environment');
-    }
-  } else {
-    this.environment = 'production';
-  }
-  if(opts.mode && opts.mode.toLowerCase() === 'single') {
-    this.mode = 'single';
-  } else {
-    this.mode = 'multi';
+  if(API_VERSIONS.indexOf(this.apiVersion) === -1) {
+    throw new Error('api version ' + this.apiVersion + ' is not supported');
   }
 
   // load plugins
 
-  if(opts.plugins && opts.plugins.length) {
+  if(opts.plugins && _.isArray(opts.plugins)) {
     opts.plugins.forEach(function(pname) {
       if(!plugins[pname]) throw new Error('plugin ' + pname + ' not found');
       // clone the object
@@ -209,7 +198,7 @@ Connection.prototype.authenticate = function(opts, callback) {
     return callback(new Error('You must either supply a code, or username and password'));
   }
 
-  uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
+  uri = (self.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
 
   reqOpts = {
     uri: uri,
@@ -248,7 +237,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
     'refresh_token': oauth.refresh_token
   }
 
-  uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
+  uri = (self.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
 
   reqOpts = {
     uri: uri,
@@ -1230,7 +1219,12 @@ module.exports.plugin = function(opts) {
   if(!opts || !opts.namespace) {
     throw new Error('no namespace provided for plugin')
   }
-  if(plugins[opts.namespace]) {
+
+  opts = _.defaults(opts, {
+    override: false
+  });
+
+  if(plugins[opts.namespace] && !opts.override === true) {
     throw new Error('a plugin with namespace ' + opts.namespace + ' already exists');
   }
 

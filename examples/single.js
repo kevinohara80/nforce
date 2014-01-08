@@ -17,7 +17,7 @@ org.authenticate({ username: sfuser, password: sfpass}, function(err, res) {
   // look ma, no oauth argument!
   org.query('SELECT Id, FirstName, LastName FROM Lead LIMIT 1', function(err, res) {
     if(err) return console.error(err);
-    else return console.log(res.records[0].getFieldValues());
+    else return console.log(res.records[0]);
   });
   
 });
