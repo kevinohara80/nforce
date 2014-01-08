@@ -323,7 +323,7 @@ This creates an sObject record that you can use to insert, update, upsert, and d
 This creates an nforce plugin. Plugins allow you to extend the functionality of nforce. You need to initialize the plugin with a `namespace` or an options hash containing a namespace. Valid options include:
 
 * `namespace`: Required. This sets the namespace for your plugin
-* `override': Override *true* allows you to overwrite an existing plugin. Default is false.
+* `override`: Override *true* allows you to overwrite an existing plugin. Default is false.
 
 ## Salesforce sObject Methods
 
