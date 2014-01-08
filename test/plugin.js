@@ -34,6 +34,10 @@ describe('index', function() {
 
     });
 
+    it('should not allow non-functions when calling fn', function() {
+      
+    });
+
     it('should have util methods', function() {
 
       var plugin = nforce.plugin('utilplugin');

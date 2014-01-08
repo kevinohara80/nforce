@@ -10,7 +10,7 @@ describe('index', function(){
           clientSecret: 'ADFJSD234ADF765SFG55FD54S',
           redirectUri: 'http://localhost:3000/oauth/_callback'
         });
-      }).should.throw('Invalid or missing clientId');
+      }).should.throw('invalid or missing clientId');
     });
   
     it('should throw on no clientSecret', function(){
@@ -19,7 +19,7 @@ describe('index', function(){
           clientId: 'ADFJSD234ADF765SFG55FD54S',
           redirectUri: 'http://localhost:3000/oauth/_callback'
         });
-      }).should.throw('Invalid or missing clientSecret');
+      }).should.throw('invalid or missing clientSecret');
     });
   
     it('should throw on no redirectUri', function(){
@@ -28,7 +28,7 @@ describe('index', function(){
           clientId: 'ADFJSD234ADF765SFG55FD54S',
           clientSecret: 'ADFJSD234ADF765SFG55FD54S'
         });
-      }).should.throw('Invalid or missing redirectUri');
+      }).should.throw('invalid or missing redirectUri');
     });
   
     it('should not throw on id, secret, and redirectUri', function(){
