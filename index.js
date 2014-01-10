@@ -11,6 +11,8 @@ var mime        = require('mime');
 var base64url   = require('base64url');
 var crypto      = require('crypto');
 
+var zlib        = require('zlib');
+var _           = require('lodash');
 
 // constants
 
@@ -20,98 +22,158 @@ var LOGIN_URI          = 'https://login.salesforce.com/services/oauth2/token';
 var TEST_LOGIN_URI     = 'https://test.salesforce.com/services/oauth2/token';
 var API_VERSIONS       = ['v20.0', 'v21.0', 'v22.0', 'v23.0', 'v24.0', 'v25.0', 'v26.0', 'v27.0', 'v28.0', 'v29.0'];
 
+var ENVS               = ['sandbox', 'production'];
+var MODES              = ['multi', 'single'];
+
+// nforce utility functions
+
+var util = {};
+
+var plugins = {};
+
+util.isJsonResponse = function(res) {
+  return res.headers 
+    && res.headers['content-type'] 
+    && res.headers['content-type'].split(';')[0].toLowerCase() === 'application/json';
+}
+
+util.findId = function(data) {
+  if(data.getId && _.isFunction(data.getId)) {
+    return data.getId();
+  } else if(data.Id) {
+    return data.Id
+  } if(data.id) {
+    return data.id;
+  } else if(data.ID) {
+    return data.ID;
+  }
+}
+
+util.validateOAuth = function(oauth) {
+  if(!oauth || !oauth.instance_url || !oauth.access_token) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+util._ = _;
+
 // nforce connection object
 
 var Connection = function(opts) {
-  if(!opts) opts = {};
-  if(!opts.clientId  || typeof opts.clientId !== 'string') {
-    throw new Error('Invalid or missing clientId');
-  } else {
-    this.clientId = opts.clientId;
-  }
-  if(!opts.clientSecret || typeof opts.clientSecret !== 'string') {
-    throw new Error('Invalid or missing clientSecret');
-  } else {
-    this.clientSecret = opts.clientSecret;
-  }
-  if(!opts.redirectUri || typeof opts.redirectUri !== 'string') {
-    throw new Error('Invalid or missing redirectUri');
-  } else {
-    this.redirectUri = opts.redirectUri;
-  }
-  // Allow custom login and test uris to be passed in
-  // Addresses issue #5
-  // @zachelrath 11/13/12
-  opts.loginUri && (LOGIN_URI = opts.loginUri);
-  opts.testLoginUri && (TEST_LOGIN_URI = opts.testLoginUri);
+  var self = this;
 
-  if(typeof opts.cacheMetadata !== 'undefined') {
-    if(typeof opts.cacheMetadata !== 'boolean') throw new Error('cacheMetadata must be a boolean');
-    this.cacheMetadata = opts.cacheMetadata;
-  } else {
-    // caching is defaulted to false
-    this.cacheMetadata = true;
+  opts = _.defaults(opts || {}, {
+    clientId:      null,
+    clientSecret:  null,
+    redirectUri:   null,
+    loginUri:      LOGIN_URI,
+    testLoginUri:  TEST_LOGIN_URI,
+    cacheMetadata: false,
+    apiVersion:    _.last(API_VERSIONS),
+    environment:   'production',
+    mode:          'multi',
+    gzip:          false
+  });
+
+  // convert option values
+
+  opts.apiVersion = opts.apiVersion.toString().toLowerCase().replace('v', '').replace('\.0', '');
+  opts.environment = opts.environment.toLowerCase();
+  opts.mode = opts.mode.toLowerCase()
+
+  self = _.assign(this, opts);
+
+  // validate options
+
+  if(!_.isString(this.clientId)) throw new Error('invalid or missing clientId');
+  if(!_.isString(this.clientSecret)) throw new Error('invalid or missing clientSecret');
+  if(!_.isString(this.redirectUri)) throw new Error('invalid or missing redirectUri');
+  if(!_.isString(this.loginUri)) throw new Error('invalid or missing loginUri');
+  if(!_.isString(this.testLoginUri)) throw new Error('invalid or missing testLoginUri');
+  if(!_.isBoolean(this.cacheMetadata)) throw new Error('cacheMetadata must be a boolean');
+  if(!_.isBoolean(this.gzip)) throw new Error('gzip must be a boolean');
+  if(!_.isString(this.environment) || _.indexOf(ENVS, this.environment) === -1) {
+    throw new Error('invalid environment, only ' + ENVS.join(' and ') + ' are allowed');
   }
+  if(!_.isString(this.mode) || _.indexOf(MODES, this.mode) === -1) {
+    throw new Error('invalid mode, only ' + MODES.join(' and ') + ' are allowed');
+  }
+  
+  // setup cache
+
   if(this.cacheMetadata) {
     this._cache = {
       keyPrefixes: {},
       sObjects: {}
     }
   }
-  if(opts.apiVersion) {
-    if(typeof opts.apiVersion === 'number') {
-      opts.apiVersion = opts.apiVersion.toString();
-      if(opts.apiVersion.length === 2) opts.apiVersion = opts.apiVersion + '.0';
-    }
-    opts.apiVersion = opts.apiVersion.toLowerCase();
-    if(/^\d\d\.\d$/g.test(opts.apiVersion)) {
-      opts.apiVersion = 'v' + opts.apiVersion;
-    } else if(/^\d\d$/g.test(opts.apiVersion)) {
-      opts.apiVersion = 'v' + opts.apiVersion + '.0';
-    } else if(/^v\d\d$/g.test(opts.apiVersion)) {
-      opts.apiVersion = opts.apiVersion + '.0';
-    }
-    if(API_VERSIONS.indexOf(opts.apiVersion) === -1 ) {
-      throw new Error(opts.apiVersion + ' is an invalid api version');
-    } else {
-      this.apiVersion = opts.apiVersion;
-    }
-  } else {
-    this.apiVersion = API_VERSIONS[API_VERSIONS.length - 1];
+
+  // parse api version
+
+  try {
+    this.apiVersion = 'v' + parseInt(this.apiVersion, 10) + '.0';
+  } catch (err) {
+    throw new Error('invalid apiVersion number');
   }
-  if(opts.environment) {
-    if(opts.environment.toLowerCase() == 'sandbox' || opts.environment.toLowerCase() == 'production') {
-      this.environment = opts.environment.toLowerCase();
-    } else {
-      throw new Error(opts.environment + ' is an invalid environment');
-    }
-  } else {
-    this.environment = 'production';
+  if(API_VERSIONS.indexOf(this.apiVersion) === -1) {
+    throw new Error('api version ' + this.apiVersion + ' is not supported');
   }
-  if(opts.mode && opts.mode.toLowerCase() === 'single') {
-    this.mode = 'single';
-  } else {
-    this.mode = 'multi';
+
+  // load plugins
+
+  if(opts.plugins && _.isArray(opts.plugins)) {
+    opts.plugins.forEach(function(pname) {
+      if(!plugins[pname]) throw new Error('plugin ' + pname + ' not found');
+      // clone the object
+      self[pname] = _.clone(plugins[pname]._fns);
+
+      // now bind to the connection object
+      _.forOwn(self[pname], function(fn, key) {
+        self[pname][key] = _.bind(self[pname][key], self);
+      });
+
+    });
   }
+
 }
 
 // oauth methods
 
-Connection.prototype.getAuthUri = function() {
-  var opts;
+Connection.prototype.getAuthUri = function(opts) {
+  if(!opts) opts = {};
+  var urlOpts;
   var self = this;
   
-  opts = {
+  urlOpts = {
     'response_type': 'code',
     'client_id': self.clientId,
-    'client_secret': self.clientSecret,
     'redirect_uri': self.redirectUri
   }
 
+  if(opts.display) {
+    urlOpts.display = opts.display.toLowerCase();
+  }
+
+  if(opts.immediate) {
+    urlOpts.immediate = opts.immediate;
+  }
+
+  if(opts.scope) {
+    if(typeof opts.scope === 'object') {
+      urlOpts.scope = opts.scope.join(' ');
+    }
+  }
+
+  if(opts.state) {
+    urlOpts.state = opts.state;
+  }
+
   if(self.environment == 'sandbox') {
-    return TEST_AUTH_ENDPOINT + '?' + qs.stringify(opts);
+    return TEST_AUTH_ENDPOINT + '?' + qs.stringify(urlOpts);
   } else {
-    return AUTH_ENDPOINT + '?' + qs.stringify(opts);
+    return AUTH_ENDPOINT + '?' + qs.stringify(urlOpts);
   }
 }
 
@@ -143,7 +205,7 @@ Connection.prototype.authenticate = function(opts, callback) {
     return callback(new Error('You must either supply a code, or username and password'));
   }
 
-  uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
+  uri = (self.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
 
   reqOpts = {
     uri: uri,
@@ -153,21 +215,8 @@ Connection.prototype.authenticate = function(opts, callback) {
       'Content-Type': 'application/x-www-form-urlencoded'
     }
   }
-
-  return request(reqOpts, function(err, res, body){
-    if(!err && res.statusCode == 200) {
-      if(body) body = JSON.parse(body);
-      if(self.mode === 'single') self.oauth = body;
-      callback(null, body);
-    } else if(!err) {
-      if(body) body = JSON.parse(body);
-      err = new Error(body.error + ' - ' + body.error_description);
-      err.statusCode = res.statusCode;
-      callback(err, null);
-    } else {
-      callback(err, null);
-    }
-  });
+  
+  return this._apiAuthRequest(reqOpts, callback);
 
 }
 
@@ -184,7 +233,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
 
   if(!callback) callback = function(){};
 
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   if(!oauth.refresh_token) return callback(new Error('You must supply a refresh token'));
 
   bodyOpts = {
@@ -195,7 +244,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
     'refresh_token': oauth.refresh_token
   }
 
-  uri = (self.environment == 'sandbox') ? TEST_LOGIN_URI : LOGIN_URI;
+  uri = (self.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
 
   reqOpts = {
     uri: uri,
@@ -206,21 +255,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
     }
   }
 
-  return request(reqOpts, function(err, res, body){
-    if(!err && res.statusCode == 200) {
-      if(body) body = JSON.parse(body);
-      if(self.mode === 'single') self.oauth = body;
-      callback(null, body);
-    } else if(!err) {
-      if(body) body = JSON.parse(body);
-      err = new Error(body.error + ' - ' + body.error_description);
-      err.statusCode = res.statusCode;
-      callback(err, null);
-    } else {
-      callback(err, null);
-    }
-  });
-
+  return this._apiAuthRequest(reqOpts, callback);
 }
 
 // api methods
@@ -236,23 +271,21 @@ Connection.prototype.getIdentity = function(oauth, callback) {
   
   if(!callback) callback = function(){}
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   opts = { uri: oauth.id, method: 'GET'}
   
-  return apiRequest(opts, oauth, null, callback);
+  return this._apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.getVersions = function(callback) {
+  var opts;
+
   if(!callback) callback = function(){}
   
-  return request('http://na1.salesforce.com/services/data/', function(err, res, body){
-    if(!err && res.statusCode == 200) {
-      callback(null, JSON.parse(body));
-    } else {
-      callback(err, null);
-    }
-  });
+  opts = { uri : 'http://na1.salesforce.com/services/data/', method: 'GET' };
+  
+  return this._apiAuthRequest(opts, callback);
 }
 
 Connection.prototype.getResources = function(oauth, callback) {
@@ -266,12 +299,12 @@ Connection.prototype.getResources = function(oauth, callback) {
   
   if(!callback) callback = function(){}
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion;
   opts = { uri: uri, method: 'GET' }
   
-  return apiRequest(opts, oauth, null, callback);
+  return this._apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.getSObjects = function(oauth, callback) {
@@ -287,12 +320,12 @@ Connection.prototype.getSObjects = function(oauth, callback) {
   if(!callback) callback = function(){}
   
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects';
   opts = { uri: uri, method: 'GET' }
   
-  return apiRequest(opts, oauth, null, function(err, resp){
+  return this._apiRequest(opts, oauth, null, function(err, resp){
     if(err) {
       callback(err, null);
     } else {
@@ -322,12 +355,12 @@ Connection.prototype.getMetadata = function(data, oauth, callback) {
     return callback(new Error('Type must be in the form of a string'), null);
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data;
   opts = { uri: uri, method: 'GET' }
   
-  return apiRequest(opts, oauth, null, callback);
+  return this._apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.getDescribe = function(data, oauth, callback) {
@@ -345,12 +378,12 @@ Connection.prototype.getDescribe = function(data, oauth, callback) {
     return callback(new Error('Type must be in the form of a string'), null);
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data + '/describe';
   opts = { uri: uri, method: 'GET' }
   
-  return apiRequest(opts, oauth, null, callback);
+  return this._apiRequest(opts, oauth, null, callback);
 }
 
 Connection.prototype.insert = function(data, oauth, callback) {
@@ -375,7 +408,7 @@ Connection.prototype.insert = function(data, oauth, callback) {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   opts = { 
     uri: oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + type, 
@@ -401,7 +434,7 @@ Connection.prototype.insert = function(data, oauth, callback) {
     opts.body = JSON.stringify(fieldvalues);
   }
   
-  return apiRequest(opts, oauth, data, callback);
+  return this._apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.update = function(data, oauth, callback) {
@@ -421,7 +454,7 @@ Connection.prototype.update = function(data, oauth, callback) {
   
   type = data.attributes.type.toLowerCase();
   
-  if(!(id = findId(data))) {
+  if(!(id = util.findId(data))) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   
@@ -431,7 +464,7 @@ Connection.prototype.update = function(data, oauth, callback) {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   opts = { 
     uri: oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + type + '/' + id, 
@@ -457,7 +490,7 @@ Connection.prototype.update = function(data, oauth, callback) {
     opts.body = JSON.stringify(fieldvalues);
   }
   
-  return apiRequest(opts, oauth, data, callback);
+  return this._apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.upsert = function(data, oauth, callback) {
@@ -487,13 +520,13 @@ Connection.prototype.upsert = function(data, oauth, callback) {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + type + '/' + data.attributes.externalIdField + '/' + data.attributes.externalId;
   opts = { uri: uri, method: 'PATCH', body: JSON.stringify(fieldvalues) }
   
-  return apiRequest(opts, oauth, data, callback);
+  return this._apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.delete = function(data, oauth, callback) {
@@ -513,17 +546,17 @@ Connection.prototype.delete = function(data, oauth, callback) {
   
   type = data.attributes.type.toLowerCase();
   
-  if(!(id = findId(data))) {
+  if(!(id = util.findId(data))) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + type + '/' + data.getId();
   opts = { uri: uri, method: 'DELETE' }
   
-  return apiRequest(opts, oauth, data, callback);
+  return this._apiRequest(opts, oauth, data, callback);
 }
 
 Connection.prototype.getRecord = function(data, oauth, callback) {
@@ -543,11 +576,11 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
   
   type = data.attributes.type.toLowerCase();
   
-  if(!(id = findId(data))) {
+  if(!(id = util.findId(data))) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
     + type + '/' + id;
@@ -562,9 +595,9 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
     uri += '?' + qs.stringify(query);
   }
   
-  opts = { uri: uri, method: 'GET'}
+  opts = { uri: uri, method: 'GET' }
   
-  return apiRequest(opts, oauth, null, function(err, resp){
+  return this._apiRequest(opts, oauth, null, function(err, resp){
     if(!err) {
       resp = new Record(resp);
     }
@@ -591,7 +624,7 @@ Connection.prototype.getBody = function(data, oauth, callback) {
   
   type = data.attributes.type.toLowerCase();
   
-  if(!(id = findId(data))) {
+  if(!(id = util.findId(data))) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   
@@ -617,7 +650,7 @@ Connection.prototype.getAttachmentBody = function(id, oauth, callback) {
   
   if(!callback) callback = function(){};
   
-  if(typeof id === 'object') id = findId(id);
+  if(typeof id === 'object') id = util.findId(id);
   
   if(!id) {
     return callback(new Error('You must specify an id in the form of a string'));
@@ -627,7 +660,7 @@ Connection.prototype.getAttachmentBody = function(id, oauth, callback) {
     + '/sobjects/Attachment/' + id + '/body'
   opts = { uri: uri, method: 'GET' }
   
-  return apiBlobRequest(opts, oauth, function(err, resp) {
+  return this._apiBlobRequest(opts, oauth, function(err, resp) {
     callback(err, resp);
   });
 }
@@ -653,7 +686,7 @@ Connection.prototype.getDocumentBody = function(id, oauth, callback) {
     + '/sobjects/Document/' + id + '/body'
   opts = { uri: uri, method: 'GET' }
   
-  return apiBlobRequest(opts, oauth, function(err, resp) {
+  return this._apiBlobRequest(opts, oauth, function(err, resp) {
     callback(err, resp);
   });
 }
@@ -669,7 +702,7 @@ Connection.prototype.getContentVersionBody = function(id, oauth, callback) {
 
   if(!callback) callback = function(){};
   
-  if(typeof id === 'object') id = findId(id);
+  if(typeof id === 'object') id = util.findId(id);
   
   if(!id) {
     return callback(new Error('You must specify an id in the form of a string'));
@@ -679,21 +712,15 @@ Connection.prototype.getContentVersionBody = function(id, oauth, callback) {
     + '/sobjects/ContentVersion/' + id + '/body'
   opts = { uri: uri, method: 'GET' }
   
-  return apiBlobRequest(opts, oauth, function(err, resp) {
+  return this._apiBlobRequest(opts, oauth, function(err, resp) {
     callback(err, resp);
   });
 }
 
-Connection.prototype.query = function(query, oauth, callback) {
+Connection.prototype._queryHandler = function(query, oauth, all, callback) {
   var uri, opts, stream;
   var self = this;
   var recs = [];
-
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
-  }
 
   if(!callback) callback = function(){}
 
@@ -703,11 +730,13 @@ Connection.prototype.query = function(query, oauth, callback) {
     return callback(new Error('You must specify a query'));
   }
 
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
 
   var queryNext = function(url) {
     self.getUrl(url, oauth, function(err, resp) {
-      if(err) return callback(err, resp);
+      if (err) {
+        return stream.error(err);
+      }
       if(resp.records && resp.records.length > 0) {
         stream.write(JSON.stringify(resp));
       }
@@ -720,32 +749,60 @@ Connection.prototype.query = function(query, oauth, callback) {
   }
 
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/query';
+
+  // support queryAll
+  if(all) uri += 'All';
+
   opts = { uri: uri, method: 'GET', qs: { q: query } }
   
-  apiRequest(opts, oauth, null, function(err, resp){
-    if(!err) {
-      if(resp.records && resp.records.length > 0) {
-        stream.write(JSON.stringify(resp));
-        for(var i=0; i<resp.records.length; i++) {
-          recs.push(new Record(resp.records[i]));
+  this._apiRequest(opts, oauth, null, function(err, resp){
+    if (stream.isStreaming()) {
+      if (err) {
+        stream.error(err);
+      }
+      else {
+        if(resp) {
+          stream.write(JSON.stringify(resp));
         }
-        resp.records = recs;
+        if(resp.nextRecordsUrl) {
+          queryNext(resp.nextRecordsUrl);
+        } else {
+          stream.end();
+        }
       }
-      if(resp.nextRecordsUrl && stream.isStreaming()) {
-        queryNext(resp.nextRecordsUrl);
-      } else {
-        callback(err, resp);
-        stream.end();
+    }
+    else {
+      if(!err) {
+        if(resp.records && resp.records.length > 0) {
+          for(var i=0; i<resp.records.length; i++) {
+            recs.push(new Record(resp.records[i]));
+          }
+          resp.records = recs;
+        }
       }
-    } else {
-      stream.end();
       callback(err, resp);
     }
-
   });
 
   return stream;
+}
 
+Connection.prototype.query = function(query, oauth, callback) {
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length === 2) callback = args[1];
+  }
+  return this._queryHandler(query, oauth, false, callback);
+}
+
+Connection.prototype.queryAll = function(query, oauth, callback) {
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length === 2) callback = args[1];
+  }
+  return this._queryHandler(query, oauth, true, callback);
 }
 
 Connection.prototype.search = function(search, oauth, callback) {
@@ -763,12 +820,12 @@ Connection.prototype.search = function(search, oauth, callback) {
     return callback(new Error('Search must be in string form'), null);
   }
 
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/search';
   opts = { uri: uri, method: 'GET', qs: { q: search } }
   
-  return apiRequest(opts, oauth, null, function(err, resp){
+  return this._apiRequest(opts, oauth, null, function(err, resp){
     if(!err) {
       if(resp.length) {
         var recs = [];
@@ -797,12 +854,12 @@ Connection.prototype.getUrl = function(url, oauth, callback) {
     return callback(new Error('Url must be in string form'), null);
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   uri = oauth.instance_url + url;
   opts = { uri: uri, method: 'GET' }
   
-  return apiRequest(opts, oauth, null, callback);
+  return this._apiRequest(opts, oauth, null, callback);
 }
 
 // chatter api methods
@@ -820,7 +877,7 @@ Connection.prototype.apexRest = function(restRequest, oauth, callback) {
 
   if(!callback) callback = function(){};
 
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   if(typeof restRequest !== 'object') {
     return callback(new Error('You must specify a restRequest object'), null);
@@ -841,10 +898,17 @@ Connection.prototype.apexRest = function(restRequest, oauth, callback) {
   }
   
   uri = oauth.instance_url + '/services/apexrest/' + restRequest.uri;
+<<<<<<< HEAD
   opts = { uri: uri, method: restRequest.method};
   
   if(restRequest.body != null) {
     opts.body = JSON.stringify(restRequest.body);
+=======
+  opts = { uri: uri, method: restRequest.method }
+
+  if(restRequest.body!=null) {
+    opts.body = typeof restRequest.body === 'string' ? restRequest.body : JSON.stringify(restRequest.body);
+>>>>>>> upstream/master
   }
 
   if(restRequest.urlParams != null) {
@@ -862,7 +926,7 @@ Connection.prototype.apexRest = function(restRequest, oauth, callback) {
     opts.uri+=params;
   }
 
-  return apiRequest(opts, oauth, null, callback);
+  return this._apiRequest(opts, oauth, null, callback);
 }
 
 // streaming methods
@@ -962,7 +1026,7 @@ Connection.prototype.updatePassword = function(data, oauth, callback) {
   
   type = data.attributes.type.toLowerCase();
   
-  if(!(id = findId(data))) {
+  if(!(id = util.findId(data))) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   
@@ -972,7 +1036,7 @@ Connection.prototype.updatePassword = function(data, oauth, callback) {
     return callback(new Error('fieldValues must be in the form of an object'), null);
   }
   
-  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
   
   opts = { 
     uri: oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/User/' + id + '/password', 
@@ -980,9 +1044,10 @@ Connection.prototype.updatePassword = function(data, oauth, callback) {
   };
   
   opts.body = JSON.stringify(fieldvalues);  
-  return apiRequest(opts, oauth, data, callback);
+  return this._apiRequest(opts, oauth, data, callback);
 }
 
+<<<<<<< HEAD
 //method for fetching ApexLogs
 Connection.prototype.fetchLog = function(logId, oauth, callback) {
   var uri, opts, params, method;
@@ -1006,22 +1071,59 @@ var validateOAuth = function(oauth) {
     return false;
   } else {
     return true;
+=======
+var errors = {
+  nonJsonResponse: function() {
+    return new Error('Non-JSON response from Salesforce');
+  },
+  invalidJson: function() {
+    return new Error('Invalid JSON response from Salesforce');
+  },
+  emptyResponse: function() {
+    return new Error('Unexpected empty response');
+>>>>>>> upstream/master
   }
 }
 
-var findId = function(data) {
-  if(data.getId && typeof data.getId === 'function') {
-    return data.getId();
-  } else if(data.Id) {
-    return data.Id
-  } if(data.id) {
-    return data.id;
-  } else if(data.ID) {
-    return data.ID;
-  }
+Connection.prototype._apiAuthRequest = function(opts, callback) {
+
+  var self = this;
+
+  return request(opts, function(err, res, body){
+    // request returned an error
+    if(err) return callback(err);
+
+    // request didn't return a response. sumptin bad happened
+    if(!res) return callback(errors.emptyResponse());
+
+    if(body && util.isJsonResponse(res)) {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        return callback(errors.invalidJson());
+      }
+    } else {
+      return callback(errors.nonJsonResponse());
+    }
+
+    if(res.statusCode === 200) {
+      // detect oauth response for single mode
+      if(self.mode === 'single' && body.access_token) {
+        self.oauth = body;
+      }
+      return callback(null, body);
+    } else {
+      var e = new Error(body.error + ' - ' + body.error_description);
+      e.statusCode = res.statusCode;
+      return callback(e, null);
+    }
+
+  });
 }
 
-var apiBlobRequest = function(opts, oauth, callback) {
+Connection.prototype._apiBlobRequest = function(opts, oauth, callback) {
+
+  var self = this;
 
   opts.headers = {
     'content-type': 'application/json',
@@ -1032,6 +1134,9 @@ var apiBlobRequest = function(opts, oauth, callback) {
     // request returned an error
     if(err) return callback(err, null);
 
+    // request didn't return a response. sumptin bad happened
+    if(!res) return callback(errors.emptyResponse());
+
     // salesforce returned no body but an error in the header
     if(!body && res.headers && res.headers.error) {
       return callback(new Error(res.headers.error), null);
@@ -1044,12 +1149,26 @@ var apiBlobRequest = function(opts, oauth, callback) {
 
     // salesforce returned an error with a body
     if(body) {
-      body = JSON.parse(body);
-      err = new Error(body[0].message);
-      err.errorCode = body[0].errorCode;
-      err.statusCode = res.statusCode;
-      err.messageBody = body[0].message;
-      return callback(err, null);
+      if(util.isJsonResponse(res)) {
+        try {
+          body = JSON.parse(body);
+        } catch (e) {
+          return callback(errors.invalidJson());
+        }
+
+        if (Array.isArray(body) && body.length > 0) {
+          err = new Error(body[0].message);
+          err.errorCode = body[0].errorCode;
+          err.messageBody = body[0].message;
+        }
+        else {
+          //  didn't get a json response back -- just a simple string as the body
+          err = new Error(body);
+          err.messageBody = body;
+        }
+        err.statusCode = res.statusCode;
+        return callback(err, null);
+      } 
     } 
     
     // we don't know what happened
@@ -1058,10 +1177,13 @@ var apiBlobRequest = function(opts, oauth, callback) {
   });
 }
 
-var apiRequest = function(opts, oauth, sobject, callback) {
+Connection.prototype._apiRequest = function(opts, oauth, sobject, callback) {
+
+  var self = this;
 
   opts.headers = {
-    'Authorization': 'Bearer ' + oauth.access_token
+    'Authorization': 'Bearer ' + oauth.access_token,
+    'Accept': 'application/json;charset=UTF-8'
   }
 
   if(opts.multipart) {
@@ -1070,24 +1192,38 @@ var apiRequest = function(opts, oauth, sobject, callback) {
     opts.headers['content-type'] = 'application/json';
   }
   
+  if(opts.method === 'GET' && this.gzip === true) {
+    opts.headers['Accept-Encoding'] = 'gzip';
+    opts.encoding = null;
+    delete opts.gzip;
+  }
+
   return request(opts, function(err, res, body) {
     
     // request returned an error
     if(err) return callback(err, null);
+
+    // request didn't return a response. Sumptin bad happened
+    if(!res) return callback(errors.emptyResponse());
 
     // salesforce returned no body but an error in the header
     if(!body && res.headers && res.headers.error) {
       return callback(new Error(res.headers.error), null);
     }
 
-    // salesforce returned an ok of some sort
-    if(res.statusCode >= 200 && res.statusCode <= 204) {
-      if(body) body = JSON.parse(body);
-      // attach the id back to the sobject on insert
-      if(sobject && body && body.id && !sobject.Id && !sobject.id && !sobject.ID) sobject.Id = body.id;
-      return callback(null, body);
-    } 
+    var processResponse = function(data) {
+      // attempt to parse the json now
+      if(util.isJsonResponse(res)) {
+        if(data) {
+          try {
+            data = JSON.parse(data);
+          } catch (e) {
+            return callback(errors.invalidJson());
+          }
+        }
+      }
 
+<<<<<<< HEAD
     // salesforce returned an error with a body
     if(body) {
       body = JSON.parse(body);
@@ -1100,13 +1236,97 @@ var apiRequest = function(opts, oauth, sobject, callback) {
     
     // we don't know what happened
     return callback(new Error('Salesforce returned no body and status code ' + res.statusCode), null);
+=======
+      // salesforce returned an ok of some sort
+      if(res.statusCode >= 200 && res.statusCode <= 204) {
+        // attach the id back to the sobject on insert
+        if(sobject && data && data.id && !sobject.Id && !sobject.id && !sobject.ID) sobject.Id = data.id;
+        return callback(null, data);
+      }
+
+      // salesforce returned an error with a body
+      if (data) {
+        var e;
+        if (Array.isArray(data) && data.length > 0) {
+          e = new Error(data[0].message);
+          e.errorCode = data[0].errorCode;
+          e.messageBody = data[0].message;
+        } else {
+          //  didn't get a json response back -- just a simple string as the body
+          e = new Error(data);
+          e.messageBody = data;
+        }
+        e.statusCode = res.statusCode;
+        return callback(e, null);
+      }
+
+      // we don't know what happened
+      return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
+    };
+
+    if(res.headers && res.headers['content-encoding'] === 'gzip' && body) {
+      //  response is compressed - decompress it
+      zlib.gunzip(body, function(err, data) {
+        if (err) return callback(err);
+        processResponse(data);
+      });
+    } else {
+      processResponse(body);
+    }
+>>>>>>> upstream/master
 
   });
 }
 
 // exports
 
+<<<<<<< HEAD
 
+=======
+module.exports.util = util;
+
+// plugin system
+
+function Plugin(opts) {
+  this.namespace = opts.namespace;
+  this._fns = {};
+  this.util = _.clone(util);
+}
+
+Plugin.prototype.fn = function(fnName, fn) {
+  if(typeof fn !== 'function') {
+    throw new Error('invalid function provided');
+  }
+  if(typeof fnName !== 'string') {
+    throw new Error('invalid function name provided');
+  }
+  this._fns[fnName] = fn;
+}
+
+module.exports.plugin = function(opts) {
+  if(typeof opts === 'string') {
+    opts = { namespace: opts };
+  }
+  if(!opts || !opts.namespace) {
+    throw new Error('no namespace provided for plugin')
+  }
+
+  opts = _.defaults(opts, {
+    override: false
+  });
+
+  if(plugins[opts.namespace] && !opts.override === true) {
+    throw new Error('a plugin with namespace ' + opts.namespace + ' already exists');
+  }
+
+  plugins[opts.namespace] = new Plugin(opts);
+
+  return plugins[opts.namespace];
+
+}
+
+// connection creation
+>>>>>>> upstream/master
 
 module.exports.createConnection = function(opts) {
   return new Connection(opts);
@@ -1126,6 +1346,7 @@ module.exports.createSObject = function(type, fields) {
   return rec;
 }
 
+<<<<<<< HEAD
 // canvas signed request midddleware for express
 module.exports.signed_request = function(options) {
  
@@ -1164,4 +1385,6 @@ module.exports.signed_request = function(options) {
   }
 }
 
+module.exports.Record = Record;
 module.exports.version = require('./package.json').version;
+

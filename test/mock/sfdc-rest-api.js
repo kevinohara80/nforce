@@ -1,6 +1,11 @@
 var http        = require('http');
 var port        = process.env.PORT || 3000;
 var lastRequest = null;
+var nextResponse = null;
+var closeOnRequest = false;
+var isListening = false;
+
+var sockets = [];
 
 var server;
 
@@ -22,12 +27,44 @@ module.exports.start = function(port, cb) {
     });
 
     req.on('end', function() {
-      res.writeHead(200, { 
-        'Content-Type': 'application/json'
-      });
+
+      if(closeOnRequest) {
+        if(sockets.length) {
+          for(var i=0; i<sockets.length; i++) {
+            sockets[i].destroy();
+          }
+        }
+        return server.close();
+      }
+
+      if(nextResponse) {
+        res.writeHead(nextResponse.code, nextResponse.headers);
+        if(nextResponse.body) {
+          res.write(nextResponse.body, 'utf8')
+        }
+      } else {
+        res.writeHead(200, { 
+          'Content-Type': 'application/json'
+        });
+      } 
       res.end();
     });
  
+  });
+
+  server.on('listening', function() {
+    isListening = true;
+  });
+
+  server.on('close', function() {
+    isListening = false;
+  });
+
+  server.on('connection', function(socket) {
+    sockets.push(socket);
+    socket.on('close', function () {
+      sockets.splice(sockets.indexOf(socket), 1);
+    });
   });
 
   server.listen(port, cb);
@@ -39,7 +76,9 @@ module.exports.getClient = function() {
   return {
     clientId: 'ADFJSD234ADF765SFG55FD54S',
     clientSecret: 'adsfkdsalfajdskfa',
-    redirectUri: 'http://localhost:' + port + '/oauth/_callback'
+    redirectUri: 'http://localhost:' + port + '/oauth/_callback',
+    loginUri: 'http://localhost:' + port + '/login/uri',
+    apiVersion: '27.0'
   }
 }
 
@@ -54,18 +93,39 @@ module.exports.getOAuth = function() {
   }
 }
 
+module.exports.setResponse = function(code, headers, body) {
+  nextResponse = {
+    code: code,
+    headers: headers,
+    body: body
+  }
+}
+
 // return the last cached request
 module.exports.getLastRequest = function() {
   return lastRequest;
 }
 
+// simulate a socket close on a request
+module.exports.closeOnRequest = function(close) {
+  closeOnRequest = close;
+}
+
 // reset the cache
 module.exports.reset = function() {
   lastRequest = null;
+  nextResponse = null;
+  closeOnRequest = false;
+  sockets = [];
 }
 
 // close the server
 module.exports.stop = function(cb) {
-  server.close(cb);
-  server = null;
+  if(!isListening) {
+    server = null;
+    return cb();
+  } else {
+    server.close(cb);
+    server = null;
+  }
 }

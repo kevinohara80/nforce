@@ -13,6 +13,7 @@ nforce :: node.js salesforce REST API wrapper
 * Simple streaming
 * Multi-user design with single user mode
 * Express middleware
+* Plugin support
 
 ## Installation
 
@@ -98,6 +99,16 @@ org.query(q, oauth, function(err, resp){
     
   } 
 });
+```
+
+## Using the Example Files
+
+Most of the files in the examples directory can be used by simply setting two environment variables then running the files. The two environment variables are `SFUSER` and `SFPASS` which are your Salesforce.com username and passsword, respectively. Example below:
+
+```bash 
+$ export SFUSER=myusername@salesforce.com
+$ export SFPASS=mypassword
+$ node examples/crud.js
 ```
 
 ## Authentication
@@ -297,14 +308,22 @@ The createConnection method creates an *nforce* salesforce connection object. Yo
 * `clientId`: Required. This is the OAuth client id
 * `clientSecret`: Required. This is the OAuth client secret
 * `redirectUri`: Required. This is the redirect URI for OAuth callbacks
-* `apiVersion`: Optional. This is a number or string representing a valid REST API version. Default is v24.0.
+* `apiVersion`: Optional. This is a number or string representing a valid REST API version. Default is the latest current api version.
 * `environment`: Optional. Values can be 'production' or 'sandbox'. Default is production.
 * `loginUri`: Optional. Used to override the login URI if needed.
 * `testLoginUri`: Optional. Used to override the testLoginUri if needed.
+* `gzip`: Optional. If set to boolean 'true', then *nforce* will request that salesforce compress responses (using gzip) before transmitting over-the-wire.
 
 ### createSObject(type, [fieldValues])
 
 This creates an sObject record that you can use to insert, update, upsert, and delete. `type` should be the salesforce API name of the sObject that you are updating. `fieldValues` should be a hash of field names and values that you want to initialize your sObject with. You can also just assign fields and values by setting properties after you create the sObject.
+
+## plugin(namespace|opts)
+
+This creates an nforce plugin. Plugins allow you to extend the functionality of nforce. You need to initialize the plugin with a `namespace` or an options hash containing a namespace. Valid options include:
+
+* `namespace`: Required. This sets the namespace for your plugin
+* `override`: Override *true* allows you to overwrite an existing plugin. Default is false.
 
 ## Salesforce sObject Methods
 
@@ -324,9 +343,14 @@ Returns the sObjects Id (if set)
 
 The following list of methods are available for an **nforce** connection object:
 
-### getAuthUri()
+### getAuthUri([opts])
 
-This is a helper method to build the authentication uri for a authorization code OAuth 2.0 flow.
+This is a helper method to build the authentication uri for a authorization code OAuth 2.0 flow. You can optionally pass in an OAuth options argument. The supported options are:
+
+* `display`: (String) Tailors the login page to the user's device type. Currently the only values supported are `page`, `popup`, and `touch`
+* `immediate`: (Boolean) Avoid interacting with the user. Default is false.
+* `scope`: (Array) The scope parameter allows you to fine-tune what the client application can access. Supported values are `api`, `chatter_api`, `full`, `id`, `refresh_token`, `visualforce`, and `web` 
+* `state`: Any value that you wish to be sent with the callback
 
 ### authenticate(opts, [callback])
 
@@ -404,6 +428,10 @@ Get the binary data for an contentversion for the given `id`
 
 Execute a SOQL query for records. `query` should be a SOQL string. Large queries can be streamed using the `pipe()` method.
 
+### queryAll(query, [oauth], [callback])
+
+Same as query but includes deleted records
+
 ### search(search, [oauth], [callback])
 
 Execute a SOSL search for records. `search` should be a SOSL string.
@@ -446,10 +474,8 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 
 ## Todo
 
-* **nforce** cli implementation
-* Continue with caching capabilities for describe/metadata calls
-* Chatter support
-* Tooling API
+* Refactor the Record class to remove getters/setters and provide a set() api
+* Move express middleware to a separate module
 
 ## Contributors
 
@@ -458,9 +484,22 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 * Zach McElrath -> [zachelrath](https://github.com/zachelrath)
 * Chris Bland -> [chrisbland](https://github.com/chrisbland)
 * Jeremy Neander -> [jneander](https://github.com/jneander)
+* Austin McDaniel -> [amcdaniel2](https://github.com/amcdaniel2)
+* Chris Hickman -> [chrishic](https://github.com/chrishic)
+* Daniel -> [bitbay](https://github.com/bitbay)
+* Gonzalo Huerta-Canepa -> [gfhuertac](https://github.com/gfhuertac)
+* Kyle Bowerman -> [kbowerma](https://github.com/kbowerma)
 
 ## Changelog
 
+* `v0.6.2`: Fixes issue for single user mode and invalid oauth
+* `v0.6.1`: Security fix for client secret in auth uri
+* `v0.6.0`: Support for queryAll
+* `v0.5.3`: API version 29 support
+* `v0.5.2`: Fixed Apex REST bug because Jeff Douglas demanded it.
+* `v0.5.1`: Fix a bug in getVersions for single user mode
+* `v0.5.0`: Safer error handling. OAuth extra param support.
+* `v0.4.4`: Fixes query stream issues
 * `v0.4.3`: Fix express oauth issue. Whoops, my bad!
 * `v0.4.2`: Fix for upsert issue
 * `v0.4.1`: Bug fix for handling SFDC 500 response
