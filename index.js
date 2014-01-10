@@ -8,6 +8,9 @@ var QueryStream = require('./lib/querystream');
 var FDCStream   = require('./lib/fdcstream');
 var faye        = require('faye');
 var mime        = require('mime');
+var base64url   = require('base64url');
+var crypto      = require('crypto');
+
 var zlib        = require('zlib');
 var _           = require('lodash');
 
@@ -18,6 +21,7 @@ var TEST_AUTH_ENDPOINT = 'https://test.salesforce.com/services/oauth2/authorize'
 var LOGIN_URI          = 'https://login.salesforce.com/services/oauth2/token';
 var TEST_LOGIN_URI     = 'https://test.salesforce.com/services/oauth2/token';
 var API_VERSIONS       = ['v20.0', 'v21.0', 'v22.0', 'v23.0', 'v24.0', 'v25.0', 'v26.0', 'v27.0', 'v28.0', 'v29.0'];
+
 var ENVS               = ['sandbox', 'production'];
 var MODES              = ['multi', 'single'];
 
@@ -889,18 +893,25 @@ Connection.prototype.apexRest = function(restRequest, oauth, callback) {
     return callback(new Error('Only GET, POST, PATCH, & PUT are supported, you specified: '+ method), null);
   }
   //default to GET
-  if(restRequest.method==null || typeof restRequest.method !== 'string'){
+  if(restRequest.method == null || typeof restRequest.method !== 'string'){
     restRequest.method = 'GET';
   }
   
   uri = oauth.instance_url + '/services/apexrest/' + restRequest.uri;
+<<<<<<< HEAD
+  opts = { uri: uri, method: restRequest.method};
+  
+  if(restRequest.body != null) {
+    opts.body = JSON.stringify(restRequest.body);
+=======
   opts = { uri: uri, method: restRequest.method }
 
   if(restRequest.body!=null) {
     opts.body = typeof restRequest.body === 'string' ? restRequest.body : JSON.stringify(restRequest.body);
+>>>>>>> upstream/master
   }
 
-  if(restRequest.urlParams!=null) {
+  if(restRequest.urlParams != null) {
     if(!Array.isArray(restRequest.urlParams)) {
       return callback(new Error('URL parmams must be an array in form of [{key:\'key\', value:\'value\'}]'), null);
     }
@@ -908,7 +919,7 @@ Connection.prototype.apexRest = function(restRequest, oauth, callback) {
     params = '?';
     
     for(i = 0; i<restRequest.urlParams.length; i++){
-      if(i>0) params+='&'
+      if(i>0) params+= '&';
       params+=restRequest.urlParams[i].key+'='+restRequest.urlParams[i].value;
     }
     
@@ -1036,6 +1047,31 @@ Connection.prototype.updatePassword = function(data, oauth, callback) {
   return this._apiRequest(opts, oauth, data, callback);
 }
 
+<<<<<<< HEAD
+//method for fetching ApexLogs
+Connection.prototype.fetchLog = function(logId, oauth, callback) {
+  var uri, opts, params, method;
+
+  if(this.mode === 'single') {
+    var args = Array.prototype.slice.call(arguments);
+    oauth = this.oauth;
+    if(args.length == 2) callback = args[1];
+  }
+  if(!callback) callback = function(){};
+  if(!validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
+  uri = oauth.instance_url + '/services/data/v28.0/sobjects/ApexLog/' + logId +'/Body';
+  console.log(uri);
+  opts = { uri: uri, method: 'GET'};
+  return apiRequest(opts, oauth, null, callback);
+}
+// utility methods
+
+var validateOAuth = function(oauth) {
+  if(!oauth || !oauth.instance_url || !oauth.access_token) {
+    return false;
+  } else {
+    return true;
+=======
 var errors = {
   nonJsonResponse: function() {
     return new Error('Non-JSON response from Salesforce');
@@ -1045,6 +1081,7 @@ var errors = {
   },
   emptyResponse: function() {
     return new Error('Unexpected empty response');
+>>>>>>> upstream/master
   }
 }
 
@@ -1135,7 +1172,7 @@ Connection.prototype._apiBlobRequest = function(opts, oauth, callback) {
     } 
     
     // we don't know what happened
-    return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
+    return callback(new Error('Salesforce returned no body and status code ' + res.statusCode), null);
 
   });
 }
@@ -1186,6 +1223,20 @@ Connection.prototype._apiRequest = function(opts, oauth, sobject, callback) {
         }
       }
 
+<<<<<<< HEAD
+    // salesforce returned an error with a body
+    if(body) {
+      body = JSON.parse(body);
+      err = new Error(body[0].message);
+      err.errorCode = body[0].errorCode;
+      err.statusCode = res.statusCode;
+      err.messageBody = body[0].message;
+      return callback(err, null);
+    } 
+    
+    // we don't know what happened
+    return callback(new Error('Salesforce returned no body and status code ' + res.statusCode), null);
+=======
       // salesforce returned an ok of some sort
       if(res.statusCode >= 200 && res.statusCode <= 204) {
         // attach the id back to the sobject on insert
@@ -1222,12 +1273,16 @@ Connection.prototype._apiRequest = function(opts, oauth, sobject, callback) {
     } else {
       processResponse(body);
     }
+>>>>>>> upstream/master
 
   });
 }
 
 // exports
 
+<<<<<<< HEAD
+
+=======
 module.exports.util = util;
 
 // plugin system
@@ -1271,6 +1326,7 @@ module.exports.plugin = function(opts) {
 }
 
 // connection creation
+>>>>>>> upstream/master
 
 module.exports.createConnection = function(opts) {
   return new Connection(opts);
@@ -1290,5 +1346,45 @@ module.exports.createSObject = function(type, fields) {
   return rec;
 }
 
+<<<<<<< HEAD
+// canvas signed request midddleware for express
+module.exports.signed_request = function(options) {
+ 
+  if(!options) options = {};
+ 
+  return function(req, res, next) {
+    if(req.method === 'POST' && req.body && req.body.signed_request) {
+      if(!req.body.signed_request) next();
+      //Split the signed request body in to two parts
+      var signed_body = req.body.signed_request.split('.');
+      //ensure that the signature and oauth are included
+      if(signed_body.length !== 2) next();
+      var signature = signed_body[0];
+      var srData = JSON.parse(new Buffer(arr[1], 'base64').toString('ascii'));
+      // build up our oauth object for nforce
+      var oauth = {
+        access_token: srData.client.oauthToken || '',
+        instance_url: srData.client.instanceUrl || ''
+      };
+      // verify the signature
+      var verify_signature= crypto.createHmac('sha256', this.clientSecret).update(signed_body[1]).digest('base64');
+      if(verify_signature !== signature) next();
+
+      // attach full signed request to request and, if available, session
+      req.signed_request = srData;
+      req.oauth = oauth;
+
+      if(req.session){
+        req.session.signed_request = srData;
+        req.session.oauth = oauth;
+      }       
+      next();
+    } else {
+      next();
+    }
+  }
+}
+
 module.exports.Record = Record;
 module.exports.version = require('./package.json').version;
+
