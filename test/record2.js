@@ -266,5 +266,16 @@ describe('lib/record', function(){
     });
 
   });
+
+  describe('#_reset', function() {
+
+    it('should reset the cache when calling _reset', function() {
+      var acc = new Record(accData);
+      Object.keys(acc.changed()).length.should.equal(2);
+      acc._reset();
+      Object.keys(acc.changed()).length.should.equal(0);
+    });
+
+  });
   
 });
