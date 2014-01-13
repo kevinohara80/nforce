@@ -2,6 +2,13 @@ var Record = require('../lib/record');
 var should = require('should');
 
 // var accountRec;
+var accData = {
+  attributes: {
+    type: 'Account'
+  },
+  Name: 'Test Account',
+  Industry: 'Technology'
+};
 
 describe('lib/record', function(){ 
   
@@ -460,6 +467,15 @@ describe('lib/record', function(){
 
   });
 
+  describe('#toJSON', function() {
+
+    it('should return the data as JSON', function() {
+      var acc = new Record(accData);
+      Object.keys(acc.toJSON()).length.should.equal(2);
+    });
+
+  });
+
   describe('#_reset', function() {
 
     it('should reset the cache when calling _reset', function() {
@@ -467,6 +483,49 @@ describe('lib/record', function(){
       Object.keys(acc.changed()).length.should.equal(2);
       acc._reset();
       Object.keys(acc.changed()).length.should.equal(0);
+    });
+
+  });
+
+  describe('#_getPayload', function() {
+
+    it('should return all fields when changedOnly is false', function() {
+      var acc = new Record(accData);
+      acc._changed = [];
+      acc._previous = {};
+      Object.keys(acc._getPayload(false)).length.should.equal(2);
+    });
+
+    it('should return changed fields only when changedOnly is true', function() {
+      var acc = new Record(accData);
+      acc._changed = [];
+      acc._previous = {};
+      acc.set('MyField__c', 'test');
+      Object.keys(acc._getPayload(true)).length.should.equal(1);
+    });
+
+    it('should return all fields only when changedOnly is not specified', function() {
+      var acc = new Record(accData);
+      acc._changed = [];
+      acc._previous = {};
+      acc.set('MyField__c', 'test');
+      Object.keys(acc._getPayload()).length.should.equal(3);
+    });
+
+    it('should return the external id with the other fields', function() {
+      var acc = new Record(accData);
+      acc.setExternalId('MyExtId__c', 'Blah');
+      acc._getPayload(false).should.exist;
+      acc._getPayload(false).should.have.keys('myextid__c', 'name', 'industry');
+    });
+
+    it('should return only external id with requesting changed only', function() {
+      var acc = new Record(accData);
+      acc._reset();
+      acc.setExternalId('MyExtId__c', 'Blah');
+      acc._getPayload(true).should.exist;
+      acc._getPayload(true).should.have.keys('myextid__c');
+      acc._getPayload(true).should.not.have.keys('name', 'industry');
     });
 
   });

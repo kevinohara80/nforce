@@ -37,7 +37,7 @@
   },
   "scripts": {
     "test": "mocha --reporter spec",
-    "testrecord": "mocha test/record2.js --reporter spec"
+    "testrecord": "mocha test/record.js --reporter spec"
   },
   "license": {
     "type": "MIT",

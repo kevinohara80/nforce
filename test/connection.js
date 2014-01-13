@@ -1,4 +1,5 @@
 var nforce = require('../');
+var should = require('should');
 
 describe('index', function(){ 
 
@@ -86,26 +87,26 @@ describe('index', function(){
     });
   
     it('should accept sandbox for environment', function(){
-       (function() {
-         var org = nforce.createConnection({
-           clientId: 'ADFJSD234ADF765SFG55FD54S',
-           clientSecret: 'ADFJSD234ADF765SFG55FD54S',
-           redirectUri: 'http://localhost:3000/oauth/_callback',
-           environment: 'sandbox'
-         });
-       }).should.not.throw();
-     });
+      (function() {
+        var org = nforce.createConnection({
+          clientId: 'ADFJSD234ADF765SFG55FD54S',
+          clientSecret: 'ADFJSD234ADF765SFG55FD54S',
+          redirectUri: 'http://localhost:3000/oauth/_callback',
+          environment: 'sandbox'
+        });
+      }).should.not.throw();
+    });
    
-     it('should not accept playground for environment', function(){
-        (function() {
-          var org = nforce.createConnection({
-            clientId: 'ADFJSD234ADF765SFG55FD54S',
-            clientSecret: 'ADFJSD234ADF765SFG55FD54S',
-            redirectUri: 'http://localhost:3000/oauth/_callback',
-            environment: 'playground'
-          });
-        }).should.throw();
-      });
+    it('should not accept playground for environment', function(){
+      (function() {
+        var org = nforce.createConnection({
+        clientId: 'ADFJSD234ADF765SFG55FD54S',
+        clientSecret: 'ADFJSD234ADF765SFG55FD54S',
+        redirectUri: 'http://localhost:3000/oauth/_callback',
+        environment: 'playground'
+        });
+      }).should.throw();
+    });
   
   });
   
@@ -133,13 +134,13 @@ describe('index', function(){
       obj.should.have.type('object');
       obj.should.have.property('attributes');
       obj.attributes.type.should.equal('Test_Object__c');
-      obj.should.have.property('Name');
-      obj.Name.should.equal('Test Me');
-      obj.should.have.property('Custom_Field__c');
-      obj.Custom_Field__c.should.equal('Blah');
-      var fv = obj.getFieldValues();
-      fv.should.have.property('Name', 'Test Me');
-      fv.should.have.property('Custom_Field__c', 'Blah');
+      obj._fields.should.have.property('name');
+      obj._fields.name.should.equal('Test Me');
+      obj._fields.should.have.property('custom_field__c');
+      obj._fields.custom_field__c.should.equal('Blah');
+      var pl = obj._getPayload(false);
+      pl.should.have.property('name', 'Test Me');
+      pl.should.have.property('custom_field__c', 'Blah');
     });
 
     it('should allow instantiation with id', function() {
@@ -148,20 +149,18 @@ describe('index', function(){
         Custom_Field__c: 'Blah',
         Id: 'asalesforceid'
       });
-      obj.should.have.property('Id');
-      obj.Id.should.equal('asalesforceid');
+      should.exist(obj.getId());
+      obj.getId().should.equal('asalesforceid');
     });
 
-    it('should clear the cache after calling getFieldValues', function() {
+    it('should clear the cache after calling _reset', function() {
       var obj = nforce.createSObject('Test_Object__c', {
         Name: 'Test Me',
         Custom_Field__c: 'Blah',
         Id: 'asalesforceid'
       });
-      var fvBefore = obj.getFieldValues();
-      var fvAfter = obj.getFieldValues();
-      fvBefore.should.have.keys('Name', 'Custom_Field__c');
-      fvAfter.should.not.have.keys('Name', 'Custom_Field__c', 'Id');
+      obj._reset();
+      obj._getPayload(true).should.not.have.keys('name', 'custom_field__c');
     });
     
   });
