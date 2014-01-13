@@ -1,4 +1,5 @@
 var nforce = require('../');
+var should = require('should');
 var api = require('./mock/sfdc-rest-api');
 var port   = process.env.PORT || 3000;
 
@@ -24,6 +25,10 @@ describe('api-mock-crud', function() {
         Test_Field__c: 'blah'
       });
       org.insert(obj, oauth, function(err, res) {
+        if(err) throw err;
+        var body = JSON.parse(api.getLastRequest().body);
+        should.exist(body.name);
+        should.exist(body.test_field__c);
         api.getLastRequest().url.should.equal('/services/data/v27.0/sobjects/account');
         api.getLastRequest().method.should.equal('POST');
         done();
@@ -39,8 +44,9 @@ describe('api-mock-crud', function() {
         Name: 'Test Account',
         Test_Field__c: 'blah'
       });
-      obj.Id = 'someid';
+      obj.setId('someid');
       org.update(obj, oauth, function(err, res) {
+        if(err) throw err;
         api.getLastRequest().url.should.equal('/services/data/v27.0/sobjects/account/someid');
         api.getLastRequest().method.should.equal('PATCH');
         done();
@@ -56,12 +62,13 @@ describe('api-mock-crud', function() {
         Name: 'Test Account',
         Test_Field__c: 'blah'
       });
-      obj.setExternalId('My_Ext_Id__c', 'abc123')
+      obj.setExternalId('My_Ext_Id__c', 'abc123');
       org.upsert(obj, oauth, function(err, res) {
+        if(err) throw err;
         var body = JSON.parse(api.getLastRequest().body);
-        body.Name.should.exist;
-        body.Test_Field__c.should.exist;
-        api.getLastRequest().url.should.equal('/services/data/v27.0/sobjects/account/My_Ext_Id__c/abc123');
+        should.exist(body.name);
+        should.exist(body.test_field__c);
+        api.getLastRequest().url.should.equal('/services/data/v27.0/sobjects/account/my_ext_id__c/abc123');
         api.getLastRequest().method.should.equal('PATCH');
         done();
       });
@@ -76,8 +83,9 @@ describe('api-mock-crud', function() {
         Name: 'Test Account',
         Test_Field__c: 'blah'
       });
-      obj.Id = 'someid';
+      obj.setId('someid');
       org.delete(obj, oauth, function(err, res) {
+        if(err) throw err;
         api.getLastRequest().url.should.equal('/services/data/v27.0/sobjects/account/someid');
         api.getLastRequest().method.should.equal('DELETE');
         done();

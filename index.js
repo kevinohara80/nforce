@@ -135,6 +135,44 @@ var Connection = function(opts) {
 
 }
 
+// options parsing
+
+Connection.prototype.parseArgs = function(args, opts) {
+  opts = opts || {};
+  opts = _.defaults({
+    requireOauth: true,
+  });
+
+  var data = {
+    oauth: undefined,
+    callback: function() {},
+    errors: []
+  }
+
+  args = Array.prototype.slice.apply(args);
+
+  args = _.transform(args, function(result, val, key) {
+    result[key.toLowerCase()] = val;
+  });
+
+  if(this.mode === 'single' && !args.oauth) {
+    data.oauth = this.oauth;
+  } else if(args.oauth) {
+    data.oauth = args.oauth;
+  }
+
+  if(opts.requireOauth === true && !data.oauth) {
+    data.errors.push('missing oauth argument');
+  }
+
+  if(data.oauth && !util.validateOAuth(data.oauth)) {
+    data.errors.push('invalid oauth argument');
+  }
+
+  return data;
+
+}
+
 // oauth methods
 
 Connection.prototype.getAuthUri = function(opts) {
@@ -398,7 +436,7 @@ Connection.prototype.insert = function(data, oauth, callback) {
   
   type = data.attributes.type.toLowerCase();
   
-  fieldvalues = data.getFieldValues();
+  fieldvalues = data._getPayload(false);
   
   if(typeof fieldvalues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
@@ -454,7 +492,7 @@ Connection.prototype.update = function(data, oauth, callback) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   
-  fieldvalues = data.getFieldValues();
+  fieldvalues = data._getPayload(true);
   
   if(typeof fieldvalues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
@@ -510,7 +548,8 @@ Connection.prototype.upsert = function(data, oauth, callback) {
     return callback(new Error('Invalid external id or external id field'));
   }
   
-  fieldvalues = data.getFieldValues();
+  fieldvalues = data._getPayload(true);
+  //console.log(fieldvalues);
   
   if(typeof fieldvalues !== 'object') {
     return callback(new Error('fieldValues must be in the form of an object'), null);
@@ -542,7 +581,7 @@ Connection.prototype.delete = function(data, oauth, callback) {
   
   type = data.attributes.type.toLowerCase();
   
-  if(!(id = util.findId(data))) {
+  if(!(id = data.getId())) {
     return callback(new Error('You must specify an id in the form of a string'));
   }
   
@@ -1277,16 +1316,11 @@ module.exports.createConnection = function(opts) {
 }
 
 module.exports.createSObject = function(type, fields) {
-  var data = {
-    attributes: {}
+  var data = fields || {};
+  data.attributes = {
+    type: type
   }
-  data.attributes.type = type;
   var rec = new Record(data);
-  if(fields) {
-    for(var key in fields) {
-      rec[key] = fields[key];
-    }
-  }
   return rec;
 }
 
