@@ -733,13 +733,22 @@ Connection.prototype._queryHandler = function(query, oauth, all, callback) {
       if (err) {
         return stream.error(err);
       }
-      if(resp.records && resp.records.length > 0) {
-        stream.write(JSON.stringify(resp));
+      var write_more = function () {
+        if(resp.records && resp.records.length > 0) {
+          stream.write(JSON.stringify(resp));
+        }
+        if(resp.nextRecordsUrl) {
+          queryNext(resp.nextRecordsUrl);
+        } else {
+          stream.end();
+        }
+      };
+
+      if (stream.writable) {
+        write_more();
       }
-      if(resp.nextRecordsUrl) {
-        queryNext(resp.nextRecordsUrl);
-      } else {
-        stream.end();
+      else {
+        stream.once('resume', write_more);
       }
     });
   }
@@ -758,12 +767,22 @@ Connection.prototype._queryHandler = function(query, oauth, all, callback) {
       }
       else {
         if(resp) {
-          stream.write(JSON.stringify(resp));
-        }
-        if(resp.nextRecordsUrl) {
-          queryNext(resp.nextRecordsUrl);
-        } else {
-          stream.end();
+          var write_more = function () {
+            stream.write(JSON.stringify(resp));
+            if(resp.nextRecordsUrl) {
+              queryNext(resp.nextRecordsUrl);
+            }
+            else {
+              stream.end();
+            }
+          };
+          
+          if (stream.writable) {
+            write_more();
+          }
+          else {
+            stream.once('resume', write_more);
+          }
         }
       }
     }
