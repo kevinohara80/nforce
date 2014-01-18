@@ -6,6 +6,8 @@ var url         = require('url');
 var Record      = require('./lib/record');
 var QueryStream = require('./lib/querystream');
 var FDCStream   = require('./lib/fdcstream');
+var Opts        = require('./lib/opts');
+var util        = require('./lib/util');
 var faye        = require('faye');
 var mime        = require('mime');
 var zlib        = require('zlib');
@@ -21,39 +23,7 @@ var API_VERSIONS       = ['v20.0', 'v21.0', 'v22.0', 'v23.0', 'v24.0', 'v25.0', 
 var ENVS               = ['sandbox', 'production'];
 var MODES              = ['multi', 'single'];
 
-// nforce utility functions
-
-var util = {};
-
 var plugins = {};
-
-util.isJsonResponse = function(res) {
-  return res.headers 
-    && res.headers['content-type'] 
-    && res.headers['content-type'].split(';')[0].toLowerCase() === 'application/json';
-}
-
-util.findId = function(data) {
-  if(data.getId && _.isFunction(data.getId)) {
-    return data.getId();
-  } else if(data.Id) {
-    return data.Id
-  } if(data.id) {
-    return data.id;
-  } else if(data.ID) {
-    return data.ID;
-  }
-}
-
-util.validateOAuth = function(oauth) {
-  if(!oauth || !oauth.instance_url || !oauth.access_token) {
-    return false;
-  } else {
-    return true;
-  }
-}
-
-util._ = _;
 
 // nforce connection object
 
@@ -77,7 +47,7 @@ var Connection = function(opts) {
 
   opts.apiVersion = opts.apiVersion.toString().toLowerCase().replace('v', '').replace('\.0', '');
   opts.environment = opts.environment.toLowerCase();
-  opts.mode = opts.mode.toLowerCase()
+  opts.mode = opts.mode.toLowerCase();
 
   self = _.assign(this, opts);
 
@@ -135,42 +105,10 @@ var Connection = function(opts) {
 
 }
 
-// options parsing
+// argument parsing
 
-Connection.prototype.parseArgs = function(args, opts) {
-  opts = opts || {};
-  opts = _.defaults({
-    requireOauth: true,
-  });
-
-  var data = {
-    oauth: undefined,
-    callback: function() {},
-    errors: []
-  }
-
-  args = Array.prototype.slice.apply(args);
-
-  args = _.transform(args, function(result, val, key) {
-    result[key.toLowerCase()] = val;
-  });
-
-  if(this.mode === 'single' && !args.oauth) {
-    data.oauth = this.oauth;
-  } else if(args.oauth) {
-    data.oauth = args.oauth;
-  }
-
-  if(opts.requireOauth === true && !data.oauth) {
-    data.errors.push('missing oauth argument');
-  }
-
-  if(data.oauth && !util.validateOAuth(data.oauth)) {
-    data.errors.push('invalid oauth argument');
-  }
-
-  return data;
-
+Connection.prototype._getOpts = function(args, validations) {
+  return new Opts(args, validations, this);
 }
 
 // oauth methods
@@ -422,6 +360,13 @@ Connection.prototype.getDescribe = function(data, oauth, callback) {
 
 Connection.prototype.insert = function(data, oauth, callback) {
   var type, opts, entity, name, fieldvalues;
+
+  opts = this._getOpts(arguments, {
+    oauth: true,
+    sobject: true 
+  });
+
+  //if(opts.hasErrors()) return opts.callback(opts.getError());
   
   if(this.mode === 'single') {
     var args = Array.prototype.slice.call(arguments);
