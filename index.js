@@ -1143,28 +1143,53 @@ Connection.prototype._apiBlobRequest = function(opts, oauth, callback) {
   });
 }
 
-Connection.prototype._apiRequest = function(opts, oauth, sobject, callback) {
+Connection.prototype._apiRequest = function(opts, callback) {
+
+  /**
+   * options:
+   * - sobject
+   * - uri
+   * - callback
+   * - oauth
+   * - multipart
+   * - method
+   * - body
+   */
 
   var self = this;
+  var ropts = {};
+  var callback = callback || function() {};
 
-  opts.headers = {
-    'Authorization': 'Bearer ' + oauth.access_token,
+  var sobject = opts.sobject;
+
+  // should services/data be in the methods?
+  ropts.uri = opts.oauth.instance_url 
+    + '/services/data/' 
+    + this.apiVersion 
+    + '/' + opts.uri;
+
+  ropts.headers = {
+    'Authorization': 'Bearer ' + opts.oauth.access_token,
     'Accept': 'application/json;charset=UTF-8'
   }
 
+  if(opts.body) {
+    ropts.body = opts.body;
+  }
+
   if(opts.multipart) {
-    opts.headers['content-type'] = 'multipart/form-data';
+    ropts.headers['content-type'] = 'multipart/form-data';
   } else {
-    opts.headers['content-type'] = 'application/json';
+    ropts.headers['content-type'] = 'application/json';
   }
   
   if(opts.method === 'GET' && this.gzip === true) {
-    opts.headers['Accept-Encoding'] = 'gzip';
-    opts.encoding = null;
-    delete opts.gzip;
+    ropts.headers['Accept-Encoding'] = 'gzip';
+    ropts.encoding = null;
+    //delete opts.gzip;
   }
 
-  return request(opts, function(err, res, body) {
+  return request(ropts, function(err, res, body) {
     
     // request returned an error
     if(err) return callback(err, null);
@@ -1192,7 +1217,7 @@ Connection.prototype._apiRequest = function(opts, oauth, sobject, callback) {
       // salesforce returned an ok of some sort
       if(res.statusCode >= 200 && res.statusCode <= 204) {
         // attach the id back to the sobject on insert
-        if(sobject && data && data.id && !sobject.Id && !sobject.id && !sobject.ID) sobject.Id = data.id;
+        if(sobject && data && data.id && !util.findId(sobject) && sobject.setId) sobject.setId(data.id);
         return callback(null, data);
       }
 
