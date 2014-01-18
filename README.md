@@ -5,6 +5,8 @@ nforce :: node.js salesforce REST API wrapper
 
 **nforce** is node.js a REST API wrapper for force.com, database.com, and salesforce.com.
 
+**Notice:** [Please read about upcoming changed to nforce in 0.7.0](https://gist.github.com/kevinohara80/8357088)
+
 ## Features
 
 * Simple api
