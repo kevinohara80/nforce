@@ -1159,14 +1159,20 @@ Connection.prototype._apiRequest = function(opts, callback) {
   var self = this;
   var ropts = {};
   var callback = callback || function() {};
-
   var sobject = opts.sobject;
 
   // should services/data be in the methods?
-  ropts.uri = opts.oauth.instance_url 
-    + '/services/data/' 
-    + this.apiVersion 
-    + '/' + opts.uri;
+  if(opts.uri) {
+    ropts.uri = opts.uri;
+  } else {
+    if(!opts.resource || opts.resource.charAt(0) !== '/') {
+      opts.resource = '/' + (opts.resource || '');
+    }
+    ropts.uri = opts.oauth.instance_url 
+      + '/services/data/' 
+      + this.apiVersion 
+      + opts.resource;
+  }
 
   ropts.headers = {
     'Authorization': 'Bearer ' + opts.oauth.access_token,
@@ -1175,6 +1181,11 @@ Connection.prototype._apiRequest = function(opts, callback) {
 
   if(opts.body) {
     ropts.body = opts.body;
+  }
+
+  // need to get the body from the sobject if it exists
+  if(!opts.body && opts.sobject) {
+
   }
 
   if(opts.multipart) {
