@@ -283,27 +283,11 @@ Connection.prototype.getMetadata = function(data, callback) {
   return this._apiRequest(opts, opts.callback);
 }
 
-Connection.prototype.getDescribe = function(data, oauth, callback) {
-  var uri, opts;
-
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
-  }
-  
-  if(!callback) callback = function(){}
-  
-  if(typeof data !== 'string') {
-    return callback(new Error('Type must be in the form of a string'), null);
-  }
-  
-  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  
-  uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + data + '/describe';
-  opts = { uri: uri, method: 'GET' }
-  
-  return this._apiRequest(opts, oauth, null, callback);
+Connection.prototype.getDescribe = function(data, callback) {
+  var opts = this._getOpts(arguments);
+  opts.resource = '/sobjects/' + opts.type + '/describe';
+  opts.method = 'GET';
+  return this._apiRequest(opts, opts.callback);
 }
 
 Connection.prototype.insert = function(data, oauth, callback) {

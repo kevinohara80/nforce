@@ -10,7 +10,7 @@ var org = nforce.createConnection({
 
 org.authenticate({ username: sfuser, password: sfpass }, function(err, oauth) {
   if(err) throw err;
-  org.getMetadata({ type: 'Account', oauth: oauth }, function(err, res) {
+  org.getDescribe({ type: 'Account', oauth: oauth }, function(err, res) {
     if(err) throw err;
     console.log(res);
   });
