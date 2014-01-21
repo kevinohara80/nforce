@@ -257,26 +257,13 @@ Connection.prototype.getResources = function(data, callback) {
 }
 
 Connection.prototype.getSObjects = function(oauth, callback) {
-  var uri, opts;
   var self = this;
-  
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 1) callback = args[0];
-  }
-  
-  if(!callback) callback = function(){}
-  
-  
-  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  
-  uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects';
-  opts = { uri: uri, method: 'GET' }
-  
-  return this._apiRequest(opts, oauth, null, function(err, resp){
+  var opts = this._getOpts(arguments);
+  opts.resource = '/sobjects';
+  opts.method = 'GET'; 
+  return this._apiRequest(opts, function(err, resp){
     if(err) {
-      callback(err, null);
+      opts.callback(err, null);
     } else {
       if(self.cacheMetadata) {
         for(var obj in resp.sobjects) {
@@ -284,7 +271,7 @@ Connection.prototype.getSObjects = function(oauth, callback) {
           if(so.keyPrefix != null) self._cache.keyPrefixes[so.keyPrefix] = so.name;
         }
       }
-      callback(null, resp);
+      opts.callback(null, resp);
     }
   });
 }

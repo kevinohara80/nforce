@@ -12,7 +12,7 @@ org.authenticate({ username: sfuser, password: sfpass}, function(err, oauth) {
   if(err) {
     console.error('unable to authenticate to sfdc');
   } else {
-    org.getSObjects(oauth, function(err, resp) {
+    org.getSObjects({ oauth: oauth }, function(err, resp) {
       if(err) {
         console.error(err);
       } else {
