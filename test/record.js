@@ -315,6 +315,20 @@ describe('lib/record', function(){
 
   });
 
+  describe('#getType', function() {
+
+    it('should get the type', function() {
+      var acc = new Record({
+        attributes: {
+          type: 'Account'
+        }
+      });
+      should.exist(acc.getType());
+      acc.getType().should.equal('Account');
+    });
+
+  });
+
   describe('#setId', function() {
 
     it('should let me set the id', function() {

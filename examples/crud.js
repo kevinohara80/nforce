@@ -12,7 +12,7 @@ var org = nforce.createConnection({
 
 function deleteLead(ld) {
   console.log('attempting to delete lead');
-  org.delete(ld, oauth, function(err, resp) {
+  org.delete({ sobject: ld, oauth: oauth }, function(err, resp) {
     if(err) {
       console.error('--> unable to delete lead');
       console.error('--> ' + JSON.stringify(err));
@@ -24,8 +24,9 @@ function deleteLead(ld) {
 
 function updateLead(ld) {
   console.log('attempting to update lead');
-  ld.Company = 'JJ Inc.';
-  org.update(ld, oauth, function(err, resp) {
+  ld.set('Company', 'JJ Inc.');
+  console.log(ld.getId());
+  org.update({ sobject: ld, oauth: oauth }, function(err, resp) {
     if(err) {
       console.error('--> unable to update lead');
       console.error('--> ' + JSON.stringify(err));
@@ -44,7 +45,8 @@ function insertLead() {
     Company: 'ABC Widgets',
     Email: 'bobbytester@testertest.com'
   });
-  org.insert(ld, oauth, function(err, resp) {
+  console.log(ld.getType());
+  org.insert({ sobject: ld, oauth: oauth }, function(err, resp) {
     if(err) {
       console.error('--> unable to insert lead');
       console.error('--> ' + JSON.stringify(err));

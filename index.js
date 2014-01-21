@@ -290,185 +290,81 @@ Connection.prototype.getDescribe = function(data, callback) {
   return this._apiRequest(opts, opts.callback);
 }
 
-Connection.prototype.insert = function(data, oauth, callback) {
-  var type, opts, entity, name, fieldvalues;
-
-  opts = this._getOpts(arguments, {
-    oauth: true,
-    sobject: true 
-  });
-
-  //if(opts.hasErrors()) return opts.callback(opts.getError());
-  
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
-  }
-  
-  if(!callback) callback = function(){}
-  if(typeof data.attributes.type !== 'string') {
-    return callback(new Error('Type must be in the form of a string'), null);
-  }
-  
-  type = data.attributes.type.toLowerCase();
-  
-  fieldvalues = data._getPayload(false);
-  
-  if(typeof fieldvalues !== 'object') {
-    return callback(new Error('fieldValues must be in the form of an object'), null);
-  }
-  
-  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  
-  opts = { 
-    uri: oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + type, 
-    method: 'POST' 
-  };
+Connection.prototype.insert = function(data, callback) {
+  var opts = this._getOpts(arguments);
+  console.log(JSON.stringify(opts));
+  var type = opts.sobject.getType();
+  opts.resource = '/sobjects/' + type;
+  opts.method = 'POST';
   
   if(type === 'document' || type === 'attachment' || type === 'contentversion') {
-    entity = (type === 'contentversion') ? 'content' : type;
-    name   = (type === 'contentversion') ? 'VersionData' : 'Body';
+    var entity = (type === 'contentversion') ? 'content' : type;
+    var name   = (type === 'contentversion') ? 'VersionData' : 'Body';
     opts.multipart = [
       {
         'content-disposition': 'form-data; name="entity_' + entity + '"',
         'content-type': 'application/json',
-        body: JSON.stringify(fieldvalues)
+        body: JSON.stringify(opts.sobject._getPayload(false))
       },
       {
-        'content-type': mime.lookup(data.attachment.fileName),
+        'content-type': mime.lookup(opts.sobject.attachment.fileName),
         'content-disposition': 'form-data; name="' + name + '"; filename="' + data.attachment.fileName + '"',
-        body: data.attachment.body
+        body: opts.sobject.attachment.body
       }
     ]; 
   } else {
-    opts.body = JSON.stringify(fieldvalues);
+    opts.body = JSON.stringify(opts.sobject._getPayload(false));
   }
   
-  return this._apiRequest(opts, oauth, data, callback);
+  return this._apiRequest(opts, opts.callback);
 }
 
 Connection.prototype.update = function(data, oauth, callback) {
-  var type, opts, entity, name, id, fieldvalues;
-  
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
-  }
-  
-  if(!callback) callback = function(){}
-  
-  if(typeof data.attributes.type !== 'string') {
-    return callback(new Error('Type must be in the form of a string'), null);
-  }
-  
-  type = data.attributes.type.toLowerCase();
-  
-  if(!(id = util.findId(data))) {
-    return callback(new Error('You must specify an id in the form of a string'));
-  }
-  
-  fieldvalues = data._getPayload(true);
-  
-  if(typeof fieldvalues !== 'object') {
-    return callback(new Error('fieldValues must be in the form of an object'), null);
-  }
-  
-  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  
-  opts = { 
-    uri: oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/' + type + '/' + id, 
-    method: 'PATCH' 
-  };
+  var opts = this._getOpts(arguments);
+  var type = opts.sobject.getType();
+  var id = opts.sobject.getId();
+  opts.resource = '/sobjects/' + type + '/' + id;
+  opts.method = 'PATCH';
   
   if(type === 'document' || type === 'attachment' || type === 'contentversion') {
-    entity = (type === 'contentversion') ? 'content' : type;
-    name   = (type === 'contentversion') ? 'VersionData' : 'Body';
+    var entity = (type === 'contentversion') ? 'content' : type;
+    var name   = (type === 'contentversion') ? 'VersionData' : 'Body';
     opts.multipart = [
       {
         'content-disposition': 'form-data; name="entity_' + entity + '"',
         'content-type': 'application/json',
-        body: JSON.stringify(fieldvalues)
+        body: JSON.stringify(opts.sobject._getPayload(false))
       },
       {
-        'content-type': mime.lookup(data.attachment.fileName),
+        'content-type': mime.lookup(opts.sobject.attachment.fileName),
         'content-disposition': 'form-data; name="' + name + '"; filename="' + data.attachment.fileName + '"',
-        body: data.attachment.body
+        body: opts.sobject.attachment.body
       }
-    ];
+    ]; 
   } else {
-    opts.body = JSON.stringify(fieldvalues);
+    opts.body = JSON.stringify(opts.sobject._getPayload(false));
   }
   
-  return this._apiRequest(opts, oauth, data, callback);
+  return this._apiRequest(opts, opts.callback);
 }
 
 Connection.prototype.upsert = function(data, oauth, callback) {
-  var type, fieldvalues, uri, opts;
-  
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
-  }
-  
-  if(!callback) callback = function(){}
-  
-  if(typeof data.attributes.type !== 'string') {
-    return callback(new Error('Type must be in the form of a string'), null);
-  }
-  
-  type = data.attributes.type.toLowerCase();
-  
-  if(!data.attributes.externalId || !data.attributes.externalIdField) {
-    return callback(new Error('Invalid external id or external id field'));
-  }
-  
-  fieldvalues = data._getPayload(true);
-  //console.log(fieldvalues);
-  
-  if(typeof fieldvalues !== 'object') {
-    return callback(new Error('fieldValues must be in the form of an object'), null);
-  }
-  
-  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  
-  uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
-    + type + '/' + data.attributes.externalIdField + '/' + data.attributes.externalId;
-  opts = { uri: uri, method: 'PATCH', body: JSON.stringify(fieldvalues) }
-  
-  return this._apiRequest(opts, oauth, data, callback);
+  var opts = this._getOpts(arguments);
+  var type = opts.sobject.getType();
+  var extIdField = opts.sobject.getExternalIdField();
+  var extId = opts.sobject.getExternalId();
+  opts.resource = '/sobjects/' + type + '/' + extIdField + '/' + extId;
+  opts.method = 'PATCH';
+  opts.body = JSON.stringify(opts.sobject._getPayload(false));
+  return this._apiRequest(opts, opts.callback);
 }
 
 Connection.prototype.delete = function(data, oauth, callback) {
-  var type, uri, opts, id;
-  
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
-  }
-  
-  if(!callback) callback = function(){}
-  
-  if(typeof data.attributes.type !== 'string') {
-    return callback(new Error('Type must be in the form of a string'), null);
-  }
-  
-  type = data.attributes.type.toLowerCase();
-  
-  if(!(id = data.getId())) {
-    return callback(new Error('You must specify an id in the form of a string'));
-  }
-  
-  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  
-  uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
-    + type + '/' + data.getId();
-  opts = { uri: uri, method: 'DELETE' }
-  
-  return this._apiRequest(opts, oauth, data, callback);
+  var opts = this._getOpts(arguments);
+  var id = opts.sobject.getId();
+  opts.resource = '/sobjects/' + type + '/' + id;
+  opts.method = 'DELETE';
+  return this._apiRequest(opts, opts.callback);
 }
 
 Connection.prototype.getRecord = function(data, oauth, callback) {
@@ -1123,7 +1019,7 @@ Connection.prototype._apiRequest = function(opts, callback) {
   }
 
   if(opts.multipart) {
-    ropts.multipart = true;
+    ropts.multipart = opts.multipart;
     ropts.headers['content-type'] = 'multipart/form-data';
   } else {
     ropts.headers['content-type'] = 'application/json';
