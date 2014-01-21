@@ -8,16 +8,10 @@ var org = nforce.createConnection({
   redirectUri: 'http://localhost:3000/oauth/_callback'
 });
 
-org.authenticate({ username: sfuser, password: sfpass}, function(err, oauth) {
-  if(err) {
-    console.error('unable to authenticate to sfdc');
-  } else {
-    org.getResources({ oauth: oauth }, function(err, resp) {
-      if(err) {
-        console.error(err);
-      } else {
-        console.log(resp);
-      }
-    });
-  }
+org.authenticate({ username: sfuser, password: sfpass }, function(err, oauth) {
+  if(err) throw err;
+  org.getIdentity({ oauth: oauth }, function(err, res) {
+    if(err) throw err;
+    console.log(res);
+  })
 });

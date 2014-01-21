@@ -107,8 +107,8 @@ var Connection = function(opts) {
 
 // argument parsing
 
-Connection.prototype._getOpts = function(args, validations) {
-  return new Opts(args, validations, this);
+Connection.prototype._getOpts = function(args) {
+  return new Opts(args, this);
 }
 
 // oauth methods
@@ -232,22 +232,11 @@ Connection.prototype.refreshToken = function(oauth, callback) {
 
 // api methods
 
-Connection.prototype.getIdentity = function(oauth, callback) {
-  var opts;
-
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 1) callback = args[0];
-  }
-  
-  if(!callback) callback = function(){}
-  
-  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  
-  opts = { uri: oauth.id, method: 'GET'}
-  
-  return this._apiRequest(opts, oauth, null, callback);
+Connection.prototype.getIdentity = function(data, callback) {
+  var opts = this._getOpts(arguments);
+  opts.uri = opts.oauth.id;
+  opts.method = 'GET';
+  return this._apiRequest(opts, opts.callback);
 }
 
 Connection.prototype.getVersions = function(callback) {
@@ -260,23 +249,11 @@ Connection.prototype.getVersions = function(callback) {
   return this._apiAuthRequest(opts, callback);
 }
 
-Connection.prototype.getResources = function(oauth, callback) {
-  var uri, opts;
-  
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 1) callback = args[0];
-  }
-  
-  if(!callback) callback = function(){}
-  
-  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  
-  uri = oauth.instance_url + '/services/data/' + this.apiVersion;
-  opts = { uri: uri, method: 'GET' }
-  
-  return this._apiRequest(opts, oauth, null, callback);
+Connection.prototype.getResources = function(data, callback) {
+  var opts = this._getOpts(arguments);
+  opts.resource = '/';
+  opts.method = 'GET';
+  return this._apiRequest(opts, opts.callback);
 }
 
 Connection.prototype.getSObjects = function(oauth, callback) {
@@ -1161,7 +1138,8 @@ Connection.prototype._apiRequest = function(opts, callback) {
   var callback = callback || function() {};
   var sobject = opts.sobject;
 
-  // should services/data be in the methods?
+  // construct uri
+
   if(opts.uri) {
     ropts.uri = opts.uri;
   } else {
@@ -1174,10 +1152,29 @@ Connection.prototype._apiRequest = function(opts, callback) {
       + opts.resource;
   }
 
-  ropts.headers = {
-    'Authorization': 'Bearer ' + opts.oauth.access_token,
-    'Accept': 'application/json;charset=UTF-8'
+  // set headers
+
+  ropts.headers = {};
+
+  ropts.headers['Accept'] = 'application/json;charset=UTF-8';
+
+  if(opts.oauth) {
+    ropts.headers['Authorization'] = 'Bearer ' + opts.oauth.access_token;
   }
+
+  if(opts.method === 'GET' && this.gzip === true) {
+    ropts.headers['Accept-Encoding'] = 'gzip';
+    ropts.encoding = null;
+  }
+
+  if(opts.multipart) {
+    ropts.multipart = true;
+    ropts.headers['content-type'] = 'multipart/form-data';
+  } else {
+    ropts.headers['content-type'] = 'application/json';
+  }
+
+  // set body
 
   if(opts.body) {
     ropts.body = opts.body;
@@ -1186,18 +1183,6 @@ Connection.prototype._apiRequest = function(opts, callback) {
   // need to get the body from the sobject if it exists
   if(!opts.body && opts.sobject) {
 
-  }
-
-  if(opts.multipart) {
-    ropts.headers['content-type'] = 'multipart/form-data';
-  } else {
-    ropts.headers['content-type'] = 'application/json';
-  }
-  
-  if(opts.method === 'GET' && this.gzip === true) {
-    ropts.headers['Accept-Encoding'] = 'gzip';
-    ropts.encoding = null;
-    //delete opts.gzip;
   }
 
   return request(ropts, function(err, res, body) {
