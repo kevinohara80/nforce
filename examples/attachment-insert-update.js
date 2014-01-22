@@ -15,11 +15,12 @@ var org = nforce.createConnection({
 
 function updateAttachment(att) {
   console.log('Updating attachment');
-  att.attachment.body = fs.readFileSync(docPath);
+  att.setBody(fs.readFileSync(docPath));
+  console.log(att._getPayload(true));
   
-  org.update(att, oauth, function(err, res) {
-    if(err) console.log(err);
-    else console.log('OK');
+  org.update({ sobject: att, oauth: oauth }, function(err, res) {
+    if(err) return console.error(err);
+    console.log('[OK] updated!');
   });
 
 }
@@ -35,23 +36,20 @@ function attachDocument(leadId) {
       body: fs.readFileSync(docPath)
     }
   });
-  org.insert(att, oauth, function(err, resp) {
-    if(err) console.error(err);
-    else {
-      console.log(resp);
-      updateAttachment(att);
-    }
+  org.insert({ sobject: att, oauth: oauth }, function(err, resp) {
+    if(err) return console.error(err);
+    console.log('[OK] attached!');
+    updateAttachment(att);
   });
 }
 
 function findALead() {
   console.log('Finding a lead to attach to');
   var q = 'SELECT Id, LastName FROM Lead LIMIT 1';
-  org.query(q, oauth, function(err, res) {
-    if(err) return console.error(err);
-    if(!res.records || !res.records.length) return console.error('No leads');
-    console.log('Attaching to Lead: ' + res.records[0].LastName);
-    attachDocument(res.records[0].Id);
+  org.query({ query: q, oauth: oauth }, function(err, res) {
+    if(err) throw err;
+    console.log('Attaching to Lead: ' + res.records[0].get('lastname'));
+    attachDocument(res.records[0].getId());
   });
 }
 
@@ -60,6 +58,5 @@ console.log('Authenticating with SFDC');
 org.authenticate({ username: sfuser, password: sfpass}, function(err, res) {
   if(err) return console.error('unable to authenticate to sfdc');
   oauth = res;
-  console.log(oauth);
   findALead();
 });

@@ -304,31 +304,36 @@ Connection.prototype.getDescribe = function(data, callback) {
   return this._apiRequest(opts, opts.callback);
 }
 
+function getMultipart(opts) {
+  var type = opts.sobject.getType();
+  var entity = (type === 'contentversion') ? 'content' : type;
+  var name   = (type === 'contentversion') ? 'VersionData' : 'Body';
+  var fileName = opts.sobject.getFileName();
+  var isPatch = (opts.method === 'PATCH') ? true : false;
+  var multipart = [];
+  multipart.push({
+    'content-disposition': 'form-data; name="entity_' + entity + '"',
+    'content-type': 'application/json',
+    body: JSON.stringify(opts.sobject._getPayload(isPatch))
+  });
+  multipart.push({
+    'content-type': mime.lookup(fileName),
+    'content-disposition': 'form-data; name="' + name + '"; filename="' + fileName + '"',
+    body: opts.sobject.getBody()
+  });
+  return multipart;
+}
+
 Connection.prototype.insert = function(data, callback) {
   var opts = this._getOpts(data, callback);
   var type = opts.sobject.getType();
   opts.resource = '/sobjects/' + type;
   opts.method = 'POST';
-  
   if(type === 'document' || type === 'attachment' || type === 'contentversion') {
-    var entity = (type === 'contentversion') ? 'content' : type;
-    var name   = (type === 'contentversion') ? 'VersionData' : 'Body';
-    opts.multipart = [
-      {
-        'content-disposition': 'form-data; name="entity_' + entity + '"',
-        'content-type': 'application/json',
-        body: JSON.stringify(opts.sobject._getPayload(false))
-      },
-      {
-        'content-type': mime.lookup(opts.sobject.attachment.fileName),
-        'content-disposition': 'form-data; name="' + name + '"; filename="' + data.attachment.fileName + '"',
-        body: opts.sobject.attachment.body
-      }
-    ]; 
+    opts.multipart = getMultipart(opts); 
   } else {
     opts.body = JSON.stringify(opts.sobject._getPayload(false));
   }
-  
   return this._apiRequest(opts, opts.callback);
 }
 
@@ -338,26 +343,11 @@ Connection.prototype.update = function(data, callback) {
   var id = opts.sobject.getId();
   opts.resource = '/sobjects/' + type + '/' + id;
   opts.method = 'PATCH';
-  
   if(type === 'document' || type === 'attachment' || type === 'contentversion') {
-    var entity = (type === 'contentversion') ? 'content' : type;
-    var name   = (type === 'contentversion') ? 'VersionData' : 'Body';
-    opts.multipart = [
-      {
-        'content-disposition': 'form-data; name="entity_' + entity + '"',
-        'content-type': 'application/json',
-        body: JSON.stringify(opts.sobject._getPayload(false))
-      },
-      {
-        'content-type': mime.lookup(opts.sobject.attachment.fileName),
-        'content-disposition': 'form-data; name="' + name + '"; filename="' + data.attachment.fileName + '"',
-        body: opts.sobject.attachment.body
-      }
-    ]; 
+    opts.multipart = getMultipart(opts); 
   } else {
-    opts.body = JSON.stringify(opts.sobject._getPayload(false));
+    opts.body = JSON.stringify(opts.sobject._getPayload(true));
   }
-  
   return this._apiRequest(opts, opts.callback);
 }
 
@@ -816,8 +806,13 @@ Connection.prototype._apiRequest = function(opts, callback) {
       // salesforce returned an ok of some sort
       if(res.statusCode >= 200 && res.statusCode <= 204) {
         // attach the id back to the sobject on insert
-        if(sobject && data && data.id) {
-          sobject._fields.id = data.id;
+        if(sobject) {
+          if(sobject._reset) {
+            sobject._reset();
+          }
+          if(data && data.id) {
+            sobject._fields.id = data.id;
+          }
         }
         return callback(null, data);
       }
