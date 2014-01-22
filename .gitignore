@@ -17,3 +17,5 @@ node_modules
 npm-debug.log
 examples/json
 examples/leadOut.json
+
+env.sh
