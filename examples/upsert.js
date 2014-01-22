@@ -14,11 +14,11 @@ var org = nforce.createConnection({
 function createContact() {
   var account = nforce.createSObject('Account', { Name: 'Kevin Enterprises' });
 
-  account.setExternalId('Account_No__c', '232');
+  account.setExternalId('Account_No__c', '231');
 
-  org.upsert(account, function(err, resp) {
+  org.upsert({ sobject: account }, function(err, resp) {
     if(err) return console.error(err);
-    console.log(resp);
+    console.log('Account Id: ' + account.getId()); // undefined when update
   });
 
 }
