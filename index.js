@@ -520,8 +520,8 @@ Connection.prototype.apexRest = function(data, callback) {
   // need to specify resource
   var opts = this._getOpts(data, callback);
   opts.method = opts.method || 'GET';
-  if(opts.params) {
-    opts.qs = opts.params;
+  if(opts.urlParams) {
+    opts.qs = opts.urlParams;
   }
   return this._apiRequest(opts, opts.callback);
 }
