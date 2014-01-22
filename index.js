@@ -120,7 +120,7 @@ Connection.prototype._getOpts = function(d, c) {
   }
   data.callback = callback;
   if(this.mode === 'single' && !data.oauth) {
-    data.oauth = conn.oauth;
+    data.oauth = this.oauth;
   } 
   return data;
 }
