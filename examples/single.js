@@ -15,9 +15,9 @@ org.authenticate({ username: sfuser, password: sfpass}, function(err, res) {
   if(err) return console.error('unable to authenticate to sfdc');
   console.log('authenticated with mode: ' + org.mode);
   // look ma, no oauth argument!
-  org.query('SELECT Id, FirstName, LastName FROM Lead LIMIT 1', function(err, res) {
+  org.query({query: 'SELECT Id, FirstName, LastName FROM Lead LIMIT 1' }, function(err, res) {
     if(err) return console.error(err);
-    else return console.log(res.records[0]);
+    else return console.log(res.records[0].toJSON());
   });
   
 });
