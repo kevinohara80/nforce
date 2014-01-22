@@ -403,114 +403,45 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
 
 // blob methods
 
-Connection.prototype.getBody = function(data, oauth, callback) {
-  var type, id, uri;
+Connection.prototype.getBody = function(data, callback) {
+  var opts = this._getOpts(data, callback);
+  var type = (opts.sobject) ? opts.sobject.getType() : opts.type;
   
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
-  }
-  
-  if(!callback) callback = function(){};
-  
-  if(typeof data.attributes.type !== 'string') {
-    return callback(new Error('Type must be in the form of a string'), null);
-  }
-  
-  type = data.attributes.type.toLowerCase();
-  
-  if(!(id = util.findId(data))) {
-    return callback(new Error('You must specify an id in the form of a string'));
-  }
+  type = opts.type.toLowerCase();
   
   if(type === 'document') {
-    return this.getDocumentBody(id, oauth, callback);
+    return this.getDocumentBody(opts, opts.callback);
   } else if(type === 'attachment') {
-    return this.getAttachmentBody(id, oauth, callback);
+    return this.getAttachmentBody(opts, opts.callback);
   } else if(type === 'contentversion') {
-    return this.getContentVersionBody(id, oauth, callback);
+    return this.getContentVersionBody(opts, opts.callback);
   } else {
-    return callback(new Error('sobject is of invalid type: ' + type));
+    return opts.callback(new Error('invalid type: ' + type));
   }
 }
 
-Connection.prototype.getAttachmentBody = function(id, oauth, callback) {
-  var uri, opts;
-  
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
-  }
-  
-  if(!callback) callback = function(){};
-  
-  if(typeof id === 'object') id = util.findId(id);
-  
-  if(!id) {
-    return callback(new Error('You must specify an id in the form of a string'));
-  }
-  
-  uri = oauth.instance_url + '/services/data' + this.apiVersion 
-    + '/sobjects/Attachment/' + id + '/body'
-  opts = { uri: uri, method: 'GET' }
-  
-  return this._apiBlobRequest(opts, oauth, function(err, resp) {
-    callback(err, resp);
-  });
+Connection.prototype.getAttachmentBody = function(data, callback) {
+  var opts = this._getOpts(data, callback);
+  var id = (opts.sobject) ? sobject.getId() : opts.id;
+  opts.resource = '/sobjects/attachment/' + id + '/body';
+  opts.method = 'GET';
+  return this._apiRequest(opts, opts.callback);
 }
 
 Connection.prototype.getDocumentBody = function(id, oauth, callback) {
-  var uri, opts;
-  
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
-  }
-  
-  if(!callback) callback = function(){};
-  
-  if(typeof id === 'object') id = findId(id);
-  
-  if(!id) {
-    return callback(new Error('You must specify an id in the form of a string'));
-  }
-  
-  uri = oauth.instance_url + '/services/data' + this.apiVersion 
-    + '/sobjects/Document/' + id + '/body'
-  opts = { uri: uri, method: 'GET' }
-  
-  return this._apiBlobRequest(opts, oauth, function(err, resp) {
-    callback(err, resp);
-  });
+  var opts = this._getOpts(data, callback);
+  var id = (opts.sobject) ? sobject.getId() : opts.id;
+  opts.resource = '/sobjects/document/' + id + '/body';
+  opts.method = 'GET';
+  return this._apiRequest(opts, opts.callback);
 }
 
 Connection.prototype.getContentVersionBody = function(id, oauth, callback) {
-  var uri, opts;
-
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
-  }
-
-  if(!callback) callback = function(){};
-  
-  if(typeof id === 'object') id = util.findId(id);
-  
-  if(!id) {
-    return callback(new Error('You must specify an id in the form of a string'));
-  }
-  
-  uri = oauth.instance_url + '/services/data' + this.apiVersion 
-    + '/sobjects/ContentVersion/' + id + '/body'
-  opts = { uri: uri, method: 'GET' }
-  
-  return this._apiBlobRequest(opts, oauth, function(err, resp) {
-    callback(err, resp);
-  });
+  var opts = this._getOpts(data, callback);
+  var id = (opts.sobject) ? sobject.getId() : opts.id;
+  opts.resource = '/sobjects/contentversion/' + id + '/body';
+  opts.method = 'GET';
+  return this._apiRequest(opts, opts.callback);
 }
 
 Connection.prototype._queryHandler = function(data, callback) {
@@ -783,62 +714,6 @@ Connection.prototype._apiAuthRequest = function(opts, callback) {
   });
 }
 
-Connection.prototype._apiBlobRequest = function(opts, oauth, callback) {
-
-  var self = this;
-
-  opts.headers = {
-    'content-type': 'application/json',
-    'Authorization': 'Bearer ' + oauth.access_token
-  }
-
-  return request(opts, function(err, res, body) {
-    // request returned an error
-    if(err) return callback(err, null);
-
-    // request didn't return a response. sumptin bad happened
-    if(!res) return callback(errors.emptyResponse());
-
-    // salesforce returned no body but an error in the header
-    if(!body && res.headers && res.headers.error) {
-      return callback(new Error(res.headers.error), null);
-    }
-
-    // salesforce returned an ok of some sort
-    if(res.statusCode >= 200 && res.statusCode <= 204) {
-      return callback(null, body);
-    } 
-
-    // salesforce returned an error with a body
-    if(body) {
-      if(util.isJsonResponse(res)) {
-        try {
-          body = JSON.parse(body);
-        } catch (e) {
-          return callback(errors.invalidJson());
-        }
-
-        if (Array.isArray(body) && body.length > 0) {
-          err = new Error(body[0].message);
-          err.errorCode = body[0].errorCode;
-          err.messageBody = body[0].message;
-        }
-        else {
-          //  didn't get a json response back -- just a simple string as the body
-          err = new Error(body);
-          err.messageBody = body;
-        }
-        err.statusCode = res.statusCode;
-        return callback(err, null);
-      } 
-    } 
-    
-    // we don't know what happened
-    return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
-
-  });
-}
-
 Connection.prototype._apiRequest = function(opts, callback) {
 
   /**
@@ -850,6 +725,7 @@ Connection.prototype._apiRequest = function(opts, callback) {
    * - multipart
    * - method
    * - body
+   * - qs
    */
 
   var self = this;
@@ -1008,19 +884,14 @@ module.exports.plugin = function(opts) {
   if(!opts || !opts.namespace) {
     throw new Error('no namespace provided for plugin')
   }
-
   opts = _.defaults(opts, {
     override: false
   });
-
   if(plugins[opts.namespace] && !opts.override === true) {
     throw new Error('a plugin with namespace ' + opts.namespace + ' already exists');
   }
-
   plugins[opts.namespace] = new Plugin(opts);
-
   return plugins[opts.namespace];
-
 }
 
 // connection creation

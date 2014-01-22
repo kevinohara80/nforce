@@ -17,11 +17,11 @@ var server = http.createServer(function(req, res) {
   if(req.url = '/pipe') {
     // example using pipe (stream)
     // http://localhost:3000/pipe
-    org.getAttachmentBody({ id: attId }, oauth).pipe(res);
+    org.getAttachmentBody({ id: attId, oauth: oauth }).pipe(res);
   } else {
     // example using a callback
     // http://localhost:3000/
-    org.getAttachmentBody(attId, oauth, function(err, resp) {
+    org.getAttachmentBody({ id: attId, oauth: oauth }, function(err, resp) {
       res.end(resp);
     });
   } 
