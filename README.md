@@ -69,7 +69,7 @@ acc.Name = 'Spiffy Cleaners';
 acc.Phone = '800-555-2345';
 acc.SLA__c = 'Gold';
 
-org.insert(acc, oauth, function(err, resp){
+org.insert({ sobject: acc, oauth: oauth }, function(err, resp){
   if(!err) console.log('It worked!');
 });
 ```
@@ -77,7 +77,7 @@ org.insert(acc, oauth, function(err, resp){
 If you are in single-user mode, the `oauth` argument can be ommitted since it's cached as part of your connection object.
 
 ```js
-org.insert(acc, function(err, resp){
+org.insert({ sobject: acc }, function(err, resp){
   if(!err) console.log('It worked!');
 });
 ```
@@ -87,15 +87,15 @@ Querying and updating records is super easy. **nforce** wraps API-queried record
 ```js
 var q = 'SELECT Id, Name, CreatedDate, BillingCity FROM Account WHERE Name = "Spiffy Cleaners" LIMIT 1';
 
-org.query(q, oauth, function(err, resp){
+org.query({ query: q }, function(err, resp){
   
   if(!err && resp.records) {
     
     var acc = resp.records[0];
-    acc.Name = 'Really Spiffy Cleaners';
-    acc.Industry = 'Cleaners';
+    acc.set('Name', 'Really Spiffy Cleaners');
+    acc.set('Industry', 'Cleaners');
     
-    org.update(acc, oauth, function(err, resp){
+    org.update({ sobject: acc, oauth: oauth }, function(err, resp){
       if(!err) console.log('It worked!');
     });
     
@@ -171,7 +171,7 @@ If you specified `single` as your `mode` when creating the connection, calling a
 
 ```js
 // look ma, no oauth argument!
-org.query('SELECT Id FROM Lead LIMIT 1', function(err, res) {
+org.query({ query: 'SELECT Id FROM Lead LIMIT 1' }, function(err, res) {
   if(err) return console.error(err);
   else return console.log(res.records[0]);
 });
@@ -218,7 +218,7 @@ var http = require('http');
 
 var server = http.createServer(function(req, res) {
   if(req.url === '/myimage') {
-    org.getAttachmentBody({ id: attId }, oauth).pipe(res);
+    org.getAttachmentBody({ id: attId, oauth: oauth }).pipe(res);
   } else {
     res.statusCode = 404;
     res.end();
@@ -241,7 +241,7 @@ The Salesforce query call in the REST API returns a 2000 record chunk at one tim
 ```js
 // dataset of 50k records.
 var query = 'SELECT Name, CreatedDate FROM Account ORDER BY CreatedDate DESC';
-org.query(query, req.session.oauth, callback(err, resp) {
+org.query({ query: query, oauth: req.session.oauth }, callback(err, resp) {
   if(!err) console.log(resp.records.length) // this will be 2000 max
 });
 ```
@@ -251,7 +251,7 @@ Like other API requests, **nforce** query method returns a node stream. By calli
 ```js
 // dataset of 50k records.
 var query = 'SELECT Name, CreatedDate FROM Account ORDER BY CreatedDate DESC';
-org.query(query, req.session.oauth).pipe(res); // streaming all 50k records
+org.query({query: query, oauth: req.session.oauth }).pipe(res); // streaming all 50k records
 ``` 
 
 ### Force.com Streaming API Support
@@ -264,7 +264,7 @@ org.authenticate({ username: user, password: pass }, function(err, oauth) {
   if(err) return console.log(err);
 
   // subscribe to a pushtopic
-  var str = org.stream('AllAccounts', oauth);
+  var str = org.stream({ topic: 'AllAccounts', oauth: oauth });
 
   str.on('connect', function(){
     console.log('connected to pushtopic');
@@ -298,7 +298,7 @@ Most of the org methods take a callback, but also return a stream. This is usefu
 ```js
 var so = fs.createWriteStream('sobjects.txt', {'flags': 'a'});
 
-org.getSObjects(oauth).pipe(so);  
+org.getSObjects({ oauth: oauth }).pipe(so);  
 ```
 
 ## nforce Base Methods
@@ -329,17 +329,81 @@ This creates an nforce plugin. Plugins allow you to extend the functionality of 
 
 ## Salesforce sObject Methods
 
-### getFieldValues()
+### get(field)
 
-This method returns the cached values that have been updated that will be passed in an update or upsert method. Calling this method clears the cache. It's very rare that you will need to call this method directly.
+Get the value of a field on the sObject
+
+### set(field, value) OR set(hash)
+
+Set the value of a single field (field, value) or set multiple fields using a hash.
+
+### getId()
+
+Get the Id of the sObject
+
+### setId(id)
+
+Set the Id of the sObject
+
+### getType()
+
+Returns the sObject type in lowercase
+
+### isType(type)
+
+Checks the type of the sObject and returns true|false
+
+### getExternalId()
+
+Returns the external id that is currently set
+
+### getExternalIdField()
+
+Returns the external id field that is currently set
 
 ### setExternalId(field, value)
 
 For upsert methods, you need to specify the External Id field and the value that you are trying to match on.
 
-### getId()
+### getAttachment()
 
-Returns the sObjects Id (if set)
+Returns the attachment object if set
+
+### setAttachement(fileName, body)
+
+Sets the fileName (String) and body (buffer) for an attachment
+
+### getFileName()
+
+Returns the file name of the attachment if set
+
+### setFileName(fileName) 
+
+Sets the file name of the attachment
+
+## getBody
+
+Gets the body of the attachment if set
+
+## setBody
+
+Sets the body of the attachment
+
+## hasChanged(field)
+
+Checks to see if the field has been changed since the last save on the server
+
+## changed()
+
+Returns a hash of the changed fields and their current values
+
+## previous()
+
+Returns a hash of the previous values for changed fields
+
+## toJSON()
+
+Returns a JSON representation of the fields in the sObject
 
 ## Connection Methods
 
@@ -374,75 +438,171 @@ The express middleware. `onSuccess` and `onError` should be uri routes for redir
 
 Gets the salesforce versions. Note: Does not require authentication.
 
-### getResources([oauth], [callback])
+### getResources(opts, [callback])
+
+opts:
+
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
 
 Gets the available salesforce resources
 
-### getSObjects([oauth], [callback])
+### getSObjects(opts, [callback])
+
+opts:
+
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
 
 Get all sObjects for an org
 
-### getMetadata(type, [oauth], [callback])
+### getMetadata(opts, [callback])
+
+opts:
+
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `type`: (Required) The metadata type that is being requested
 
 Get metadata for a single sObject. `type` is a required String for the sObject type
 
-### getDescribe(type, [oauth], [callback])
+### getDescribe(opts, [callback])
+
+opts:
+
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `type`: (Required) The metadata type that is being requested
 
 Get describe information for a single sObject. `type` is a required String for the sObject type
 
-### insert(sobject, [oauth], [callback])
+### insert(opts, [callback])
 
-Insert a record. `sobject`: (Object) A Salesforce sObject
+opts:
 
-### update(sobject, [oauth], [callback])
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Required) An sObject instance
 
-Update a record. `sobject`: (Object) A Salesforce sObject
+Insert a record. 
 
-### upsert(sobject, [oauth], [callback])
+### update(opts, [callback])
 
-Update a record. `sobject`: (Object) A Salesforce sObject. NOTE: you must use the setExternalId() method to set the external Id field and the value to match on.
+opts:
 
-### delete(sobject, [oauth], [callback])
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Required) An sObject instance
 
-Delete a record. `sobject`: (Object) A Salesforce sObject
+Update a record.
 
-### getRecord(sobject, [oauth], [callback])
+### upsert(opts, [callback])
 
-Get a single record. `sobject`: (Object) A Salesforce sObject
+opts:
 
-### getBody(sobject, [oauth], [callback])
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Required) An sObject instance
 
-Get the binary data for an attachment, document, or contentversion. The `sobject` must be one of those three types.
+Update a record. NOTE: you must use the setExternalId() method to set the external Id field and the value to match on.
 
-### getAttachmentBody(id, [oauth], [callback]) 
+### delete(opts, [callback])
 
-Get the binary data for an attachment for the given `id`
+opts:
+
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Required) An sObject instance
+
+Delete a record.
+
+### getRecord(opts, [callback])
+
+opts:
+
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Optional) An sObject instance.
+* `fields`: (Optional) An array of fields to return
+* `type:`: (Optional) A string value sObject type
+* `id`: (Optional) A string value for the sObject record id
+
+Get a single record. You must supply either an `sobject` or `type` and `id`
+
+### getBody(opts, [callback])
+
+opts:
+
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Optional) An sObject instance.
+* `type:`: (Optional) A string value sObject type
+* `id`: (Optional) A string value for the sObject record id
+
+Get the binary data for an attachment, document, or contentversion. You must supply either an `sobject` or `type` and `id`. The `sobject` must be one of those three types.
+
+### getAttachmentBody(opts, [callback]) 
+
+opts:
+
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Optional) An sObject instance.
+* `id`: (Optional) A string value for the sObject record id
+
+Get the binary data for an attachment. You must supply either an `sobject` or an `id`.
 
 ### getDocumentBody(id, [oauth], [callback]) 
 
-Get the binary data for an document for the given `id`
+opts:
+
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Optional) An sObject instance.
+* `id`: (Optional) A string value for the sObject record id
+
+Get the binary data for a document. You must supply either an `sobject` or an `id`.
 
 ### getContentVersionBody(id, [oauth], [callback]) 
 
-Get the binary data for an contentversion for the given `id`
+opts:
 
-### query(query, [oauth], [callback])
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Optional) An sObject instance.
+* `id`: (Optional) A string value for the sObject record id
 
-Execute a SOQL query for records. `query` should be a SOQL string. Large queries can be streamed using the `pipe()` method.
+Get the binary data for a contentversion. You must supply either an `sobject` or an `id`.
 
-### queryAll(query, [oauth], [callback])
+### query(opts, [callback])
+
+opts:
+
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `query`: (Required) An query string
+
+Execute a SOQL query for records.
+
+### queryAll(opts, [callback])
+
+opts:
+
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `query`: (Required) An query string
 
 Same as query but includes deleted records
 
-### search(search, [oauth], [callback])
+### search(opts, [callback])
+
+opts:
+
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `search`: (Required) An search string
 
 Execute a SOSL search for records. `search` should be a SOSL string.
 
-### getUrl(url, [oauth], [callback])
+### getUrl(opts, [callback])
 
-Get a REST API resource by its url. `url` should be a REST API resource.
+opts:
 
-### stream(pushtopic, [oauth])
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `url`: (Required) An url string for an api resource
+
+Get a REST API resource by its url. 
+
+### stream(opts)
+
+opts:
+
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `topic`: (Required) An string value for the streaming topic
 
 Start a force.com streaming API connection. An EventEmitter is returned with the following events:
 
@@ -450,17 +610,17 @@ Start a force.com streaming API connection. An EventEmitter is returned with the
 * `data`: got a streaming event
 * `error`: there was a problem with the subscription
 
-### apexRest(restRequest, [oauth], [callback])
+### apexRest(opts, [callback])
+
+opts:
+
+* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `uri`: (Required) A string value for endpoint
+* `method`: (Optional) String method that defaults to GET if not supplied
+* `urlParams:` (Optional) A hash or url params to add to the request
 
 This method handles integration with salesforce ApexRest (Custom Rest endpoints)
 http://wiki.developerforce.com/page/Creating_REST_APIs_using_Apex_REST
-
-A restRequest has the following properties
-
-* `uri`: (String) REQUIRED - The endpoint you wrote (everything after services/apexrest/..)
-* `method`: (String) Optional - defaults to GET if not supplied
-* `body`: (Object || String) Optional - What you would like placed in the body of your request
-* `urlParams`: (Array) Optional - URL parmams in an array of [{key:'key', value:'value'}]
 
 ```js
 org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req.session.oauth, function(err,resp){
@@ -476,7 +636,6 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 
 ## Todo
 
-* Refactor the Record class to remove getters/setters and provide a set() api
 * Move express middleware to a separate module
 
 ## Contributors
@@ -495,6 +654,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 
 ## Changelog
 
+* `v0.7.0`: Major api changes. Plugin system. sObject record class improvements
 * `v0.6.2`: Fixes issue for single user mode and invalid oauth
 * `v0.6.1`: Security fix for client secret in auth uri
 * `v0.6.0`: Support for queryAll

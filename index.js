@@ -332,8 +332,8 @@ Connection.prototype.delete = function(data, callback) {
 
 Connection.prototype.getRecord = function(data, oauth, callback) {
   var opts = this._getOpts(data, callback);
-  var type = opts.sobject.getType();
-  var id = opts.sobject.getId();
+  var type = (opts.sobject) ? opts.sobject.getType() : opts.type;
+  var id = (opts.sobject) ? opts.sobject.getId() : opts.id;
   opts.resource = '/sobjects/' + type + '/' + id;
   opts.method = 'GET';
   if(opts.fields) {
@@ -490,7 +490,7 @@ Connection.prototype.search = function(data, callback) {
   var uri, opts;
   opts.resource = '/search';
   opts.method = 'GET';
-  opts.qs = { q: search }; 
+  opts.qs = { q: opts.search }; 
   return this._apiRequest(opts, function(err, resp){
     if(!err) {
       if(resp.length) {
@@ -528,21 +528,17 @@ Connection.prototype.apexRest = function(data, callback) {
 
 // streaming methods
 
-Connection.prototype.stream = function(data, oauth) {
-  var str, endpoint, client, sub;
-
-  if(this.mode === 'single') {
-    oauth = this.oauth;
-  }
+Connection.prototype.stream = function(data) {
+  var opts = this._getOpts(data);
 
   str = new FDCStream();
-  endpoint = oauth.instance_url + '/cometd/' + this.apiVersion.substring(1);
+  endpoint = opts.oauth.instance_url + '/cometd/' + this.apiVersion.substring(1);
   
   client = new faye.Client(endpoint, {});
-  client.setHeader('Authorization', 'OAuth ' + oauth.access_token);
+  client.setHeader('Authorization', 'OAuth ' + opts.oauth.access_token);
   
-  sub = client.subscribe('/topic/' + data, function(data){
-    str.write(data);
+  sub = client.subscribe('/topic/' + opts.topic, function(d){
+    str.write(d);
   });
   
   sub.callback(function(){
