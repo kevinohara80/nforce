@@ -24,7 +24,7 @@ describe('api-mock-crud', function() {
         Name: 'Test Account',
         Test_Field__c: 'blah'
       });
-      org.insert(obj, oauth, function(err, res) {
+      org.insert({ sobject: obj, oauth: oauth }, function(err, res) {
         if(err) throw err;
         var body = JSON.parse(api.getLastRequest().body);
         should.exist(body.name);
@@ -45,7 +45,7 @@ describe('api-mock-crud', function() {
         Test_Field__c: 'blah'
       });
       obj.setId('someid');
-      org.update(obj, oauth, function(err, res) {
+      org.update({ sobject: obj, oauth: oauth }, function(err, res) {
         if(err) throw err;
         api.getLastRequest().url.should.equal('/services/data/v27.0/sobjects/account/someid');
         api.getLastRequest().method.should.equal('PATCH');
@@ -63,7 +63,7 @@ describe('api-mock-crud', function() {
         Test_Field__c: 'blah'
       });
       obj.setExternalId('My_Ext_Id__c', 'abc123');
-      org.upsert(obj, oauth, function(err, res) {
+      org.upsert({ sobject: obj, oauth: oauth }, function(err, res) {
         if(err) throw err;
         var body = JSON.parse(api.getLastRequest().body);
         should.exist(body.name);
@@ -84,7 +84,7 @@ describe('api-mock-crud', function() {
         Test_Field__c: 'blah'
       });
       obj.setId('someid');
-      org.delete(obj, oauth, function(err, res) {
+      org.delete({ sobject: obj, oauth: oauth }, function(err, res) {
         if(err) throw err;
         api.getLastRequest().url.should.equal('/services/data/v27.0/sobjects/account/someid');
         api.getLastRequest().method.should.equal('DELETE');

@@ -726,13 +726,7 @@ Connection.prototype._apiRequest = function(opts, callback) {
     ropts.body = opts.body;
   }
 
-  // need to get the body from the sobject if it exists
-  if(!opts.body && opts.sobject) {
-
-  }
-
   // process qs
-
   if(opts.qs) {
     ropts.qs = opts.qs;
   }
