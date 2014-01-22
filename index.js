@@ -131,31 +131,25 @@ Connection.prototype.getAuthUri = function(opts) {
   if(!opts) opts = {};
   var urlOpts;
   var self = this;
-  
   urlOpts = {
     'response_type': 'code',
     'client_id': self.clientId,
     'redirect_uri': self.redirectUri
   }
-
   if(opts.display) {
     urlOpts.display = opts.display.toLowerCase();
   }
-
   if(opts.immediate) {
     urlOpts.immediate = opts.immediate;
   }
-
   if(opts.scope) {
     if(typeof opts.scope === 'object') {
       urlOpts.scope = opts.scope.join(' ');
     }
   }
-
   if(opts.state) {
     urlOpts.state = opts.state;
   }
-
   if(self.environment == 'sandbox') {
     return TEST_AUTH_ENDPOINT + '?' + qs.stringify(urlOpts);
   } else {
@@ -163,85 +157,50 @@ Connection.prototype.getAuthUri = function(opts) {
   }
 }
 
-Connection.prototype.authenticate = function(opts, callback) {
-  var uri, reqOpts, bodyOpts;
+Connection.prototype.authenticate = function(data, callback) {
   var self = this;
-
-  if(!callback) callback = function(){}
-
-  if(!opts) opts = {};
-
-  bodyOpts = {
+  var opts = this._getOpts(data, callback);
+  opts.uri = (self.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
+  opts.method = 'POST';
+  opts.headers = {
+    'Content-Type': 'application/x-www-form-urlencoded'
+  }
+  var bopts = {
     'client_id': self.clientId,
-    'client_secret': self.clientSecret,
-  }
-
+    'client_secret': self.clientSecret
+  };
   if(opts.code) {
-    bodyOpts['grant_type'] = 'authorization_code';
-    bodyOpts['code'] = opts.code;
-    bodyOpts['redirect_uri'] = self.redirectUri;
+    bopts['grant_type'] = 'authorization_code';
+    bopts['code'] = opts.code;
+    bopts['redirect_uri'] = self.redirectUri;
   } else if(opts.username && opts.password) {
-    bodyOpts['grant_type'] = 'password';
-    bodyOpts['username'] = opts.username;
-    bodyOpts['password'] = opts.password;
+    bopts['grant_type'] = 'password';
+    bopts['username'] = opts.username;
+    bopts['password'] = opts.password;
     if(opts.securityToken) {
-      bodyOpts['password'] = bodyOpts['password'] + opts.securityToken;
+      bopts['password'] = bopts['password'] + opts.securityToken;
     }
-  } else {
-    return callback(new Error('You must either supply a code, or username and password'));
-  }
-
-  uri = (self.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
-
-  reqOpts = {
-    uri: uri,
-    method: 'POST',
-    body: qs.stringify(bodyOpts),
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    }
-  }
-  
-  return this._apiAuthRequest(reqOpts, callback);
-
+  } 
+  opts.body = qs.stringify(bopts);
+  return this._apiAuthRequest(opts, opts.callback);
 }
 
 
-Connection.prototype.refreshToken = function(oauth, callback) {
-  var uri, reqOpts, bodyOpts;
-  var self = this;
-
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 1) callback = args[0];
-  }
-
-  if(!callback) callback = function(){};
-
-  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  if(!oauth.refresh_token) return callback(new Error('You must supply a refresh token'));
-
-  bodyOpts = {
+Connection.prototype.refreshToken = function(data, callback) {
+  var opts = this._getOpts(data, callback);
+  opts.uri = (self.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
+  opts.method = 'POST';
+  opts.body = qs.stringify({
     'client_id': self.clientId,
     'client_secret': self.clientSecret,
     'grant_type': 'refresh_token',
     'redirect_uri': self.redirectUri,
     'refresh_token': oauth.refresh_token
+  });
+  opts.headers = {
+    'Content-Type': 'application/x-www-form-urlencoded'
   }
-
-  uri = (self.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
-
-  reqOpts = {
-    uri: uri,
-    method: 'POST',
-    body: qs.stringify(bodyOpts),
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    }
-  }
-
-  return this._apiAuthRequest(reqOpts, callback);
+  return this._apiAuthRequest(reqOpts, opts.callback);
 }
 
 // api methods
