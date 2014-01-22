@@ -6,7 +6,6 @@ var url         = require('url');
 var Record      = require('./lib/record');
 var QueryStream = require('./lib/querystream');
 var FDCStream   = require('./lib/fdcstream');
-var Opts        = require('./lib/opts');
 var util        = require('./lib/util');
 var faye        = require('faye');
 var mime        = require('mime');
@@ -107,8 +106,23 @@ var Connection = function(opts) {
 
 // argument parsing
 
-Connection.prototype._getOpts = function(args) {
-  return new Opts(args, this);
+Connection.prototype._getOpts = function(d, c) {
+  var data, callback;
+  if(_.isFunction(c)) {
+    callback = c;
+    data = d;
+  } else if(_.isFunction(d)) {
+    callback = d;
+    data = {};
+  } else {
+    callback = function() {};
+    data = d || {};
+  }
+  data.callback = callback;
+  if(this.mode === 'single' && !data.oauth) {
+    data.oauth = conn.oauth;
+  } 
+  return data;
 }
 
 // oauth methods
@@ -233,7 +247,7 @@ Connection.prototype.refreshToken = function(oauth, callback) {
 // api methods
 
 Connection.prototype.getIdentity = function(data, callback) {
-  var opts = this._getOpts(arguments);
+  var opts = this._getOpts(data, callback);
   opts.uri = opts.oauth.id;
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
@@ -250,7 +264,7 @@ Connection.prototype.getVersions = function(callback) {
 }
 
 Connection.prototype.getResources = function(data, callback) {
-  var opts = this._getOpts(arguments);
+  var opts = this._getOpts(data, callback);
   opts.resource = '/';
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
@@ -258,7 +272,7 @@ Connection.prototype.getResources = function(data, callback) {
 
 Connection.prototype.getSObjects = function(data, callback) {
   var self = this;
-  var opts = this._getOpts(arguments);
+  var opts = this._getOpts(data, callback);
   opts.resource = '/sobjects';
   opts.method = 'GET'; 
   return this._apiRequest(opts, function(err, resp){
@@ -277,22 +291,21 @@ Connection.prototype.getSObjects = function(data, callback) {
 }
 
 Connection.prototype.getMetadata = function(data, callback) {
-  var opts = this._getOpts(arguments);
+  var opts = this._getOpts(data, callback);
   opts.resource = '/sobjects/' + opts.type;
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
 }
 
 Connection.prototype.getDescribe = function(data, callback) {
-  var opts = this._getOpts(arguments);
+  var opts = this._getOpts(data, callback);
   opts.resource = '/sobjects/' + opts.type + '/describe';
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
 }
 
 Connection.prototype.insert = function(data, callback) {
-  var opts = this._getOpts(arguments);
-  console.log(JSON.stringify(opts));
+  var opts = this._getOpts(data, callback);
   var type = opts.sobject.getType();
   opts.resource = '/sobjects/' + type;
   opts.method = 'POST';
@@ -319,8 +332,8 @@ Connection.prototype.insert = function(data, callback) {
   return this._apiRequest(opts, opts.callback);
 }
 
-Connection.prototype.update = function(data, oauth, callback) {
-  var opts = this._getOpts(arguments);
+Connection.prototype.update = function(data, callback) {
+  var opts = this._getOpts(data, callback);
   var type = opts.sobject.getType();
   var id = opts.sobject.getId();
   opts.resource = '/sobjects/' + type + '/' + id;
@@ -348,8 +361,8 @@ Connection.prototype.update = function(data, oauth, callback) {
   return this._apiRequest(opts, opts.callback);
 }
 
-Connection.prototype.upsert = function(data, oauth, callback) {
-  var opts = this._getOpts(arguments);
+Connection.prototype.upsert = function(data, callback) {
+  var opts = this._getOpts(data, callback);
   var type = opts.sobject.getType();
   var extIdField = opts.sobject.getExternalIdField();
   var extId = opts.sobject.getExternalId();
@@ -359,8 +372,9 @@ Connection.prototype.upsert = function(data, oauth, callback) {
   return this._apiRequest(opts, opts.callback);
 }
 
-Connection.prototype.delete = function(data, oauth, callback) {
-  var opts = this._getOpts(arguments);
+Connection.prototype.delete = function(data, callback) {
+  var opts = this._getOpts(data, callback);
+  var type = opts.sobject.getType();
   var id = opts.sobject.getId();
   opts.resource = '/sobjects/' + type + '/' + id;
   opts.method = 'DELETE';
@@ -368,48 +382,22 @@ Connection.prototype.delete = function(data, oauth, callback) {
 }
 
 Connection.prototype.getRecord = function(data, oauth, callback) {
-  var type, uri, opts, id, query;
-  
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
+  var opts = this._getOpts(data, callback);
+  var type = opts.sobject.getType();
+  var id = opts.sobject.getId();
+  opts.resource = '/sobjects/' + type + '/' + id;
+  opts.method = 'GET';
+  if(opts.fields) {
+    if(_.isString(opts.fields)) {
+      opts.fields = [opts.fields];
+    } 
+    opts.resource + '?' + qs.stringify({ fields: opts.fields.join() });
   }
-  
-  if(!callback) callback = function(){}
-  
-  if(typeof data.attributes.type !== 'string') {
-    return callback(new Error('Type must be in the form of a string'), null);
-  }
-  
-  type = data.attributes.type.toLowerCase();
-  
-  if(!(id = util.findId(data))) {
-    return callback(new Error('You must specify an id in the form of a string'));
-  }
-  
-  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  
-  uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/'
-    + type + '/' + id;
-  
-  if(data.fields) {
-    query = {}
-    if(typeof data.fields === 'string') {
-      query.fields = data.fields;
-    } else if(typeof data.fields === 'object' && data.fields.length) {
-      query.fields = data.fields.join();
-    }
-    uri += '?' + qs.stringify(query);
-  }
-  
-  opts = { uri: uri, method: 'GET' }
-  
-  return this._apiRequest(opts, oauth, null, function(err, resp){
+  return this._apiRequest(opts, function(err, resp){
     if(!err) {
       resp = new Record(resp);
     }
-    callback(err, resp);
+    opts.callback(err, resp);
   });
 }
 
@@ -525,23 +513,22 @@ Connection.prototype.getContentVersionBody = function(id, oauth, callback) {
   });
 }
 
-Connection.prototype._queryHandler = function(query, oauth, all, callback) {
-  var uri, opts, stream;
+Connection.prototype._queryHandler = function(data, callback) {
   var self = this;
   var recs = [];
-
-  if(!callback) callback = function(){}
-
-  stream = new QueryStream();
-
-  if(typeof query !== 'string') {
-    return callback(new Error('You must specify a query'));
+  var stream = new QueryStream();
+  var opts = this._getOpts(data, callback);
+  opts.method = 'GET';
+  opts.resource = '/query';
+  if(opts.all) {
+    opts.resource += 'All';
+  }
+  opts.qs = {
+    q: opts.query
   }
 
-  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-
   var queryNext = function(url) {
-    self.getUrl(url, oauth, function(err, resp) {
+    self.getUrl({ url: url, oauth: opts.oauth }, function(err, resp) {
       if (err) {
         return stream.error(err);
       }
@@ -555,50 +542,36 @@ Connection.prototype._queryHandler = function(query, oauth, all, callback) {
           stream.end();
         }
       };
-
       if (stream.writable) {
         write_more();
-      }
-      else {
+      } else {
         stream.once('resume', write_more);
       }
     });
   }
-
-  uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/query';
-
-  // support queryAll
-  if(all) uri += 'All';
-
-  opts = { uri: uri, method: 'GET', qs: { q: query } }
   
-  this._apiRequest(opts, oauth, null, function(err, resp){
-    if (stream.isStreaming()) {
+  this._apiRequest(opts, function(err, resp){
+    if(stream.isStreaming()) {
       if (err) {
         stream.error(err);
-      }
-      else {
+      } else {
         if(resp) {
           var write_more = function () {
             stream.write(JSON.stringify(resp));
             if(resp.nextRecordsUrl) {
               queryNext(resp.nextRecordsUrl);
-            }
-            else {
+            } else {
               stream.end();
             }
           };
-          
           if (stream.writable) {
             write_more();
-          }
-          else {
+          } else {
             stream.once('resume', write_more);
           }
         }
       }
-    }
-    else {
+    } else {
       if(!err) {
         if(resp.records && resp.records.length > 0) {
           for(var i=0; i<resp.records.length; i++) {
@@ -607,52 +580,38 @@ Connection.prototype._queryHandler = function(query, oauth, all, callback) {
           resp.records = recs;
         }
       }
-      callback(err, resp);
+      opts.callback(err, resp);
     }
   });
 
   return stream;
 }
 
-Connection.prototype.query = function(query, oauth, callback) {
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length === 2) callback = args[1];
-  }
-  return this._queryHandler(query, oauth, false, callback);
+Connection.prototype.query = function(data, callback) {
+  var opts = this._getOpts(data, callback);
+  opts.all = false;
+  return this._queryHandler(opts, callback);
 }
 
-Connection.prototype.queryAll = function(query, oauth, callback) {
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length === 2) callback = args[1];
-  }
-  return this._queryHandler(query, oauth, true, callback);
+Connection.prototype.queryAll = function(data, callback) {
+  var opts = this._getOpts(data, callback);
+  opts.all = true;
+  return this._queryHandler(opts, callback);
 }
 
-Connection.prototype.search = function(search, oauth, callback) {
+/**
+ * data
+ * - search: string
+ * - oauth: object
+ */
+
+Connection.prototype.search = function(data, callback) {
+  var opts = this._getOpts(data, callback);
   var uri, opts;
-
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
-  }
-
-  if(!callback) callback = function(){};
-
-  if(typeof search !== 'string') {
-    return callback(new Error('Search must be in string form'), null);
-  }
-
-  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  
-  uri = oauth.instance_url + '/services/data/' + this.apiVersion + '/search';
-  opts = { uri: uri, method: 'GET', qs: { q: search } }
-  
-  return this._apiRequest(opts, oauth, null, function(err, resp){
+  opts.resource = '/search';
+  opts.method = 'GET';
+  opts.qs = { q: search }; 
+  return this._apiRequest(opts, function(err, resp){
     if(!err) {
       if(resp.length) {
         var recs = [];
@@ -662,91 +621,29 @@ Connection.prototype.search = function(search, oauth, callback) {
         resp = recs;
       }
     }
-    callback(err, resp);
+    opts.callback(err, resp);
   });
 }
 
-Connection.prototype.getUrl = function(url, oauth, callback) {
-  var uri, opts;
-
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
-  }
-  
-  if(!callback) callback = function(){}
-  
-  if(typeof url !== 'string') {
-    return callback(new Error('Url must be in string form'), null);
-  }
-  
-  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  
-  uri = oauth.instance_url + url;
-  opts = { uri: uri, method: 'GET' }
-  
-  return this._apiRequest(opts, oauth, null, callback);
+Connection.prototype.getUrl = function(data, callback) {
+  var opts = this._getOpts(data, callback);
+  opts.uri = opts.oauth.instance_url + url;
+  opts.method = 'GET';
+  return this._apiRequest(opts, callback);
 }
 
 // chatter api methods
 
 // apex rest
 
-Connection.prototype.apexRest = function(restRequest, oauth, callback) {
-  var uri, opts, params, method;
-
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
+Connection.prototype.apexRest = function(data, callback) {
+  // need to specify resource
+  var opts = this._getOpts(data, callback);
+  opts.method = opts.method || 'GET';
+  if(opts.params) {
+    opts.qs = opts.params;
   }
-
-  if(!callback) callback = function(){};
-
-  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  
-  if(typeof restRequest !== 'object') {
-    return callback(new Error('You must specify a restRequest object'), null);
-  }
-  
-  if(typeof restRequest.uri !== 'string') {
-    return callback(new Error('You must specify a url with the type string'), null);
-  }
-  
-  if(typeof restRequest.method === 'string' ) {
-    method = restRequest.method;
-    if(method !=='GET' && method !=='POST' && method !=='PATCH' && method !=='PUT')
-    return callback(new Error('Only GET, POST, PATCH, & PUT are supported, you specified: '+ method), null);
-  }
-  //default to GET
-  if(restRequest.method==null || typeof restRequest.method !== 'string'){
-    restRequest.method = 'GET';
-  }
-  
-  uri = oauth.instance_url + '/services/apexrest/' + restRequest.uri;
-  opts = { uri: uri, method: restRequest.method }
-
-  if(restRequest.body!=null) {
-    opts.body = typeof restRequest.body === 'string' ? restRequest.body : JSON.stringify(restRequest.body);
-  }
-
-  if(restRequest.urlParams!=null) {
-    if(!Array.isArray(restRequest.urlParams)) {
-      return callback(new Error('URL parmams must be an array in form of [{key:\'key\', value:\'value\'}]'), null);
-    }
-    
-    params = '?';
-    
-    for(i = 0; i<restRequest.urlParams.length; i++){
-      if(i>0) params+='&'
-      params+=restRequest.urlParams[i].key+'='+restRequest.urlParams[i].value;
-    }
-    
-    opts.uri+=params;
-  }
-
-  return this._apiRequest(opts, oauth, null, callback);
+  return this._apiRequest(opts, opts.callback);
 }
 
 // streaming methods
@@ -830,41 +727,12 @@ Connection.prototype.expressOAuth = function(opts) {
 }
 
 Connection.prototype.updatePassword = function(data, oauth, callback) {
-  var type, opts, entity, name, id, fieldvalues;
-  
-  if(this.mode === 'single') {
-    var args = Array.prototype.slice.call(arguments);
-    oauth = this.oauth;
-    if(args.length == 2) callback = args[1];
-  }
-  
-  if(!callback) callback = function(){}
-  
-  if(typeof data.attributes.type !== 'string') {
-    return callback(new Error('Type must be in the form of a string'), null);
-  }
-  
-  type = data.attributes.type.toLowerCase();
-  
-  if(!(id = util.findId(data))) {
-    return callback(new Error('You must specify an id in the form of a string'));
-  }
-  
-  fieldvalues = data.getFieldValues();
-  
-  if(typeof fieldvalues !== 'object') {
-    return callback(new Error('fieldValues must be in the form of an object'), null);
-  }
-  
-  if(!util.validateOAuth(oauth)) return callback(new Error('Invalid oauth object argument'), null);
-  
-  opts = { 
-    uri: oauth.instance_url + '/services/data/' + this.apiVersion + '/sobjects/User/' + id + '/password', 
-    method: 'POST'
-  };
-  
-  opts.body = JSON.stringify(fieldvalues);  
-  return this._apiRequest(opts, oauth, data, callback);
+  var opts = this._getOpts(data, callback);
+  var id = data.sobject.getId();
+  opts.resource = '/sobjects/user/' + id + '/password';
+  opts.method = 'POST';
+  opts.body = JSON.stringify(data.sobject._getPayload(false));  
+  return this._apiRequest(opts, callback);
 }
 
 var errors = {
@@ -1003,6 +871,8 @@ Connection.prototype._apiRequest = function(opts, callback) {
       + opts.resource;
   }
 
+  ropts.method = opts.method || 'GET';
+
   // set headers
 
   ropts.headers = {};
@@ -1036,6 +906,12 @@ Connection.prototype._apiRequest = function(opts, callback) {
 
   }
 
+  // process qs
+
+  if(opts.qs) {
+    ropts.qs = opts.qs;
+  }
+
   return request(ropts, function(err, res, body) {
     
     // request returned an error
@@ -1064,7 +940,9 @@ Connection.prototype._apiRequest = function(opts, callback) {
       // salesforce returned an ok of some sort
       if(res.statusCode >= 200 && res.statusCode <= 204) {
         // attach the id back to the sobject on insert
-        if(sobject && data && data.id && !util.findId(sobject) && sobject.setId) sobject.setId(data.id);
+        if(sobject && data && data.id) {
+          sobject._fields.id = data.id;
+        }
         return callback(null, data);
       }
 

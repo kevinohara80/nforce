@@ -14,10 +14,11 @@ org.authenticate({ username: sfuser, password: sfpass}, function(err, oauth) {
   if(err) {
     console.error('unable to authenticate to sfdc');
   } else {
-    org.query(query, oauth, function(err, resp) {
+    org.query({ query: query, oauth: oauth }, function(err, resp) {
+      if(err) throw err;
       if(resp.records && resp.records.length) {
         resp.records.forEach(function(rec) {
-          console.log('Lead: ' + rec.FirstName + ' ' + rec.LastName);
+          console.log('Lead: ' + rec.get('FirstName') + ' ' + rec.get('LastName'));
         }); 
       }
     });

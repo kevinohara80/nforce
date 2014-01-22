@@ -25,7 +25,6 @@ function deleteLead(ld) {
 function updateLead(ld) {
   console.log('attempting to update lead');
   ld.set('Company', 'JJ Inc.');
-  console.log(ld.getId());
   org.update({ sobject: ld, oauth: oauth }, function(err, resp) {
     if(err) {
       console.error('--> unable to update lead');
@@ -45,7 +44,6 @@ function insertLead() {
     Company: 'ABC Widgets',
     Email: 'bobbytester@testertest.com'
   });
-  console.log(ld.getType());
   org.insert({ sobject: ld, oauth: oauth }, function(err, resp) {
     if(err) {
       console.error('--> unable to insert lead');
