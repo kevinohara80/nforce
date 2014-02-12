@@ -188,19 +188,19 @@ Connection.prototype.authenticate = function(data, callback) {
 
 Connection.prototype.refreshToken = function(data, callback) {
   var opts = this._getOpts(data, callback);
-  opts.uri = (self.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
+  opts.uri = (this.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
   opts.method = 'POST';
   opts.body = qs.stringify({
-    'client_id': self.clientId,
-    'client_secret': self.clientSecret,
+    'client_id': this.clientId,
+    'client_secret': this.clientSecret,
     'grant_type': 'refresh_token',
-    'redirect_uri': self.redirectUri,
-    'refresh_token': oauth.refresh_token
+    'redirect_uri': this.redirectUri,
+    'refresh_token': opts.oauth.refresh_token
   });
   opts.headers = {
     'Content-Type': 'application/x-www-form-urlencoded'
   }
-  return this._apiAuthRequest(reqOpts, opts.callback);
+  return this._apiAuthRequest(opts, opts.callback);
 }
 
 // api methods
