@@ -65,9 +65,9 @@ Now we can go nuts. **nforce** has an salesforce sObject factory method that cre
 
 ```js
 var acc = nforce.createSObject('Account');
-acc.Name = 'Spiffy Cleaners';
-acc.Phone = '800-555-2345';
-acc.SLA__c = 'Gold';
+acc.set('Name', 'Spiffy Cleaners');
+acc.set('Phone', '800-555-2345');
+acc.set('SLA__c', 'Gold');
 
 org.insert({ sobject: acc, oauth: oauth }, function(err, resp){
   if(!err) console.log('It worked!');
