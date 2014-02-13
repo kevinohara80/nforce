@@ -1,6 +1,6 @@
 var express = require('express');
 var nforce = require('nforce');
-var app = module.exports = express.createServer();
+var app = module.exports = express();
 
 var org = nforce.createConnection({
   clientId: '3MVG9rFJvQRVOvk5nd6A4swCyck.4BFLnjFuASqNZmmxzpQSFWSTe6lWQxtF3L5soyVLfjV3yBKkjcePAsPzi',
@@ -13,7 +13,8 @@ var org = nforce.createConnection({
 app.configure(function(){
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
-  app.use(express.bodyParser());
+  app.use(express.json());
+  app.use(express.urlencoded());
   app.use(express.methodOverride());
   app.use(express.cookieParser());
   app.use(express.session({ secret: 'nforce testing baby' }));
@@ -44,7 +45,7 @@ app.get('/oauth/authorize', function(req, res){
 
 app.get('/test/query', function(req, res) {
   var query = 'SELECT Id, Name, CreatedDate FROM Account ORDER BY CreatedDate DESC LIMIT 5';
-  org.query(query, req.session.oauth, function(err, resp) {
+  org.query({query: query, oauth: req.session.oauth}, function(err, resp) {
     if(!err) {
       res.render('query', {
         title: 'query results',
@@ -56,5 +57,6 @@ app.get('/test/query', function(req, res) {
   });
 });
 
-app.listen(3000);
-console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+var httpPort = 3000;
+app.listen(httpPort);
+console.log("Express server listening on port %d in %s mode", httpPort, app.settings.env);

@@ -203,7 +203,7 @@ Once this OAuth flow completes, subsequent requests just need to retrieve the OA
 // express route
 app.get('ajax/cases', function(req, res) { 
   var q = 'SELECT Id, CaseNumber FROM Cases WHERE IsClosed = false';
-  org.query(q, req.session.oauth).pipe(res);
+  org.query({ query:q, oauth: req.session.oauth }).pipe(res);
 });
 ```
 
