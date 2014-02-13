@@ -94,6 +94,18 @@ describe('api-mock-crud', function() {
 
   });
 
+  describe('#apexRest', function() {
+
+    it('should create a proper request for a custom Apex REST endpoint', function(done) {
+      org.apexRest({ uri: 'sample', oauth: oauth }, function(err, res) {
+        api.getLastRequest().url.should.equal('/services/apexrest/sample');
+        api.getLastRequest().method.should.equal('GET');
+        done();
+      });
+    });
+
+  });
+
   // reset the lastRequest
   afterEach(function() {
     api.reset();

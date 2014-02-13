@@ -519,6 +519,7 @@ Connection.prototype.getUrl = function(data, callback) {
 Connection.prototype.apexRest = function(data, callback) {
   // need to specify resource
   var opts = this._getOpts(data, callback);
+  opts.uri = opts.oauth.instance_url + '/services/apexrest/' + data.uri;
   opts.method = opts.method || 'GET';
   if(opts.urlParams) {
     opts.qs = opts.urlParams;
