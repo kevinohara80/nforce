@@ -624,14 +624,14 @@ http://wiki.developerforce.com/page/Creating_REST_APIs_using_Apex_REST
 
 ```js
 org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req.session.oauth, function(err,resp){
-    if(!err) {
-      console.log(resp);
-      res.send(resp);
-    }else{
-      console.log(err);
-      res.send(err);
-    }
-  })
+  if(!err) {
+    console.log(resp);
+    res.send(resp);
+  }else{
+    console.log(err);
+    res.send(err);
+  }
+})
 ```
 
 ## Todo
