@@ -281,6 +281,34 @@ org.authenticate({ username: user, password: pass }, function(err, oauth) {
 });
 ```
 
+### Plugins
+
+As of **nforce** v0.7.0, a plugin API is now exposed so that the capabilities of nforce can easily be extended. This plugin system also allows the core of nforce to remain small, handling mostly authentication, CRUD, query, search, and other basic API requests. As Salesforce releases additional API's or as authors find interesting ways to extend nforce, these can easily be built into plugins and added to your nforce configuration as-needed. 
+
+To use plugins in your application, you'll need to load them into nforce and specify which plugins to use when creating a connection object. Here is an example.
+
+```js
+var nforce = require('nforce');
+
+// load the plugin
+require('myplugin')(nforce);
+
+var org = nforce.createConnection({
+  clientId:     process.env.CLIENT_ID,
+  clientSecret: process.env.CLIENT_SECRET,
+  redirectUri: 'http://localhost:3000/oauth/_callback',
+  plugins:     ['myplugin'] // make sure you enable it when creating a connection
+});
+
+org.myplugin.getSomeData(function(err, data) {
+  console.log(data);
+});
+```
+
+You'll notice that the plugins methods are all namespaced. This is to prevent method naming conflicts between plugins. As a best-practice, plugin authors should make their namespace the same as the module name but it's best to refer to their documentation for the exact namespace when using their plugin.
+
+Documentation on authoring plugins is coming soon...
+
 ## nforce API Basics
 
 ### Callbacks
