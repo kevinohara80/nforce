@@ -652,6 +652,8 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 * Kyle Bowerman -> [kbowerma](https://github.com/kbowerma)
 * Matt Sergeant -> [baudehlo](https://github.com/baudehlo)
 * Scott Anson -> [scottanson](https://github.com/scottanson)
+* Derek Hansen -> [derekhansen](https://github.com/derekhansen)
+* deedw -> [deedw](https://github.com/deedw)
 
 ## Changelog
 
