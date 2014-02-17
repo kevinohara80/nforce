@@ -507,7 +507,7 @@ Connection.prototype.search = function(data, callback) {
 
 Connection.prototype.getUrl = function(data, callback) {
   var opts = this._getOpts(data, callback);
-  opts.uri = opts.oauth.instance_url + url;
+  opts.uri = opts.oauth.instance_url + data.url;
   opts.method = 'GET';
   return this._apiRequest(opts, callback);
 }
