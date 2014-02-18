@@ -655,8 +655,10 @@ Connection.prototype._apiAuthRequest = function(opts, callback) {
         return callback(errors.invalidJson());
       }
     } else {
-      //console.log(body);
-      //return callback(errors.nonJsonResponse());
+      // removing this for now since calling the _apiAuthRequest when
+      // revoking an oauth token doesn't return a JSON response, just
+      // a 200 response with an empty body.
+      // return callback(errors.nonJsonResponse());
     }
 
     if(res.statusCode === 200) {
