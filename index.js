@@ -185,7 +185,6 @@ Connection.prototype.authenticate = function(data, callback) {
   return this._apiAuthRequest(opts, opts.callback);
 }
 
-
 Connection.prototype.refreshToken = function(data, callback) {
   var opts = this._getOpts(data, callback);
   opts.uri = (this.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
@@ -201,6 +200,20 @@ Connection.prototype.refreshToken = function(data, callback) {
     'Content-Type': 'application/x-www-form-urlencoded'
   }
   return this._apiAuthRequest(opts, opts.callback);
+}
+
+Connection.prototype.revokeToken = function(data, callback) {
+  var opts = this._getOpts(data, callback);
+  if(this.environment === 'sandbox') {
+    opts.uri = 'https://test.salesforce.com/services/oauth2/revoke';
+  } else {
+    opts.uri = 'https://login.salesforce.com/services/oauth2/revoke';
+  }
+  opts.uri += '?token=' + opts.token;
+  if(opts.callbackParam) {
+    opts.uri += '&callback=' + opts.callbackParam;
+  }
+  return this._apiAuthRequest(opts, opts.callback)
 }
 
 // api methods
@@ -642,7 +655,8 @@ Connection.prototype._apiAuthRequest = function(opts, callback) {
         return callback(errors.invalidJson());
       }
     } else {
-      return callback(errors.nonJsonResponse());
+      //console.log(body);
+      //return callback(errors.nonJsonResponse());
     }
 
     if(res.statusCode === 200) {
