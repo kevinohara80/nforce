@@ -409,27 +409,27 @@ Returns the file name of the attachment if set
 
 Sets the file name of the attachment
 
-## getBody
+### getBody
 
 Gets the body of the attachment if set
 
-## setBody
+### setBody
 
 Sets the body of the attachment
 
-## hasChanged(field)
+### hasChanged(field)
 
 Checks to see if the field has been changed since the last save on the server
 
-## changed()
+### changed()
 
 Returns a hash of the changed fields and their current values
 
-## previous()
+### previous()
 
 Returns a hash of the previous values for changed fields
 
-## toJSON()
+### toJSON()
 
 Returns a JSON representation of the fields in the sObject
 
