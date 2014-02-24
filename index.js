@@ -39,7 +39,8 @@ var Connection = function(opts) {
     apiVersion:    _.last(API_VERSIONS),
     environment:   'production',
     mode:          'multi',
-    gzip:          false
+    gzip:          false,
+    autoRefresh:   false
   });
 
   // convert option values
@@ -799,6 +800,15 @@ Connection.prototype._apiRequest = function(opts, callback) {
           e.messageBody = data;
         }
         e.statusCode = res.statusCode;
+
+        // auto-refresh support
+        if(e.errorCode && e.errorCode === 'INVALID_SESSION_ID' && self.autoRefresh === true && !opts._retryCount) {
+          Connection.prototype.refreshToken.call(self, { oauth: opts.oauth }, function(err, res) {
+
+          });
+          //return Connection.prototype._apiRequest.call(self, opts, callback);
+        }
+
         return callback(e, null);
       }
 
