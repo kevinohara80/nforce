@@ -543,22 +543,25 @@ Connection.prototype.apexRest = function(data, callback) {
 // streaming methods
 
 Connection.prototype.stream = function(data) {
+  var that = this;
   var opts = this._getOpts(data);
+  var client, endpoint;
 
   str = new FDCStream();
-  endpoint = opts.oauth.instance_url + '/cometd/' + this.apiVersion.substring(1);
-  
+
+  endpoint = opts.oauth.instance_url + '/cometd/' + that.apiVersion.substring(1);
+
   client = new faye.Client(endpoint, {});
   client.setHeader('Authorization', 'OAuth ' + opts.oauth.access_token);
-  
+
   sub = client.subscribe('/topic/' + opts.topic, function(d){
     str.write(d);
   });
-  
+
   sub.callback(function(){
     str.emit('connect');
   });
-  
+
   sub.errback(function(error) {
     str.emit('error', error);
   });

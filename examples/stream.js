@@ -13,7 +13,7 @@ org.authenticate({ username: process.env.SFUSER, password: process.env.SFPASS}, 
   
   if(err) return console.log(err);
 
-  var str = org.stream('AllAccounts', oauth);
+  var str = org.stream({ topic: 'AllAccounts', oauth: oauth });
 
   str.on('connect', function(){
     console.log('connected to pushtopic');
