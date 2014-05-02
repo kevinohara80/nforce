@@ -804,16 +804,12 @@ Connection.prototype._apiRequest = function(opts, callback) {
 
         // auto-refresh support
         if(e.errorCode && e.errorCode === 'INVALID_SESSION_ID' && self.autoRefresh === true && opts.oauth.refresh_token && !opts._retryCount) {
-          console.log('----- attempting refresh ------');
           opts._retryCount = 1;
           Connection.prototype.refreshToken.call(self, { oauth: opts.oauth }, function(err2, res2) {
             if(err2) {
-              console.log('----- failed ------');
-              console.log(err2)
               return callback(err2, null);
             } else {
               _.assign(opts.oauth, res2);
-              console.log('----- retrying original request ------');
               return Connection.prototype._apiRequest.call(self, opts, callback);
             }
           });
