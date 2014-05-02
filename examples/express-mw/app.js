@@ -1,6 +1,7 @@
-var express = require('express');
-var nforce = require('nforce');
-var app = module.exports = express();
+var express    = require('express');
+var nforce     = require('nforce');
+var app        = module.exports = express();
+var bodyParser = require('body-parser');
 
 var org = nforce.createConnection({
   clientId: '3MVG9rFJvQRVOvk5nd6A4swCyck.4BFLnjFuASqNZmmxzpQSFWSTe6lWQxtF3L5soyVLfjV3yBKkjcePAsPzi',
@@ -41,6 +42,13 @@ app.get('/', function(req, res){
 
 app.get('/oauth/authorize', function(req, res){
   res.redirect(org.getAuthUri());
+});
+
+app.get('/oauth/invalidate', function(req, res) {
+  org.revokeToken({ oauth: oauth }, function(e, res) {
+    if(err) throw err;
+    else res.redirect('/');
+  });
 });
 
 app.get('/test/query', function(req, res) {

@@ -122,7 +122,7 @@ Connection.prototype._getOpts = function(d, c) {
   data.callback = callback;
   if(this.mode === 'single' && !data.oauth) {
     data.oauth = this.oauth;
-  } 
+  }
   return data;
 }
 
@@ -188,6 +188,7 @@ Connection.prototype.authenticate = function(data, callback) {
 
 Connection.prototype.refreshToken = function(data, callback) {
   var opts = this._getOpts(data, callback);
+  console.log(opts);
   opts.uri = (this.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
   opts.method = 'POST';
   opts.body = qs.stringify({
@@ -802,18 +803,29 @@ Connection.prototype._apiRequest = function(opts, callback) {
         e.statusCode = res.statusCode;
 
         // auto-refresh support
-        if(e.errorCode && e.errorCode === 'INVALID_SESSION_ID' && self.autoRefresh === true && !opts._retryCount) {
-          Connection.prototype.refreshToken.call(self, { oauth: opts.oauth }, function(err, res) {
-
+        if(e.errorCode && e.errorCode === 'INVALID_SESSION_ID' && self.autoRefresh === true && opts.oauth.refresh_token && !opts._retryCount) {
+          console.log('----- attempting refresh ------');
+          opts._retryCount = 1;
+          Connection.prototype.refreshToken.call(self, { oauth: opts.oauth }, function(err2, res2) {
+            if(err2) {
+              console.log('----- failed ------');
+              console.log(err2)
+              return callback(err2, null);
+            } else {
+              _.assign(opts.oauth, res2);
+              console.log('----- retrying original request ------');
+              return Connection.prototype._apiRequest.call(self, opts, callback);
+            }
           });
-          //return Connection.prototype._apiRequest.call(self, opts, callback);
+        } else {
+          return callback(e, null);  
         }
 
-        return callback(e, null);
+      } else {
+        // we don't know what happened
+        return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
       }
 
-      // we don't know what happened
-      return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
     };
 
     if(res.headers && res.headers['content-encoding'] === 'gzip' && body) {
