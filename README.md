@@ -343,6 +343,7 @@ The createConnection method creates an *nforce* salesforce connection object. Yo
 * `loginUri`: Optional. Used to override the login URI if needed.
 * `testLoginUri`: Optional. Used to override the testLoginUri if needed.
 * `gzip`: Optional. If set to boolean 'true', then *nforce* will request that salesforce compress responses (using gzip) before transmitting over-the-wire.
+* `autoRefresh`: Optional. If set to boolean 'true', *nforce* will auto-refresh your oauth access token if it tries a request and fails due to an expired token. Only works with web oauth flows. Username/password flows don't return refresh tokens.
 
 ### createSObject(type, [fieldValues])
 
