@@ -568,6 +568,8 @@ Connection.prototype.stream = function(data) {
     str.emit('error', error);
   });
   
+  str.client = client;
+  
   return str;
 }
 
