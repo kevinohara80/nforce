@@ -549,7 +549,7 @@ Connection.prototype.stream = function(data) {
   var opts = this._getOpts(data);
   var client, endpoint;
 
-  str = new FDCStream();
+  var str = new FDCStream();
 
   endpoint = opts.oauth.instance_url + '/cometd/' + that.apiVersion.substring(1);
 
