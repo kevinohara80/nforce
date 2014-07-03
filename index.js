@@ -40,7 +40,8 @@ var Connection = function(opts) {
     environment:   'production',
     mode:          'multi',
     gzip:          false,
-    autoRefresh:   false
+    autoRefresh:   false,
+    onRefresh:     undefined
   });
 
   // convert option values
@@ -66,6 +67,7 @@ var Connection = function(opts) {
   if(!_.isString(this.mode) || _.indexOf(MODES, this.mode) === -1) {
     throw new Error('invalid mode, only ' + MODES.join(' and ') + ' are allowed');
   }
+  if(this.onRefresh && !_.isFunction(this.onRefresh)) throw new Error('onRefresh must be a function');
   
   // setup cache
 
@@ -188,7 +190,6 @@ Connection.prototype.authenticate = function(data, callback) {
 
 Connection.prototype.refreshToken = function(data, callback) {
   var opts = this._getOpts(data, callback);
-  console.log(opts);
   opts.uri = (this.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
   opts.method = 'POST';
   opts.body = qs.stringify({
@@ -809,8 +810,16 @@ Connection.prototype._apiRequest = function(opts, callback) {
             if(err2) {
               return callback(err2, null);
             } else {
+              var old = _.clone(opts.oauth, true);
               _.assign(opts.oauth, res2);
-              return Connection.prototype._apiRequest.call(self, opts, callback);
+              if(self.onRefresh) {
+                self.onRefresh.call(self, opts.oauth, old, function(err3){
+                  if(err3) return callback(err3);
+                  else Connection.prototype._apiRequest.call(self, opts, callback);
+                });
+              } else {
+                return Connection.prototype._apiRequest.call(self, opts, callback);
+              }
             }
           });
         } else {

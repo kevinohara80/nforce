@@ -177,6 +177,66 @@ org.query({ query: 'SELECT Id FROM Lead LIMIT 1' }, function(err, res) {
 });
 ```
 
+### Access Token Auto-Refreshes
+
+**nforce** provides an optional, built-in function for auto-refreshing access tokens when able it's able to. This requires you are using the web-server flow and you've requested the right scope that returns you a refresh_token. 
+
+To enable auto-refreshes, you just need to set the `autoRefresh` argument when creating your connection...
+
+```js
+var nforce = require('nforce');
+
+var org = nforce.createConnection({
+  clientId: 'SOME_OAUTH_CLIENT_ID',
+  clientSecret: 'SOME_OAUTH_CLIENT_SECRET',
+  redirectUri: 'http://localhost:3000/oauth/_callback',
+  apiVersion: 'v29.0',
+  environment: 'production',
+  mode: 'multi',
+  autoRefresh: true // <--- set this to true
+});
+```
+
+Now when you make requests and your access token is expired, **nforce** will automatically refresh your access token from Salesforce and re-try your original request...
+
+```js
+console.log('old token: ' + oauth.access_token);
+org.query({ query: 'SELECT Id FROM Account LIMIT 1', oauth: oauth }, function(err, records){
+  if(err) throw err;
+  else {
+    console.log('query completed with token: ' + oauth.access_token); // <--- if refreshed, this should be different
+    res.send(body);
+  }
+});
+```
+
+**NOTE:** If you're using express and storing your oauth in the session, if you pass in your session oauth directly, it's going to be updated automatically by nforce since the autoRefresh function mutates the oauth object that's passed in. 
+
+There's also a handy callback function called `onRefresh` that can be added to your connection that will execute when any request triggers an auto-refresh of your access token. This makes keeping stored credentials up-to-date a breeze. Here's a pseudo-example of how that would work.
+
+```js
+var nforce = require('nforce');
+
+var org = nforce.createConnection({
+  clientId: 'SOME_OAUTH_CLIENT_ID',
+  clientSecret: 'SOME_OAUTH_CLIENT_SECRET',
+  redirectUri: 'http://localhost:3000/oauth/_callback',
+  apiVersion: 'v29.0',
+  environment: 'production',
+  mode: 'multi',
+  autoRefresh: true, // <--- set this to true
+  onRefresh: function(newOauth, oldOauth, cb) {
+    // find outdated access tokens in the db and update them
+    mydb.findOauthByAccessToken(oldOauth.access_token, function(err, oauth) {
+      oauth.access_token = newOauth.access_token;
+      oauth.save();
+      // make sure you call the callback from the onRefresh function
+      cb();
+    });
+  }
+});
+```
+
 ## Other Features
 
 ### Express Middleware
@@ -344,6 +404,7 @@ The createConnection method creates an *nforce* salesforce connection object. Yo
 * `testLoginUri`: Optional. Used to override the testLoginUri if needed.
 * `gzip`: Optional. If set to boolean 'true', then *nforce* will request that salesforce compress responses (using gzip) before transmitting over-the-wire.
 * `autoRefresh`: Optional. If set to boolean 'true', *nforce* will auto-refresh your oauth access token if it tries a request and fails due to an expired token. Only works with web oauth flows. Username/password flows don't return refresh tokens.
+* `onRefresh`: Optional. This is a function that is called when a request going through the connection triggers an auto-refresh. This hook is handy for updating your oauth tokens in a database or other store. The function is passed three arguments `newOauth`, `oldOauth`, and a `callback` function. The callback must be called with either an error or null value.
 
 ### createSObject(type, [fieldValues])
 

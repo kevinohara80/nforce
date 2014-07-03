@@ -8,11 +8,23 @@ var cookieParser = require('cookie-parser');
 
 var app = express();
 
+function getLast10(token) {
+  return token.substr(token.length - 10);
+}
+
 var org = nforce.createConnection({
   clientId: '3MVG9rFJvQRVOvk5nd6A4swCyck.4BFLnjFuASqNZmmxzpQSFWSTe6lWQxtF3L5soyVLfjV3yBKkjcePAsPzi',
   clientSecret: '9154137956044345875',
   redirectUri: 'http://localhost:3000/oauth/_callback',
-  autoRefresh: true
+  autoRefresh: true,
+  onRefresh: function(newOauth, oldOauth, cb) {
+    console.log('start refresh callback ---->');
+    console.log('old access_token: ' + getLast10(oldOauth.access_token));
+    console.log('new access_token: ' + getLast10(newOauth.access_token));
+    console.log('<---- end refresh callback');
+    // execute the callback
+    cb();
+  }
 });
 
 app.set('views', __dirname + '/views');
@@ -59,12 +71,14 @@ app.get('/oauth/invalidate', function(req, res) {
 });
 
 app.get('/query', function(req, res) {
+  console.log('requesting query with token: ' + getLast10(req.session.oauth.access_token))
   org.query({ query: 'SELECT Id FROM Account LIMIT 1', oauth: req.session.oauth }, function(err, body){
     if(err) throw err;
     else {
+      console.log('query completed with token: ' + getLast10(req.session.oauth.access_token));
       res.send(body);
     }
-  })
+  });
 });
 
 console.log('listening on 3000');
