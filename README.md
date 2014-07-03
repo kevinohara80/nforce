@@ -760,6 +760,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req
 
 ## Changelog
 
+* `v0.8.0`: Implements token auto-refreshses
 * `v0.7.0`: Major api changes. Plugin system. sObject record class improvements
 * `v0.6.2`: Fixes issue for single user mode and invalid oauth
 * `v0.6.1`: Security fix for client secret in auth uri
