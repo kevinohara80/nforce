@@ -68,7 +68,7 @@ var Connection = function(opts) {
     throw new Error('invalid mode, only ' + MODES.join(' and ') + ' are allowed');
   }
   if(this.onRefresh && !_.isFunction(this.onRefresh)) throw new Error('onRefresh must be a function');
-  
+
   // setup cache
 
   if(this.cacheMetadata) {
@@ -183,7 +183,7 @@ Connection.prototype.authenticate = function(data, callback) {
     if(opts.securityToken) {
       bopts['password'] = bopts['password'] + opts.securityToken;
     }
-  } 
+  }
   opts.body = qs.stringify(bopts);
   return this._apiAuthRequest(opts, opts.callback);
 }
@@ -232,9 +232,9 @@ Connection.prototype.getVersions = function(callback) {
   var opts;
 
   if(!callback) callback = function(){}
-  
+
   opts = { uri : 'http://na1.salesforce.com/services/data/', method: 'GET' };
-  
+
   return this._apiAuthRequest(opts, callback);
 }
 
@@ -249,7 +249,7 @@ Connection.prototype.getSObjects = function(data, callback) {
   var self = this;
   var opts = this._getOpts(data, callback);
   opts.resource = '/sobjects';
-  opts.method = 'GET'; 
+  opts.method = 'GET';
   return this._apiRequest(opts, function(err, resp){
     if(err) {
       opts.callback(err, null);
@@ -305,7 +305,7 @@ Connection.prototype.insert = function(data, callback) {
   opts.resource = '/sobjects/' + type;
   opts.method = 'POST';
   if(type === 'document' || type === 'attachment' || type === 'contentversion') {
-    opts.multipart = getMultipart(opts); 
+    opts.multipart = getMultipart(opts);
   } else {
     opts.body = JSON.stringify(opts.sobject._getPayload(false));
   }
@@ -319,7 +319,7 @@ Connection.prototype.update = function(data, callback) {
   opts.resource = '/sobjects/' + type + '/' + id;
   opts.method = 'PATCH';
   if(type === 'document' || type === 'attachment' || type === 'contentversion') {
-    opts.multipart = getMultipart(opts); 
+    opts.multipart = getMultipart(opts);
   } else {
     opts.body = JSON.stringify(opts.sobject._getPayload(true));
   }
@@ -346,7 +346,7 @@ Connection.prototype.delete = function(data, callback) {
   return this._apiRequest(opts, opts.callback);
 }
 
-Connection.prototype.getRecord = function(data, oauth, callback) {
+Connection.prototype.getRecord = function(data, callback) {
   var opts = this._getOpts(data, callback);
   var type = (opts.sobject) ? opts.sobject.getType() : opts.type;
   var id = (opts.sobject) ? opts.sobject.getId() : opts.id;
@@ -355,7 +355,7 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
   if(opts.fields) {
     if(_.isString(opts.fields)) {
       opts.fields = [opts.fields];
-    } 
+    }
     opts.resource + '?' + qs.stringify({ fields: opts.fields.join() });
   }
   return this._apiRequest(opts, function(err, resp){
@@ -371,9 +371,9 @@ Connection.prototype.getRecord = function(data, oauth, callback) {
 Connection.prototype.getBody = function(data, callback) {
   var opts = this._getOpts(data, callback);
   var type = (opts.sobject) ? opts.sobject.getType() : opts.type;
-  
+
   type = opts.type.toLowerCase();
-  
+
   if(type === 'document') {
     return this.getDocumentBody(opts, opts.callback);
   } else if(type === 'attachment') {
@@ -445,7 +445,7 @@ Connection.prototype._queryHandler = function(data, callback) {
       }
     });
   }
-  
+
   this._apiRequest(opts, function(err, resp){
     if(stream.isStreaming()) {
       if (err) {
@@ -506,7 +506,7 @@ Connection.prototype.search = function(data, callback) {
   var uri, opts;
   opts.resource = '/search';
   opts.method = 'GET';
-  opts.qs = { q: opts.search }; 
+  opts.qs = { q: opts.search };
   return this._apiRequest(opts, function(err, resp){
     if(!err) {
       if(resp.length) {
@@ -568,26 +568,26 @@ Connection.prototype.stream = function(data) {
   sub.errback(function(error) {
     str.emit('error', error);
   });
-  
+
   return str;
 }
 
 // express middleware
 
-Connection.prototype.expressOAuth = function(opts) { 
+Connection.prototype.expressOAuth = function(opts) {
   var self = this;
   var matchUrl = url.parse(this.redirectUri);
-  
+
   matchUrl.pathname.replace(/\/$/, '');
-  
+
   if(opts.onSuccess && opts.onSuccess.substring(0,1) !== '/') {
     opts.onSuccess = '/' + opts.onSuccess;
   }
-  
+
   if(opts.onError && opts.onError.substring(0,1) !== '/') {
     opts.onError = '/' + opts.onError;
   }
-  
+
   return function(req, res, next) {
 
     var reqUrl;
@@ -627,7 +627,7 @@ Connection.prototype.updatePassword = function(data, oauth, callback) {
   var id = data.sobject.getId();
   opts.resource = '/sobjects/user/' + id + '/password';
   opts.method = 'POST';
-  opts.body = JSON.stringify(data.sobject._getPayload(false));  
+  opts.body = JSON.stringify(data.sobject._getPayload(false));
   return this._apiRequest(opts, callback);
 }
 
@@ -709,9 +709,9 @@ Connection.prototype._apiRequest = function(opts, callback) {
     if(!opts.resource || opts.resource.charAt(0) !== '/') {
       opts.resource = '/' + (opts.resource || '');
     }
-    ropts.uri = opts.oauth.instance_url 
-      + '/services/data/' 
-      + this.apiVersion 
+    ropts.uri = opts.oauth.instance_url
+      + '/services/data/'
+      + this.apiVersion
       + opts.resource;
   }
 
@@ -751,7 +751,7 @@ Connection.prototype._apiRequest = function(opts, callback) {
   }
 
   return request(ropts, function(err, res, body) {
-    
+
     // request returned an error
     if(err) return callback(err, null);
 
@@ -823,7 +823,7 @@ Connection.prototype._apiRequest = function(opts, callback) {
             }
           });
         } else {
-          return callback(e, null);  
+          return callback(e, null);
         }
 
       } else {
