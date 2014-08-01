@@ -1,7 +1,7 @@
 nforce :: node.js salesforce REST API wrapper
 ======
 
-[![Build Status](https://secure.travis-ci.org/kevinohara80/nforce.png)](http://travis-ci.org/kevinohara80/nforce)  
+[![Build Status](https://secure.travis-ci.org/kevinohara80/nforce.png)](http://travis-ci.org/kevinohara80/nforce)
 
 **nforce** is node.js a REST API wrapper for force.com, database.com, and salesforce.com.
 
@@ -88,18 +88,18 @@ Querying and updating records is super easy. **nforce** wraps API-queried record
 var q = 'SELECT Id, Name, CreatedDate, BillingCity FROM Account WHERE Name = "Spiffy Cleaners" LIMIT 1';
 
 org.query({ query: q }, function(err, resp){
-  
+
   if(!err && resp.records) {
-    
+
     var acc = resp.records[0];
     acc.set('Name', 'Really Spiffy Cleaners');
     acc.set('Industry', 'Cleaners');
-    
+
     org.update({ sobject: acc, oauth: oauth }, function(err, resp){
       if(!err) console.log('It worked!');
     });
-    
-  } 
+
+  }
 });
 ```
 
@@ -107,7 +107,7 @@ org.query({ query: q }, function(err, resp){
 
 Most of the files in the examples directory can be used by simply setting two environment variables then running the files. The two environment variables are `SFUSER` and `SFPASS` which are your Salesforce.com username and passsword, respectively. Example below:
 
-```bash 
+```bash
 $ export SFUSER=myusername@salesforce.com
 $ export SFPASS=mypassword
 $ node examples/crud.js
@@ -115,16 +115,21 @@ $ node examples/crud.js
 
 ## Authentication
 
-**nforce** supports two Salesforce OAuth 2.0 flows, username/password and authorization code. 
+**nforce** supports two Salesforce OAuth 2.0 flows, username/password and authorization code.
 
 ### Username/Password flow
 
-To request an access token and other oauth information using the username and password flow, use the `authenticate()` method and pass in your username and password in the options
+To request an access token and other oauth information using the username and password flow, use the `authenticate()` method and pass in your username and password in the options.
+
+**Note:** For the 'password' you must insert the password with a security token appended to the end: Your security token can be generated from the salesforce dashboard under Your Account Name > Setup.
 
 ```js
-var oauth;
+var myUsername = 'my_test@gmail.com',
+    password = 'mypassword',
+    secToken = 'some_security_token'
+    oauth;
 
-org.authenticate({ username: 'my_test@gmail.com', password: 'mypassword'}, function(err, resp){
+org.authenticate({ username: myUsername, password: password + secToken }, function(err, resp){
   if(!err) {
     console.log('Access Token: ' + resp.access_token);
     oauth = resp;
@@ -133,6 +138,12 @@ org.authenticate({ username: 'my_test@gmail.com', password: 'mypassword'}, funct
   }
 });
 ```
+
+Here's why from the [SalesForce Website][sf]:
+
+> The security token is an automatically generated key that must be added to the end of the password in order to log in to Salesforce from an untrusted network. You must concatenate their password and token when passing the request for authentication.
+
+[sf]: http://help.salesforce.com/apex/HTViewHelpDoc?id=remoteaccess_oauth_username_password_flow.htm&language=en_US
 
 ### Authorization Code Flow
 
@@ -179,7 +190,7 @@ org.query({ query: 'SELECT Id FROM Lead LIMIT 1' }, function(err, res) {
 
 ### Access Token Auto-Refreshes
 
-**nforce** provides an optional, built-in function for auto-refreshing access tokens when able it's able to. This requires you are using the web-server flow and you've requested the right scope that returns you a refresh_token. 
+**nforce** provides an optional, built-in function for auto-refreshing access tokens when able it's able to. This requires you are using the web-server flow and you've requested the right scope that returns you a refresh_token.
 
 To enable auto-refreshes, you just need to set the `autoRefresh` argument when creating your connection...
 
@@ -210,7 +221,7 @@ org.query({ query: 'SELECT Id FROM Account LIMIT 1', oauth: oauth }, function(er
 });
 ```
 
-**NOTE:** If you're using express and storing your oauth in the session, if you pass in your session oauth directly, it's going to be updated automatically by nforce since the autoRefresh function mutates the oauth object that's passed in. 
+**NOTE:** If you're using express and storing your oauth in the session, if you pass in your session oauth directly, it's going to be updated automatically by nforce since the autoRefresh function mutates the oauth object that's passed in.
 
 There's also a handy callback function called `onRefresh` that can be added to your connection that will execute when any request triggers an auto-refresh of your access token. This makes keeping stored credentials up-to-date a breeze. Here's a pseudo-example of how that would work.
 
@@ -261,7 +272,7 @@ Once this OAuth flow completes, subsequent requests just need to retrieve the OA
 
 ```js
 // express route
-app.get('ajax/cases', function(req, res) { 
+app.get('ajax/cases', function(req, res) {
   var q = 'SELECT Id, CaseNumber FROM Cases WHERE IsClosed = false';
   org.query({ query:q, oauth: req.session.oauth }).pipe(res);
 });
@@ -312,7 +323,7 @@ Like other API requests, **nforce** query method returns a node stream. By calli
 // dataset of 50k records.
 var query = 'SELECT Name, CreatedDate FROM Account ORDER BY CreatedDate DESC';
 org.query({query: query, oauth: req.session.oauth }).pipe(res); // streaming all 50k records
-``` 
+```
 
 ### Force.com Streaming API Support
 
@@ -320,7 +331,7 @@ org.query({query: query, oauth: req.session.oauth }).pipe(res); // streaming all
 
 ```js
 org.authenticate({ username: user, password: pass }, function(err, oauth) {
-  
+
   if(err) return console.log(err);
 
   // subscribe to a pushtopic
@@ -343,7 +354,7 @@ org.authenticate({ username: user, password: pass }, function(err, oauth) {
 
 ### Plugins
 
-As of **nforce** v0.7.0, a plugin API is now exposed so that the capabilities of nforce can easily be extended. This plugin system also allows the core of nforce to remain small, handling mostly authentication, CRUD, query, search, and other basic API requests. As Salesforce releases additional API's or as authors find interesting ways to extend nforce, these can easily be built into plugins and added to your nforce configuration as-needed. 
+As of **nforce** v0.7.0, a plugin API is now exposed so that the capabilities of nforce can easily be extended. This plugin system also allows the core of nforce to remain small, handling mostly authentication, CRUD, query, search, and other basic API requests. As Salesforce releases additional API's or as authors find interesting ways to extend nforce, these can easily be built into plugins and added to your nforce configuration as-needed.
 
 To use plugins in your application, you'll need to load them into nforce and specify which plugins to use when creating a connection object. Here is an example.
 
@@ -386,14 +397,14 @@ Most of the org methods take a callback, but also return a stream. This is usefu
 ```js
 var so = fs.createWriteStream('sobjects.txt', {'flags': 'a'});
 
-org.getSObjects({ oauth: oauth }).pipe(so);  
+org.getSObjects({ oauth: oauth }).pipe(so);
 ```
 
 ## nforce Base Methods
 
 ### createConnection(opts)
 
-The createConnection method creates an *nforce* salesforce connection object. You need to supply some arguments including oauth information and some optional arguments for version and salesforce environment type. 
+The createConnection method creates an *nforce* salesforce connection object. You need to supply some arguments including oauth information and some optional arguments for version and salesforce environment type.
 
 * `clientId`: Required. This is the OAuth client id
 * `clientSecret`: Required. This is the OAuth client secret
@@ -467,7 +478,7 @@ Sets the fileName (String) and body (buffer) for an attachment
 
 Returns the file name of the attachment if set
 
-### setFileName(fileName) 
+### setFileName(fileName)
 
 Sets the file name of the attachment
 
@@ -505,7 +516,7 @@ This is a helper method to build the authentication uri for a authorization code
 
 * `display`: (String) Tailors the login page to the user's device type. Currently the only values supported are `page`, `popup`, and `touch`
 * `immediate`: (Boolean) Avoid interacting with the user. Default is false.
-* `scope`: (Array) The scope parameter allows you to fine-tune what the client application can access. Supported values are `api`, `chatter_api`, `full`, `id`, `refresh_token`, `visualforce`, and `web` 
+* `scope`: (Array) The scope parameter allows you to fine-tune what the client application can access. Supported values are `api`, `chatter_api`, `full`, `id`, `refresh_token`, `visualforce`, and `web`
 * `state`: Any value that you wish to be sent with the callback
 
 ### authenticate(opts, [callback])
@@ -582,7 +593,7 @@ opts:
 * `oauth`: (Optional) The oauth object. Required in multi-user mode
 * `sobject`: (Required) An sObject instance
 
-Insert a record. 
+Insert a record.
 
 ### update(opts, [callback])
 
@@ -634,7 +645,7 @@ opts:
 
 Get the binary data for an attachment, document, or contentversion. You must supply either an `sobject` or `type` and `id`. The `sobject` must be one of those three types.
 
-### getAttachmentBody(opts, [callback]) 
+### getAttachmentBody(opts, [callback])
 
 opts:
 
@@ -644,7 +655,7 @@ opts:
 
 Get the binary data for an attachment. You must supply either an `sobject` or an `id`.
 
-### getDocumentBody(id, [oauth], [callback]) 
+### getDocumentBody(id, [oauth], [callback])
 
 opts:
 
@@ -654,7 +665,7 @@ opts:
 
 Get the binary data for a document. You must supply either an `sobject` or an `id`.
 
-### getContentVersionBody(id, [oauth], [callback]) 
+### getContentVersionBody(id, [oauth], [callback])
 
 opts:
 
@@ -698,7 +709,7 @@ opts:
 * `oauth`: (Optional) The oauth object. Required in multi-user mode
 * `url`: (Required) An url string for an api resource
 
-Get a REST API resource by its url. 
+Get a REST API resource by its url.
 
 ### stream(opts)
 
