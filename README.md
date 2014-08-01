@@ -121,7 +121,7 @@ $ node examples/crud.js
 
 To request an access token and other oauth information using the username and password flow, use the `authenticate()` method and pass in your username and password in the options.
 
-**Note:** For the `password` you must insert the password with a security token appended to the end: Your security token can be generated from the salesforce dashboard under Your Account Name > Setup.
+**Note:** For the `password` you must insert the password with a security token appended to the end: Your security token can be generated from the salesforce dashboard under: Account Name > Setup > My Personal Information > Reset My Security Token.
 
 ```js
 var myUsername = 'my_test@gmail.com',
@@ -139,7 +139,7 @@ org.authenticate({ username: myUsername, password: password + secToken }, functi
 });
 ```
 
-Here's why from the [SalesForce Website][sf]:
+Here's why the security token is necessary, from the [SalesForce Website][sf]:
 
 > The security token is an automatically generated key that must be added to the end of the password in order to log in to Salesforce from an untrusted network. You must concatenate their password and token when passing the request for authentication.
 
