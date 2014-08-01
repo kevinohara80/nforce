@@ -126,7 +126,7 @@ To request an access token and other oauth information using the username and pa
 ```js
 var myUsername = 'my_test@gmail.com',
     password   = 'mypassword',
-    secToken   = 'some_security_token'
+    secToken   = 'some_security_token',
     oauth;
 
 org.authenticate({ username: myUsername, password: password + secToken }, function(err, resp){
