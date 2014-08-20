@@ -18,4 +18,6 @@ npm-debug.log
 examples/json
 examples/leadOut.json
 
+.DS_Store
+
 env.sh
