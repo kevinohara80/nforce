@@ -718,7 +718,7 @@ Start a force.com streaming API connection. An EventEmitter is returned with the
 opts:
 
 * `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `uri`: (Required) A string value for endpoint
+* `uri`: (Required) A string value for endpoint. Should not include '/services/apexrest'
 * `method`: (Optional) String method that defaults to GET if not supplied
 * `urlParams:` (Optional) A hash or url params to add to the request
 
@@ -726,7 +726,7 @@ This method handles integration with salesforce ApexRest (Custom Rest endpoints)
 http://wiki.developerforce.com/page/Creating_REST_APIs_using_Apex_REST
 
 ```js
-org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req.session.oauth, function(err,resp){
+org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams, oauth: req.session.oauth}, function(err,resp){
   if(!err) {
     console.log(resp);
     res.send(resp);
