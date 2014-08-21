@@ -726,7 +726,7 @@ This method handles integration with salesforce ApexRest (Custom Rest endpoints)
 http://wiki.developerforce.com/page/Creating_REST_APIs_using_Apex_REST
 
 ```js
-org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams}, req.session.oauth, function(err,resp){
+org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams, oauth: req.session.oauth}, function(err,resp){
   if(!err) {
     console.log(resp);
     res.send(resp);
