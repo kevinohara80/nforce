@@ -718,7 +718,7 @@ Start a force.com streaming API connection. An EventEmitter is returned with the
 opts:
 
 * `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `uri`: (Required) A string value for endpoint
+* `uri`: (Required) A string value for endpoint. Should not include '/services/apexrest'
 * `method`: (Optional) String method that defaults to GET if not supplied
 * `urlParams:` (Optional) A hash or url params to add to the request
 
