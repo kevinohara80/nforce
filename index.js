@@ -655,6 +655,11 @@ Connection.prototype._apiAuthRequest = function(opts, callback) {
 
   var self = this;
 
+  // set timeout
+  if(this.timeout) {
+    opts.timeout = this.timeout;
+  }
+
   return request(opts, function(err, res, body){
     // request returned an error
     if(err) return callback(err);
