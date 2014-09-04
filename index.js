@@ -41,7 +41,8 @@ var Connection = function(opts) {
     mode:          'multi',
     gzip:          false,
     autoRefresh:   false,
-    onRefresh:     undefined
+    onRefresh:     undefined,
+    timeout:       undefined
   });
 
   // convert option values
@@ -68,6 +69,7 @@ var Connection = function(opts) {
     throw new Error('invalid mode, only ' + MODES.join(' and ') + ' are allowed');
   }
   if(this.onRefresh && !_.isFunction(this.onRefresh)) throw new Error('onRefresh must be a function');
+  if(this.timeout && !_.isNumber(this.timeout)) throw new Error('timeout must be a number');
 
   // setup cache
 
@@ -89,6 +91,10 @@ var Connection = function(opts) {
     throw new Error('api version ' + this.apiVersion + ' is not supported');
   }
 
+  // parse timeout into integer in case it's a floating point.
+  
+  this.timeout = parseInt(this.timeout, 10);
+  
   // load plugins
 
   if(opts.plugins && _.isArray(opts.plugins)) {
@@ -750,6 +756,11 @@ Connection.prototype._apiRequest = function(opts, callback) {
   // process qs
   if(opts.qs) {
     ropts.qs = opts.qs;
+  }
+  
+  // set timeout
+  if(this.timeout) {
+    ropts.timeout = this.timeout;
   }
 
   return request(ropts, function(err, res, body) {
