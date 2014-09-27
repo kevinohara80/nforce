@@ -696,6 +696,7 @@ Connection.prototype._apiRequest = function(opts, callback) {
    * - method
    * - body
    * - qs
+   * - headers
    */
 
   var self = this;
@@ -739,6 +740,12 @@ Connection.prototype._apiRequest = function(opts, callback) {
     ropts.headers['content-type'] = 'multipart/form-data';
   } else {
     ropts.headers['content-type'] = 'application/json';
+  }
+
+  if(opts.headers) {
+    for(var item in opts.headers) {
+      ropts.headers[item] = opts.headers[item];
+    }
   }
 
   // set body
