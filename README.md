@@ -119,17 +119,17 @@ $ node examples/crud.js
 
 ### Username/Password flow
 
-To request an access token and other oauth information using the username and password flow, use the `authenticate()` method and pass in your username and password in the options.
+To request an access token and other oauth information using the username and password flow, use the `authenticate()` method and pass in your username, password and security token in the options.
 
-**Note:** For the `password` you must insert the password with a security token appended to the end: Your security token can be generated from the salesforce dashboard under: Account Name > Setup > My Personal Information > Reset My Security Token.
+**Note:** A security token can be generated from the Salesforce dashboard under: Account Name > Setup > My Personal Information > Reset My Security Token.
 
 ```js
-var myUsername = 'my_test@gmail.com',
-    password   = 'mypassword',
-    secToken   = 'some_security_token',
+var username      = 'my_test@gmail.com',
+    password      = 'mypassword',
+    securityToken = 'some_security_token',
     oauth;
 
-org.authenticate({ username: myUsername, password: password + secToken }, function(err, resp){
+org.authenticate({ username: username, password: password, securityToken: securityToken }, function(err, resp){
   if(!err) {
     console.log('Access Token: ' + resp.access_token);
     oauth = resp;
