@@ -139,7 +139,7 @@ org.authenticate({ username: username, password: password, securityToken: securi
 });
 ```
 
-Here's why the security token is necessary, from the [SalesForce Website][sf]:
+The Salesforce website suggests appending the security token to the password in order to authenticate. This works, but using the `securityToken` parameter as shown above is cleaner. Here's why the security token is necessary, from the [Salesforce Website][sf]:
 
 > The security token is an automatically generated key that must be added to the end of the password in order to log in to Salesforce from an untrusted network. You must concatenate their password and token when passing the request for authentication.
 
