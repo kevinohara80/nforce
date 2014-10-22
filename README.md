@@ -405,6 +405,7 @@ The createConnection method creates an *nforce* salesforce connection object. Yo
 * `gzip`: Optional. If set to boolean 'true', then *nforce* will request that salesforce compress responses (using gzip) before transmitting over-the-wire.
 * `autoRefresh`: Optional. If set to boolean 'true', *nforce* will auto-refresh your oauth access token if it tries a request and fails due to an expired token. Only works with web oauth flows. Username/password flows don't return refresh tokens.
 * `onRefresh`: Optional. This is a function that is called when a request going through the connection triggers an auto-refresh. This hook is handy for updating your oauth tokens in a database or other store. The function is passed three arguments `newOauth`, `oldOauth`, and a `callback` function. The callback must be called with either an error or null value.
+* `timeout`: Optional. Integer containing the number of milliseconds to wait for a request to respond before aborting the request.
 
 ### createSObject(type, [fieldValues])
 

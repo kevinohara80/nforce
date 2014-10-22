@@ -24,19 +24,25 @@ describe('api-mock-crud', function() {
         Name: 'Test Account',
         Test_Field__c: 'blah'
       });
-      org.insert({ sobject: obj, oauth: oauth }, function(err, res) {
+      var hs = {
+        'sforce-auto-assign': '1'
+      };
+      org.insert({ sobject: obj, oauth: oauth, headers: hs }, function(err, res) {
         if(err) throw err;
         var body = JSON.parse(api.getLastRequest().body);
         should.exist(body.name);
         should.exist(body.test_field__c);
         api.getLastRequest().url.should.equal('/services/data/v27.0/sobjects/account');
         api.getLastRequest().method.should.equal('POST');
+        var hKey = Object.keys(hs)[0];
+        should.exist(api.getLastRequest().headers[hKey]);
+        api.getLastRequest().headers[hKey].should.equal(hs[hKey]);
         done();
       });
     });
 
   });
-  
+
   describe('#update', function() {
 
     it('should create a proper request on update', function(done) {
@@ -116,4 +122,4 @@ describe('api-mock-crud', function() {
     api.stop(done);
   });
 
-}); 
+});
