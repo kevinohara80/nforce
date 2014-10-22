@@ -782,6 +782,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams, oaut
 * Matt Lacey -> [mattlacey](https://github.com/mattlacey)
 * lobostome -> [lobostome](https://github.com/lobostome)
 * Joe Porcheddu -> [joe-spanning](https://github.com/joe-spanning)
+* Ian Sinnott -> [iansinnott](https://github.com/iansinnott)
 
 ## Changelog
 
