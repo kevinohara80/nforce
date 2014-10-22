@@ -1,7 +1,7 @@
 nforce :: node.js salesforce REST API wrapper
 ======
 
-[![Build Status](https://secure.travis-ci.org/kevinohara80/nforce.png)](http://travis-ci.org/kevinohara80/nforce)  
+[![Build Status](https://secure.travis-ci.org/kevinohara80/nforce.png)](http://travis-ci.org/kevinohara80/nforce)
 
 **nforce** is node.js a REST API wrapper for force.com, database.com, and salesforce.com.
 
@@ -117,12 +117,17 @@ $ node examples/crud.js
 
 ### Username/Password flow
 
-To request an access token and other oauth information using the username and password flow, use the `authenticate()` method and pass in your username and password in the options
+To request an access token and other oauth information using the username and password flow, use the `authenticate()` method and pass in your username, password and security token in the options.
+
+**Note:** A security token can be generated from the Salesforce dashboard under: Account Name > Setup > My Personal Information > Reset My Security Token.
 
 ```js
-var oauth;
+var username      = 'my_test@gmail.com',
+    password      = 'mypassword',
+    securityToken = 'some_security_token',
+    oauth;
 
-org.authenticate({ username: 'my_test@gmail.com', password: 'mypassword'}, function(err, resp){
+org.authenticate({ username: username, password: password, securityToken: securityToken }, function(err, resp){
   if(!err) {
     console.log('Access Token: ' + resp.access_token);
     oauth = resp;
@@ -131,6 +136,12 @@ org.authenticate({ username: 'my_test@gmail.com', password: 'mypassword'}, funct
   }
 });
 ```
+
+The Salesforce website suggests appending the security token to the password in order to authenticate. This works, but using the `securityToken` parameter as shown above is cleaner. Here's why the security token is necessary, from the [Salesforce Website][sf]:
+
+> The security token is an automatically generated key that must be added to the end of the password in order to log in to Salesforce from an untrusted network. You must concatenate their password and token when passing the request for authentication.
+
+[sf]: http://help.salesforce.com/apex/HTViewHelpDoc?id=remoteaccess_oauth_username_password_flow.htm&language=en_US
 
 ### Authorization Code Flow
 
@@ -384,7 +395,7 @@ Most of the org methods take a callback, but also return a stream. This is usefu
 ```js
 var so = fs.createWriteStream('sobjects.txt', {'flags': 'a'});
 
-org.getSObjects({ oauth: oauth }).pipe(so);  
+org.getSObjects({ oauth: oauth }).pipe(so);
 ```
 
 ## nforce Base Methods
