@@ -5,8 +5,6 @@ nforce :: node.js salesforce REST API wrapper
 
 **nforce** is node.js a REST API wrapper for force.com, database.com, and salesforce.com.
 
-**Notice:** [A lot of the API has changed in v0.7.0](https://gist.github.com/kevinohara80/8357088). Please take note of the new api changes in the readme if you are upgrading from < v0.7.
-
 ## Features
 
 * Simple api
@@ -498,7 +496,19 @@ Returns a JSON representation of the fields in the sObject
 
 ## Connection Methods
 
-The following list of methods are available for an **nforce** connection object:
+The following list of methods are available for an **nforce** connection object.
+
+Please note that you may pass custom `headers` to any of the requests that support an `opts` hash. Here is an example:
+
+```js
+var headers = {
+  'sforce-auto-assign': '1'
+};
+
+org.insert({ oauth: oauth, sobject: so, headers, headers }, function(err, record) {
+  // callback
+});
+```
 
 ### getAuthUri([opts])
 
@@ -762,6 +772,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams, oaut
 
 ## Changelog
 
+* `v0.9.0`: Adds timeout and custom header options
 * `v0.8.0`: Implements token auto-refreshses
 * `v0.7.0`: Major api changes. Plugin system. sObject record class improvements
 * `v0.6.2`: Fixes issue for single user mode and invalid oauth
