@@ -19,9 +19,8 @@ org.authenticate({ username: sfuser, password: sfpass}, function(err, oauth) {
       if(resp.records && resp.records.length) {
         resp.records.forEach(function(rec) {
           console.log('Lead: ' + rec.get('FirstName') + ' ' + rec.get('LastName'));
-        }); 
+        });
       }
     });
   }
 });
-

@@ -372,6 +372,7 @@ Connection.prototype.getRecord = function(data, callback) {
   return this._apiRequest(opts, function(err, resp){
     if(!err) {
       resp = new Record(resp);
+      resp._reset();
     }
     opts.callback(err, resp);
   });
@@ -482,7 +483,9 @@ Connection.prototype._queryHandler = function(data, callback) {
       if(!err) {
         if(resp.records && resp.records.length > 0) {
           for(var i=0; i<resp.records.length; i++) {
-            recs.push(new Record(resp.records[i]));
+            var rec = new Record(resp.records[i]);
+            rec._reset();
+            recs.push(rec);
           }
           resp.records = recs;
         }
