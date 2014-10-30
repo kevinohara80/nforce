@@ -143,12 +143,12 @@ The Salesforce website suggests appending the security token to the password in 
 
 [sf]: http://help.salesforce.com/apex/HTViewHelpDoc?id=remoteaccess_oauth_username_password_flow.htm&language=en_US
 
-### Authorization Code Flow
+### Authorization (Web Server) Code Flow
 
 To perform an authorization code flow, first redirect users to the Authorization URI at Salesforce. **nforce** provides a helper function to build this url for you.
 
 ```js
-org.getAuthUri()
+org.getAuthUri();
 ```
 
 Once you get a callback at the Redirect URI that you specify, you need to request your access token and other important oauth information by calling `authenticate()` and passing in the "code" that you received.
@@ -164,6 +164,14 @@ org.authenticate({ code: 'SOMEOAUTHAUTHORIZATIONCODE' }, function(err, resp){
     console.log('Error: ' + err.message);
   }
 });
+```
+
+### User-Agent Flow
+
+The user-agent flow simply redirects to your `redirectUri` after the user authenticates and logs in. The `getAuthUri()` method can be used similar to the Web Server flow but a responseType property must be set to `token`.
+
+```js
+org.getAuthUri({ responseType: 'token' });
 ```
 
 ### OAuth Object
@@ -524,7 +532,7 @@ org.insert({ oauth: oauth, sobject: so, headers, headers }, function(err, record
 ### getAuthUri([opts])
 
 This is a helper method to build the authentication uri for a authorization code OAuth 2.0 flow. You can optionally pass in an OAuth options argument. The supported options are:
-
+* `responseType`: (String) Any valid response_type that is supported by Salesforce OAuth 2.0. Default is `code`.
 * `display`: (String) Tailors the login page to the user's device type. Currently the only values supported are `page`, `popup`, and `touch`
 * `immediate`: (Boolean) Avoid interacting with the user. Default is false.
 * `scope`: (Array) The scope parameter allows you to fine-tune what the client application can access. Supported values are `api`, `chatter_api`, `full`, `id`, `refresh_token`, `visualforce`, and `web`
