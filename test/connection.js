@@ -1,10 +1,10 @@
 var nforce = require('../');
 var should = require('should');
 
-describe('index', function(){ 
+describe('index', function(){
 
   describe('#createConnection', function(){
-  
+
     it('should throw on no clientId', function(){
       (function() {
         var org = nforce.createConnection({
@@ -13,16 +13,7 @@ describe('index', function(){
         });
       }).should.throw('invalid or missing clientId');
     });
-  
-    it('should throw on no clientSecret', function(){
-      (function() {
-        var org = nforce.createConnection({
-          clientId: 'ADFJSD234ADF765SFG55FD54S',
-          redirectUri: 'http://localhost:3000/oauth/_callback'
-        });
-      }).should.throw('invalid or missing clientSecret');
-    });
-  
+
     it('should throw on no redirectUri', function(){
       (function() {
         var org = nforce.createConnection({
@@ -31,7 +22,7 @@ describe('index', function(){
         });
       }).should.throw('invalid or missing redirectUri');
     });
-  
+
     it('should not throw on id, secret, and redirectUri', function(){
       (function() {
         var org = nforce.createConnection({
@@ -41,7 +32,7 @@ describe('index', function(){
         });
       }).should.not.throw();
     });
-  
+
     it('should accept the number 24 for apiVersion', function(){
       (function() {
         var org = nforce.createConnection({
@@ -52,7 +43,7 @@ describe('index', function(){
         });
       }).should.not.throw();
     });
-  
+
     it('should accept the string 24 for apiVersion', function(){
       (function() {
         var org = nforce.createConnection({
@@ -63,7 +54,7 @@ describe('index', function(){
         });
       }).should.not.throw();
     });
-  
+
     it('should throw for apiVersion 45', function(){
       (function() {
         var org = nforce.createConnection({
@@ -74,7 +65,7 @@ describe('index', function(){
         });
       }).should.throw();
     });
-  
+
     it('should accept production for environment', function(){
       (function() {
         var org = nforce.createConnection({
@@ -85,7 +76,7 @@ describe('index', function(){
         });
       }).should.not.throw();
     });
-  
+
     it('should accept sandbox for environment', function(){
       (function() {
         var org = nforce.createConnection({
@@ -96,7 +87,7 @@ describe('index', function(){
         });
       }).should.not.throw();
     });
-   
+
     it('should not accept playground for environment', function(){
       (function() {
         var org = nforce.createConnection({
@@ -127,28 +118,28 @@ describe('index', function(){
           redirectUri: 'http://localhost:3000/oauth/_callback',
           timeout: 5555
         });
-        
+
         org.timeout.should.equal(5555);
       }).should.not.throw();
     });
   });
-  
+
   describe('#createSObject', function(){
-    
+
     it('should create an SObject of type Account', function(){
       var acc = nforce.createSObject('Account');
       acc.should.have.type('object');
       acc.should.have.property('attributes');
       acc.attributes.type.should.equal('Account');
     });
-    
+
     it('should create an SObject of type Test_Object__c', function(){
       var obj = nforce.createSObject('Test_Object__c');
       obj.should.have.type('object');
       obj.should.have.property('attributes');
       obj.attributes.type.should.equal('Test_Object__c');
     });
-    
+
     it('should allow field values to be passed in', function(){
       var obj = nforce.createSObject('Test_Object__c', {
         Name: 'Test Me',
@@ -185,7 +176,7 @@ describe('index', function(){
       obj._reset();
       obj._getPayload(true).should.not.have.keys('name', 'custom_field__c');
     });
-    
+
   });
 
   describe('#getAuthUri', function() {
