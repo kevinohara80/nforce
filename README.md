@@ -794,6 +794,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams, oaut
 
 ## Changelog
 
+* `v0.9.1`: Adds the ability to use the user-agent flow
 * `v0.9.0`: Adds timeout and custom header options
 * `v0.8.0`: Implements token auto-refreshses
 * `v0.7.0`: Major api changes. Plugin system. sObject record class improvements
