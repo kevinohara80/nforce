@@ -202,13 +202,20 @@ Connection.prototype.refreshToken = function(data, callback) {
   var opts = this._getOpts(data, callback);
   opts.uri = (this.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
   opts.method = 'POST';
-  opts.body = qs.stringify({
+
+  var refreshOpts = {
     'client_id': this.clientId,
-    'client_secret': this.clientSecret,
     'grant_type': 'refresh_token',
     'redirect_uri': this.redirectUri,
     'refresh_token': opts.oauth.refresh_token
-  });
+  }
+
+  // check for clientSecret and include if found
+  if(this.clientSecret) {
+    refreshOpts['client_secret'] = this.clientSecret;
+  }
+
+  opts.body = qs.stringify(refreshOpts);
   opts.headers = {
     'Content-Type': 'application/x-www-form-urlencoded'
   }
