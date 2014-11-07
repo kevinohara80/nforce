@@ -838,12 +838,14 @@ Connection.prototype._apiRequest = function(opts, callback) {
         } else {
           //  didn't get a json response back -- just a simple string as the body
           e = new Error(data);
+          e.errorCode = data;
           e.messageBody = data;
         }
         e.statusCode = res.statusCode;
 
         // auto-refresh support
-        if(e.errorCode && e.errorCode === 'INVALID_SESSION_ID' && self.autoRefresh === true && opts.oauth.refresh_token && !opts._retryCount) {
+        if(e.errorCode && (e.errorCode === 'INVALID_SESSION_ID' || e.errorCode === 'Bad_OAuth_Token')
+          && self.autoRefresh === true && opts.oauth.refresh_token && !opts._retryCount) {
           opts._retryCount = 1;
           Connection.prototype.refreshToken.call(self, { oauth: opts.oauth }, function(err2, res2) {
             if(err2) {
