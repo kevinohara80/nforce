@@ -794,6 +794,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams, oaut
 
 ## Changelog
 
+* `v0.9.3`: Addresses abnormal getIdentity response from SFDC on invalid token
 * `v0.9.2`: Removes clientSecret dependency in refresh flow
 * `v0.9.1`: Adds the ability to use the user-agent flow
 * `v0.9.0`: Adds timeout and custom header options
