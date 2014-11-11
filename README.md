@@ -524,7 +524,7 @@ var headers = {
   'sforce-auto-assign': '1'
 };
 
-org.insert({ oauth: oauth, sobject: so, headers, headers }, function(err, record) {
+org.insert({ oauth: oauth, sobject: so, headers: headers }, function(err, record) {
   // callback
 });
 ```
