@@ -757,7 +757,15 @@ This method handles integration with salesforce ApexRest (Custom Rest endpoints)
 http://wiki.developerforce.com/page/Creating_REST_APIs_using_Apex_REST
 
 ```js
-org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams, oauth: req.session.oauth}, function(err,resp){
+var opts = {
+  uri: 'test',
+  method: 'POST',
+  body: body,
+  oauth: oauth,
+  urlParams: params
+};
+
+org.apexRest(opts, function(err,resp){
   if(!err) {
     console.log(resp);
     res.send(resp);
@@ -796,6 +804,7 @@ org.apexRest({uri:'test', method: 'POST', body: body, urlParams: urlParams, oaut
 
 ## Changelog
 
+* `v0.10.0`: Moves onRefresh call to refreshToken and makes it's execution optional
 * `v0.9.4`: Avoids using request v2.48 because of a bug
 * `v0.9.3`: Addresses abnormal getIdentity response from SFDC on invalid token
 * `v0.9.2`: Removes clientSecret dependency in refresh flow
