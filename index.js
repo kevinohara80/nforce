@@ -199,7 +199,10 @@ Connection.prototype.authenticate = function(data, callback) {
 }
 
 Connection.prototype.refreshToken = function(data, callback) {
-  var opts = this._getOpts(data, callback);
+  var self = this;
+  var opts = _.defaults(this._getOpts(data, callback), {
+    executeOnRefresh: false
+  });
   opts.uri = (this.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
   opts.method = 'POST';
 
@@ -219,7 +222,21 @@ Connection.prototype.refreshToken = function(data, callback) {
   opts.headers = {
     'Content-Type': 'application/x-www-form-urlencoded'
   }
-  return this._apiAuthRequest(opts, opts.callback);
+
+  return this._apiAuthRequest(opts, function(err, res) {
+    if(err) return opts.callback(err);
+    var old = _.clone(opts.oauth);
+    _.assign(opts.oauth, res);
+    if(self.onRefresh && opts.executeOnRefresh === true) {
+      self.onRefresh.call(self, opts.oauth, old, function(err3){
+        if(err3) return opts.callback(err3);
+        else opts.callback(null, opts.oauth);
+      });
+    } else {
+      opts.callback(null, opts.oauth);
+    }
+  });
+
 }
 
 Connection.prototype.revokeToken = function(data, callback) {
@@ -847,20 +864,11 @@ Connection.prototype._apiRequest = function(opts, callback) {
         if(e.errorCode && (e.errorCode === 'INVALID_SESSION_ID' || e.errorCode === 'Bad_OAuth_Token')
           && self.autoRefresh === true && opts.oauth.refresh_token && !opts._retryCount) {
           opts._retryCount = 1;
-          Connection.prototype.refreshToken.call(self, { oauth: opts.oauth }, function(err2, res2) {
+          Connection.prototype.refreshToken.call(self, { oauth: opts.oauth, executeOnRefresh: true }, function(err2, res2) {
             if(err2) {
               return callback(err2, null);
             } else {
-              var old = _.clone(opts.oauth, true);
-              _.assign(opts.oauth, res2);
-              if(self.onRefresh) {
-                self.onRefresh.call(self, opts.oauth, old, function(err3){
-                  if(err3) return callback(err3);
-                  else Connection.prototype._apiRequest.call(self, opts, callback);
-                });
-              } else {
-                return Connection.prototype._apiRequest.call(self, opts, callback);
-              }
+              return Connection.prototype._apiRequest.call(self, opts, callback);
             }
           });
         } else {

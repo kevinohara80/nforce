@@ -412,17 +412,17 @@ org.getSObjects({ oauth: oauth }).pipe(so);
 
 The createConnection method creates an *nforce* salesforce connection object. You need to supply some arguments including oauth information and some optional arguments for version and salesforce environment type.
 
-* `clientId`: Required. This is the OAuth client id
-* `clientSecret`: Required. This is the OAuth client secret
-* `redirectUri`: Required. This is the redirect URI for OAuth callbacks
-* `apiVersion`: Optional. This is a number or string representing a valid REST API version. Default is the latest current api version.
-* `environment`: Optional. Values can be 'production' or 'sandbox'. Default is production.
-* `loginUri`: Optional. Used to override the login URI if needed.
-* `testLoginUri`: Optional. Used to override the testLoginUri if needed.
-* `gzip`: Optional. If set to boolean 'true', then *nforce* will request that salesforce compress responses (using gzip) before transmitting over-the-wire.
-* `autoRefresh`: Optional. If set to boolean 'true', *nforce* will auto-refresh your oauth access token if it tries a request and fails due to an expired token. Only works with web oauth flows. Username/password flows don't return refresh tokens.
-* `onRefresh`: Optional. This is a function that is called when a request going through the connection triggers an auto-refresh. This hook is handy for updating your oauth tokens in a database or other store. The function is passed three arguments `newOauth`, `oldOauth`, and a `callback` function. The callback must be called with either an error or null value.
-* `timeout`: Optional. Integer containing the number of milliseconds to wait for a request to respond before aborting the request.
+* `clientId`: (String:Required) This is the OAuth client id
+* `clientSecret`: (String:Required) This is the OAuth client secret
+* `redirectUri`: (String:Required) This is the redirect URI for OAuth callbacks
+* `apiVersion`: (String|Number:Required) This is a number or string representing a valid REST API version. Default is the latest current api version.
+* `environment`: (String:Optional) Values can be 'production' or 'sandbox'. Default is production.
+* `loginUri`: (String:Optional) Used to override the login URI if needed.
+* `testLoginUri`: (String:Optional) Used to override the testLoginUri if needed.
+* `gzip`: (Boolean:Optional) If set to boolean 'true', then *nforce* will request that salesforce compress responses (using gzip) before transmitting over-the-wire.
+* `autoRefresh`: (Boolean:Optional) If set to boolean 'true', *nforce* will auto-refresh your oauth access token if it tries a request and fails due to an expired token. Only works with web oauth flows. Username/password flows don't return refresh tokens.
+* `onRefresh`: (Function:Optional) This is a function that is called when a request going through the connection triggers an auto-refresh. This hook is handy for updating your oauth tokens in a database or other store. The function is passed three arguments `newOauth`, `oldOauth`, and a `callback` function. The callback must be called with either an error or null value.
+* `timeout`: (Number:Optional) Integer containing the number of milliseconds to wait for a request to respond before aborting the request.
 
 ### createSObject(type, [fieldValues])
 
@@ -432,8 +432,8 @@ This creates an sObject record that you can use to insert, update, upsert, and d
 
 This creates an nforce plugin. Plugins allow you to extend the functionality of nforce. You need to initialize the plugin with a `namespace` or an options hash containing a namespace. Valid options include:
 
-* `namespace`: Required. This sets the namespace for your plugin
-* `override`: Override *true* allows you to overwrite an existing plugin. Default is false.
+* `namespace`: (String:Required) This sets the namespace for your plugin
+* `override`: (Boolean:Optional) Override *true* allows you to overwrite an existing plugin. Default is false.
 
 ## Salesforce sObject Methods
 
@@ -532,36 +532,37 @@ org.insert({ oauth: oauth, sobject: so, headers: headers }, function(err, record
 ### getAuthUri([opts])
 
 This is a helper method to build the authentication uri for a authorization code OAuth 2.0 flow. You can optionally pass in an OAuth options argument. The supported options are:
-* `responseType`: (String) Any valid response_type that is supported by Salesforce OAuth 2.0. Default is `code`.
-* `display`: (String) Tailors the login page to the user's device type. Currently the only values supported are `page`, `popup`, and `touch`
-* `immediate`: (Boolean) Avoid interacting with the user. Default is false.
-* `scope`: (Array) The scope parameter allows you to fine-tune what the client application can access. Supported values are `api`, `chatter_api`, `full`, `id`, `refresh_token`, `visualforce`, and `web`
-* `state`: Any value that you wish to be sent with the callback
+* `responseType`: (String:Optional) Any valid response_type that is supported by Salesforce OAuth 2.0. Default is `code`.
+* `display`: (String:Optional) Tailors the login page to the user's device type. Currently the only values supported are `page`, `popup`, and `touch`
+* `immediate`: (Boolean:Optional) Avoid interacting with the user. Default is false.
+* `scope`: (Array:Optional) The scope parameter allows you to fine-tune what the client application can access. Supported values are `api`, `chatter_api`, `full`, `id`, `refresh_token`, `visualforce`, and `web`
+* `state`: (String:Optional) Any value that you wish to be sent with the callback
 
 ### authenticate(opts, [callback])
 
 This method requests the OAuth access token and instance information from Salesforce or Force.com. This method either requires that you pass in the authorization code (authorization code flow) or username and password (username/password flow).
 
-* `code`: (String) An OAuth authorization code
+* `code`: (String:Optional) An OAuth authorization code
 
 -- OR --
 
-* `username`: (String) Your salesforce/force.com/database.com username
-* `password`: (String) Your salesforce/force.com/database.com password
-* `securityToken`: (String) Your Salesforce security token. This will be appended to your password if this property is set.
+* `username`: (String:Optional) Your salesforce/force.com/database.com username
+* `password`: (String:Optional) Your salesforce/force.com/database.com password
+* `securityToken`: (String:Optional) Your Salesforce security token. This will be appended to your password if this property is set.
 
 ### refreshToken(opts, callback)
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `executeOnRefresh`: (Boolean:Optional) If an onRefresh callback is defined in the connection, run the callback. Default is true.
 
 ### revokeToken(opts, callback)
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `token`: (Required) The oauth access_token or refresh_token you want to revoke
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `token`: (String:Required) The oauth access_token or refresh_token you want to revoke
 
 ### expressOAuth(onSuccess, onError)
 
@@ -575,7 +576,7 @@ Gets the salesforce versions. Note: Does not require authentication.
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
 
 Gets the available salesforce resources
 
@@ -583,7 +584,7 @@ Gets the available salesforce resources
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
 
 Get all sObjects for an org
 
@@ -591,8 +592,8 @@ Get all sObjects for an org
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `type`: (Required) The metadata type that is being requested
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `type`: (String:Required) The metadata type that is being requested
 
 Get metadata for a single sObject. `type` is a required String for the sObject type
 
@@ -600,8 +601,8 @@ Get metadata for a single sObject. `type` is a required String for the sObject t
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `type`: (Required) The metadata type that is being requested
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `type`: (String:Required) The metadata type that is being requested
 
 Get describe information for a single sObject. `type` is a required String for the sObject type
 
@@ -609,8 +610,8 @@ Get describe information for a single sObject. `type` is a required String for t
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `sobject`: (Required) An sObject instance
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Object:Required) An sObject instance
 
 Insert a record.
 
@@ -618,8 +619,8 @@ Insert a record.
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `sobject`: (Required) An sObject instance
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Object:Required) An sObject instance
 
 Update a record.
 
@@ -627,8 +628,8 @@ Update a record.
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `sobject`: (Required) An sObject instance
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Object:Required) An sObject instance
 
 Update a record. NOTE: you must use the setExternalId() method to set the external Id field and the value to match on.
 
@@ -636,8 +637,8 @@ Update a record. NOTE: you must use the setExternalId() method to set the extern
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `sobject`: (Required) An sObject instance
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Object:Required) An sObject instance
 
 Delete a record.
 
@@ -645,11 +646,11 @@ Delete a record.
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `sobject`: (Optional) An sObject instance.
-* `fields`: (Optional) An array of fields to return
-* `type:`: (Optional) A string value sObject type
-* `id`: (Optional) A string value for the sObject record id
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Object:Optional) An sObject instance.
+* `fields`: (Array:Optional) An array of fields to return
+* `type:`: (String:Optional) A string value sObject type
+* `id`: (String:Optional) A string value for the sObject record id
 
 Get a single record. You must supply either an `sobject` or `type` and `id`
 
@@ -657,10 +658,10 @@ Get a single record. You must supply either an `sobject` or `type` and `id`
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `sobject`: (Optional) An sObject instance.
-* `type:`: (Optional) A string value sObject type
-* `id`: (Optional) A string value for the sObject record id
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Object:Optional) An sObject instance.
+* `type:`: (String:Optional) A string value sObject type
+* `id`: (String:Optional) A string value for the sObject record id
 
 Get the binary data for an attachment, document, or contentversion. You must supply either an `sobject` or `type` and `id`. The `sobject` must be one of those three types.
 
@@ -668,9 +669,9 @@ Get the binary data for an attachment, document, or contentversion. You must sup
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `sobject`: (Optional) An sObject instance.
-* `id`: (Optional) A string value for the sObject record id
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Object:Optional) An sObject instance.
+* `id`: (String:Optional) A string value for the sObject record id
 
 Get the binary data for an attachment. You must supply either an `sobject` or an `id`.
 
@@ -678,9 +679,9 @@ Get the binary data for an attachment. You must supply either an `sobject` or an
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `sobject`: (Optional) An sObject instance.
-* `id`: (Optional) A string value for the sObject record id
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Object:Optional) An sObject instance.
+* `id`: (String:Optional) A string value for the sObject record id
 
 Get the binary data for a document. You must supply either an `sobject` or an `id`.
 
@@ -688,9 +689,9 @@ Get the binary data for a document. You must supply either an `sobject` or an `i
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `sobject`: (Optional) An sObject instance.
-* `id`: (Optional) A string value for the sObject record id
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `sobject`: (Object:Optional) An sObject instance.
+* `id`: (String:Optional) A string value for the sObject record id
 
 Get the binary data for a contentversion. You must supply either an `sobject` or an `id`.
 
@@ -698,8 +699,8 @@ Get the binary data for a contentversion. You must supply either an `sobject` or
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `query`: (Required) An query string
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `query`: (String:Required) An query string
 
 Execute a SOQL query for records.
 
@@ -707,8 +708,8 @@ Execute a SOQL query for records.
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `query`: (Required) An query string
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `query`: (String:Required) An query string
 
 Same as query but includes deleted records
 
@@ -716,8 +717,8 @@ Same as query but includes deleted records
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `search`: (Required) An search string
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `search`: (String:Required) An search string
 
 Execute a SOSL search for records. `search` should be a SOSL string.
 
@@ -725,8 +726,8 @@ Execute a SOSL search for records. `search` should be a SOSL string.
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `url`: (Required) An url string for an api resource
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `url`: (String:Required) An url string for an api resource
 
 Get a REST API resource by its url.
 
@@ -734,8 +735,8 @@ Get a REST API resource by its url.
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `topic`: (Required) An string value for the streaming topic
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `topic`: (String:Required) An string value for the streaming topic
 
 Start a force.com streaming API connection. An EventEmitter is returned with the following events:
 
@@ -747,10 +748,10 @@ Start a force.com streaming API connection. An EventEmitter is returned with the
 
 opts:
 
-* `oauth`: (Optional) The oauth object. Required in multi-user mode
-* `uri`: (Required) A string value for endpoint. Should not include '/services/apexrest'
-* `method`: (Optional) String method that defaults to GET if not supplied
-* `urlParams:` (Optional) A hash or url params to add to the request
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `uri`: (String:Required) A string value for endpoint. Should not include '/services/apexrest'
+* `method`: (String:Optional) String method that defaults to GET if not supplied
+* `urlParams:` (Object|String:Optional) A hash or url params to add to the request
 
 This method handles integration with salesforce ApexRest (Custom Rest endpoints)
 http://wiki.developerforce.com/page/Creating_REST_APIs_using_Apex_REST
