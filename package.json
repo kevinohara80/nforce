@@ -19,10 +19,11 @@
   },
   "main": "index.js",
   "dependencies": {
-    "request": "^2.49.0",
+    "bluebird": "^2.3.11",
     "faye": "0.8.9",
+    "lodash": "2.4.1",
     "mime": "1.2.11",
-    "lodash": "2.4.1"
+    "request": "^2.49.0"
   },
   "devDependencies": {
     "mocha": "1.18.2",
