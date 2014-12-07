@@ -41,7 +41,6 @@ var Connection = function(opts) {
     redirectUri:   null,
     loginUri:      LOGIN_URI,
     testLoginUri:  TEST_LOGIN_URI,
-    cacheMetadata: false,
     apiVersion:    _.last(API_VERSIONS),
     environment:   'production',
     mode:          'multi',
@@ -65,7 +64,6 @@ var Connection = function(opts) {
   if(!_.isString(this.redirectUri)) throw new Error('invalid or missing redirectUri');
   if(!_.isString(this.loginUri)) throw new Error('invalid or missing loginUri');
   if(!_.isString(this.testLoginUri)) throw new Error('invalid or missing testLoginUri');
-  if(!_.isBoolean(this.cacheMetadata)) throw new Error('cacheMetadata must be a boolean');
   if(!_.isBoolean(this.gzip)) throw new Error('gzip must be a boolean');
   if(!_.isString(this.environment) || _.indexOf(ENVS, this.environment) === -1) {
     throw new Error('invalid environment, only ' + ENVS.join(' and ') + ' are allowed');
@@ -75,15 +73,6 @@ var Connection = function(opts) {
   }
   if(this.onRefresh && !_.isFunction(this.onRefresh)) throw new Error('onRefresh must be a function');
   if(this.timeout && !_.isNumber(this.timeout)) throw new Error('timeout must be a number');
-
-  // setup cache
-
-  if(this.cacheMetadata) {
-    this._cache = {
-      keyPrefixes: {},
-      sObjects: {}
-    }
-  }
 
   // parse api version
 
