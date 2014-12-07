@@ -1,6 +1,7 @@
 // module dependencies
 
 var request     = require('request');
+var promises    = require('./lib/promises');
 var qs          = require('querystring');
 var url         = require('url');
 var Record      = require('./lib/record');
@@ -128,7 +129,8 @@ Connection.prototype._getOpts = function(d, c) {
     callback = d;
     data = {};
   } else {
-    callback = function() {};
+    // removing for new promise implementation
+    //callback = function() {};
     data = d || {};
   }
   data.callback = callback;
@@ -284,19 +286,20 @@ Connection.prototype.getSObjects = function(data, callback) {
   var opts = this._getOpts(data, callback);
   opts.resource = '/sobjects';
   opts.method = 'GET';
-  return this._apiRequest(opts, function(err, resp){
-    if(err) {
-      opts.callback(err, null);
-    } else {
-      if(self.cacheMetadata) {
-        for(var obj in resp.sobjects) {
-          var so = resp.sobjects[obj];
-          if(so.keyPrefix != null) self._cache.keyPrefixes[so.keyPrefix] = so.name;
-        }
-      }
-      opts.callback(null, resp);
-    }
-  });
+  return this._apiRequest(opts, opts.callback);
+  // return this._apiRequest(opts, function(err, resp){
+  //   if(err) {
+  //     opts.callback(err, null);
+  //   } else {
+  //     if(self.cacheMetadata) {
+  //       for(var obj in resp.sobjects) {
+  //         var so = resp.sobjects[obj];
+  //         if(so.keyPrefix != null) self._cache.keyPrefixes[so.keyPrefix] = so.name;
+  //       }
+  //     }
+  //     opts.callback(null, resp);
+  //   }
+  // });
 }
 
 Connection.prototype.getMetadata = function(data, callback) {
@@ -686,23 +689,25 @@ Connection.prototype._apiAuthRequest = function(opts, callback) {
 
   var self = this;
 
+  var resolver = promises.createResolver(callback);
+
   // set timeout
   if(this.timeout) {
     opts.timeout = this.timeout;
   }
 
-  return request(opts, function(err, res, body){
+  request(opts, function(err, res, body){
     // request returned an error
-    if(err) return callback(err);
+    if(err) return resolver.reject(err);
 
     // request didn't return a response. sumptin bad happened
-    if(!res) return callback(errors.emptyResponse());
+    if(!res) return resolver.reject(errors.emptyResponse());
 
     if(body && util.isJsonResponse(res)) {
       try {
         body = JSON.parse(body);
       } catch (e) {
-        return callback(errors.invalidJson());
+        return resolver.reject(errors.invalidJson());
       }
     } else {
       // removing this for now since calling the _apiAuthRequest when
@@ -716,14 +721,16 @@ Connection.prototype._apiAuthRequest = function(opts, callback) {
       if(self.mode === 'single' && body.access_token) {
         self.oauth = body;
       }
-      return callback(null, body);
+      return resolver.resolve(body);
     } else {
       var e = new Error(body.error + ' - ' + body.error_description);
       e.statusCode = res.statusCode;
-      return callback(e, null);
+      return resolver.reject(e);
     }
 
   });
+
+  return resolver.promise;
 }
 
 Connection.prototype._apiRequest = function(opts, callback) {
@@ -743,7 +750,7 @@ Connection.prototype._apiRequest = function(opts, callback) {
 
   var self = this;
   var ropts = {};
-  var callback = callback || function() {};
+  var resolver = opts._resolver || promises.createResolver(callback);
   var sobject = opts.sobject;
 
   // construct uri
@@ -806,17 +813,17 @@ Connection.prototype._apiRequest = function(opts, callback) {
     ropts.timeout = this.timeout;
   }
 
-  return request(ropts, function(err, res, body) {
+  request(ropts, function(err, res, body) {
 
     // request returned an error
-    if(err) return callback(err, null);
+    if(err) return resolver.reject(err);
 
     // request didn't return a response. Sumptin bad happened
-    if(!res) return callback(errors.emptyResponse());
+    if(!res) return resolver.reject(errors.emptyResponse());
 
     // salesforce returned no body but an error in the header
     if(!body && res.headers && res.headers.error) {
-      return callback(new Error(res.headers.error), null);
+      return resolver.reject(new Error(res.headers.error), null);
     }
 
     var processResponse = function(data) {
@@ -826,7 +833,7 @@ Connection.prototype._apiRequest = function(opts, callback) {
           try {
             data = JSON.parse(data);
           } catch (e) {
-            return callback(errors.invalidJson());
+            return resolver.reject(errors.invalidJson());
           }
         }
       }
@@ -842,7 +849,7 @@ Connection.prototype._apiRequest = function(opts, callback) {
             sobject._fields.id = data.id;
           }
         }
-        return callback(null, data);
+        return resolver.resolve(data);
       }
 
       // salesforce returned an error with a body
@@ -864,20 +871,21 @@ Connection.prototype._apiRequest = function(opts, callback) {
         if(e.errorCode && (e.errorCode === 'INVALID_SESSION_ID' || e.errorCode === 'Bad_OAuth_Token')
           && self.autoRefresh === true && opts.oauth.refresh_token && !opts._retryCount) {
           opts._retryCount = 1;
+          opts._resolver = resolver;
           Connection.prototype.refreshToken.call(self, { oauth: opts.oauth, executeOnRefresh: true }, function(err2, res2) {
             if(err2) {
-              return callback(err2, null);
+              return resolver.reject(err2);
             } else {
-              return Connection.prototype._apiRequest.call(self, opts, callback);
+              return Connection.prototype._apiRequest.call(self, opts);
             }
           });
         } else {
-          return callback(e, null);
+          return resolver.reject(e);
         }
 
       } else {
         // we don't know what happened
-        return callback(new Error('Salesforce returned no body and status code ' + res.statusCode));
+        return resolver.reject(new Error('Salesforce returned no body and status code ' + res.statusCode));
       }
 
     };
@@ -893,6 +901,8 @@ Connection.prototype._apiRequest = function(opts, callback) {
     }
 
   });
+
+  return resolver.promise;
 }
 
 // exports
