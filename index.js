@@ -439,89 +439,61 @@ Connection.prototype.getContentVersionBody = function(id, oauth, callback) {
 Connection.prototype._queryHandler = function(data, callback) {
   var self = this;
   var recs = [];
-  var stream = new QueryStream();
-  var opts = this._getOpts(data, callback);
+  var opts = _.defaults(this._getOpts(data, callback), {
+    fetchAll: false,
+    raw: false
+  });
+  var resolver = data._resolver || promises.createResolver(opts.callback);
   opts.method = 'GET';
   opts.resource = '/query';
-  if(opts.all) {
+
+  if(opts.includeDeleted) {
     opts.resource += 'All';
   }
+
   opts.qs = {
     q: opts.query
   }
 
-  var queryNext = function(url) {
-    self.getUrl({ url: url, oauth: opts.oauth }, function(err, resp) {
-      if (err) {
-        return stream.error(err);
-      }
-      var write_more = function () {
-        if(resp.records && resp.records.length > 0) {
-          stream.write(JSON.stringify(resp));
-        }
-        if(resp.nextRecordsUrl) {
-          queryNext(resp.nextRecordsUrl);
-        } else {
-          stream.end();
-        }
-      };
-      if (stream.writable) {
-        write_more();
-      } else {
-        stream.once('resume', write_more);
-      }
-    });
-  }
-
-  this._apiRequest(opts, function(err, resp){
-    if(stream.isStreaming()) {
-      if (err) {
-        stream.error(err);
-      } else {
-        if(resp) {
-          var write_more = function () {
-            stream.write(JSON.stringify(resp));
-            if(resp.nextRecordsUrl) {
-              queryNext(resp.nextRecordsUrl);
-            } else {
-              stream.end();
-            }
-          };
-          if (stream.writable) {
-            write_more();
-          } else {
-            stream.once('resume', write_more);
-          }
-        }
-      }
+  function handleResults(err, resp) {
+    if(err) {
+      return resolver.reject(err);
     } else {
-      if(!err) {
-        if(resp.records && resp.records.length > 0) {
-          for(var i=0; i<resp.records.length; i++) {
-            var rec = new Record(resp.records[i]);
+      if(resp.records && resp.records.length > 0) {
+        _.each(resp.records, function(r) {
+          if(opts.raw) {
+            recs.push(r);
+          } else {
+            var rec = new Record(r);
             rec._reset();
             recs.push(rec);
           }
-          resp.records = recs;
-        }
+        });
       }
-      opts.callback(err, resp);
+      if(opts.fetchAll && resp.nextRecordsUrl) {
+        self.getUrl({ url: url, oauth: opts.oauth }, handleResults);
+      } else {
+        resp.records = recs;
+        return resolver.resolve(resp);
+      }
     }
-  });
+  }
 
-  return stream;
-}
+  this._apiRequest(opts, handleResults);
+
+  return resolver.promise;
+};
 
 Connection.prototype.query = function(data, callback) {
   var opts = this._getOpts(data, callback);
   opts.all = false;
-  return this._queryHandler(opts, callback);
+  return this._queryHandler(opts, opts.callback);
 }
 
 Connection.prototype.queryAll = function(data, callback) {
   var opts = this._getOpts(data, callback);
-  opts.all = true;
-  return this._queryHandler(opts, callback);
+  opts.includeDeleted = true;
+  return this._queryHandler(opts, opts.callback);
 }
 
 /**
@@ -554,7 +526,7 @@ Connection.prototype.getUrl = function(data, callback) {
   var opts = this._getOpts(data, callback);
   opts.uri = opts.oauth.instance_url + data.url;
   opts.method = 'GET';
-  return this._apiRequest(opts, callback);
+  return this._apiRequest(opts, opts.callback);
 }
 
 // chatter api methods
@@ -678,7 +650,7 @@ Connection.prototype._apiAuthRequest = function(opts, callback) {
 
   var self = this;
 
-  var resolver = promises.createResolver(callback);
+  var resolver = opts._resolver || promises.createResolver(callback);
 
   // set timeout
   if(this.timeout) {
@@ -698,11 +670,6 @@ Connection.prototype._apiAuthRequest = function(opts, callback) {
       } catch (e) {
         return resolver.reject(errors.invalidJson());
       }
-    } else {
-      // removing this for now since calling the _apiAuthRequest when
-      // revoking an oauth token doesn't return a JSON response, just
-      // a 200 response with an empty body.
-      // return callback(errors.nonJsonResponse());
     }
 
     if(res.statusCode === 200) {

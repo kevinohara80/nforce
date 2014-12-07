@@ -19,9 +19,11 @@ org.authenticate({ username: sfuser, password: sfpass }).then(function(oauth){
 
   return org.getSObjects();
 
-}).then(function(data){
+}).then(function(resp){
 
-  console.log(data);
+  resp.sobjects.forEach(function(so) {
+    console.log(so.name);
+  });
 
 }).catch(function(err) {
 
