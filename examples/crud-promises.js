@@ -16,7 +16,6 @@ var ld;
 console.log('authenticating')
 
 org.authenticate({ username: sfuser, password: sfpass }).then(function(oauth){
-  console.log(oauth.access_token);
   console.log('authenticated');
   console.log('inserting new lead');
   ld = nforce.createSObject('Lead', {
