@@ -8,6 +8,8 @@ var Record      = require('./lib/record');
 var QueryStream = require('./lib/querystream');
 var FDCStream   = require('./lib/fdcstream');
 var util        = require('./lib/util');
+var errors      = require('./lib/errors');
+var multipart   = require('./lib/multipart');
 var faye        = require('faye');
 var mime        = require('mime');
 var zlib        = require('zlib');
@@ -118,8 +120,6 @@ Connection.prototype._getOpts = function(d, c) {
     callback = d;
     data = {};
   } else {
-    // removing for new promise implementation
-    //callback = function() {};
     data = d || {};
   }
   data.callback = callback;
@@ -129,7 +129,7 @@ Connection.prototype._getOpts = function(d, c) {
   return data;
 }
 
-// oauth methods
+// authentication methods
 
 Connection.prototype.getAuthUri = function(opts) {
   if(!opts) opts = {};
@@ -194,6 +194,8 @@ Connection.prototype.refreshToken = function(data, callback) {
   var opts = _.defaults(this._getOpts(data, callback), {
     executeOnRefresh: false
   });
+  var resolver = promises.createResolver(opts.callback);
+
   opts.uri = (this.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
   opts.method = 'POST';
 
@@ -214,20 +216,21 @@ Connection.prototype.refreshToken = function(data, callback) {
     'Content-Type': 'application/x-www-form-urlencoded'
   }
 
-  return this._apiAuthRequest(opts, function(err, res) {
-    if(err) return opts.callback(err);
+  this._apiAuthRequest(opts, function(err, res) {
+    if(err) return resolver.reject(err);
     var old = _.clone(opts.oauth);
     _.assign(opts.oauth, res);
     if(self.onRefresh && opts.executeOnRefresh === true) {
       self.onRefresh.call(self, opts.oauth, old, function(err3){
-        if(err3) return opts.callback(err3);
-        else opts.callback(null, opts.oauth);
+        if(err3) return resolver.reject(err3);
+        else return resolver.resolve(opts.oauth);
       });
     } else {
-      opts.callback(null, opts.oauth);
+      resolver.resolve(opts.oauth);
     }
   });
 
+  return resolver.promise;
 }
 
 Connection.prototype.revokeToken = function(data, callback) {
@@ -244,6 +247,23 @@ Connection.prototype.revokeToken = function(data, callback) {
   return this._apiAuthRequest(opts, opts.callback)
 }
 
+Connection.prototype.getPasswordStatus = function(data, callback) {
+  var opts = this._getOpts(data, callback);
+  var id = (opts.sobject) ? opts.sobject.getId() : opts.id;
+  opts.resource = '/sobjects/user/' + id + '/password';
+  opts.method = 'GET';
+  return this._apiRequest(opts, opts.callback);
+};
+
+Connection.prototype.updatePassword = function(data, callback) {
+  var opts = this._getOpts(data, callback);
+  var id = (opts.sobject) ? opts.sobject.getId() : opts.id;
+  opts.resource = '/sobjects/user/' + id + '/password';
+  opts.method = 'POST';
+  opts.body = JSON.stringify({ newPassword: opts.newPassword });
+  return this._apiRequest(opts, opts.callback);
+};
+
 // api methods
 
 Connection.prototype.getIdentity = function(data, callback) {
@@ -254,12 +274,9 @@ Connection.prototype.getIdentity = function(data, callback) {
 }
 
 Connection.prototype.getVersions = function(callback) {
-  var opts;
-
-  if(!callback) callback = function(){}
-
-  opts = { uri : 'http://na1.salesforce.com/services/data/', method: 'GET' };
-
+  var opts = this._getOpts({}, callback);
+  opts.uri = 'http://na1.salesforce.com/services/data/',
+  opts.method = 'GET';
   return this._apiAuthRequest(opts, callback);
 }
 
@@ -276,19 +293,6 @@ Connection.prototype.getSObjects = function(data, callback) {
   opts.resource = '/sobjects';
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
-  // return this._apiRequest(opts, function(err, resp){
-  //   if(err) {
-  //     opts.callback(err, null);
-  //   } else {
-  //     if(self.cacheMetadata) {
-  //       for(var obj in resp.sobjects) {
-  //         var so = resp.sobjects[obj];
-  //         if(so.keyPrefix != null) self._cache.keyPrefixes[so.keyPrefix] = so.name;
-  //       }
-  //     }
-  //     opts.callback(null, resp);
-  //   }
-  // });
 }
 
 Connection.prototype.getMetadata = function(data, callback) {
@@ -305,33 +309,13 @@ Connection.prototype.getDescribe = function(data, callback) {
   return this._apiRequest(opts, opts.callback);
 }
 
-function getMultipart(opts) {
-  var type = opts.sobject.getType();
-  var entity = (type === 'contentversion') ? 'content' : type;
-  var name   = (type === 'contentversion') ? 'VersionData' : 'Body';
-  var fileName = opts.sobject.getFileName();
-  var isPatch = (opts.method === 'PATCH') ? true : false;
-  var multipart = [];
-  multipart.push({
-    'content-disposition': 'form-data; name="entity_' + entity + '"',
-    'content-type': 'application/json',
-    body: JSON.stringify(opts.sobject._getPayload(isPatch))
-  });
-  multipart.push({
-    'content-type': mime.lookup(fileName),
-    'content-disposition': 'form-data; name="' + name + '"; filename="' + fileName + '"',
-    body: opts.sobject.getBody()
-  });
-  return multipart;
-}
-
 Connection.prototype.insert = function(data, callback) {
   var opts = this._getOpts(data, callback);
   var type = opts.sobject.getType();
   opts.resource = '/sobjects/' + type;
   opts.method = 'POST';
   if(type === 'document' || type === 'attachment' || type === 'contentversion') {
-    opts.multipart = getMultipart(opts);
+    opts.multipart = multipart(opts);
   } else {
     opts.body = JSON.stringify(opts.sobject._getPayload(false));
   }
@@ -345,7 +329,7 @@ Connection.prototype.update = function(data, callback) {
   opts.resource = '/sobjects/' + type + '/' + id;
   opts.method = 'PATCH';
   if(type === 'document' || type === 'attachment' || type === 'contentversion') {
-    opts.multipart = getMultipart(opts);
+    opts.multipart = multipart(opts);
   } else {
     opts.body = JSON.stringify(opts.sobject._getPayload(true));
   }
@@ -376,21 +360,30 @@ Connection.prototype.getRecord = function(data, callback) {
   var opts = this._getOpts(data, callback);
   var type = (opts.sobject) ? opts.sobject.getType() : opts.type;
   var id = (opts.sobject) ? opts.sobject.getId() : opts.id;
+  var resolver = promises.createResolver(opts.callback);
+
   opts.resource = '/sobjects/' + type + '/' + id;
   opts.method = 'GET';
+
   if(opts.fields) {
     if(_.isString(opts.fields)) {
       opts.fields = [opts.fields];
     }
     opts.resource + '?' + qs.stringify({ fields: opts.fields.join() });
   }
-  return this._apiRequest(opts, function(err, resp){
-    if(!err) {
+
+  this._apiRequest(opts, function(err, resp){
+    if(err) {
+      return resolver.reject(err);
+    }
+    if(!opts.raw) {
       resp = new Record(resp);
       resp._reset();
     }
-    opts.callback(err, resp);
+    resolver.resolve(resp);
   });
+
+  return resolver.promise;
 }
 
 // blob methods
@@ -408,7 +401,12 @@ Connection.prototype.getBody = function(data, callback) {
   } else if(type === 'contentversion') {
     return this.getContentVersionBody(opts, opts.callback);
   } else {
-    return opts.callback(new Error('invalid type: ' + type));
+    var resolver = promises.createResolver(opts.callback);
+    // resolve async
+    process.nextTick(function(){
+      resolver.reject(new Error('invalid type: ' + type));
+    });
+    return resolver.promise;
   }
 }
 
@@ -420,7 +418,7 @@ Connection.prototype.getAttachmentBody = function(data, callback) {
   return this._apiRequest(opts, opts.callback);
 }
 
-Connection.prototype.getDocumentBody = function(id, oauth, callback) {
+Connection.prototype.getDocumentBody = function(data, callback) {
   var opts = this._getOpts(data, callback);
   var id = (opts.sobject) ? sobject.getId() : opts.id;
   opts.resource = '/sobjects/document/' + id + '/body';
@@ -428,7 +426,7 @@ Connection.prototype.getDocumentBody = function(id, oauth, callback) {
   return this._apiRequest(opts, opts.callback);
 }
 
-Connection.prototype.getContentVersionBody = function(id, oauth, callback) {
+Connection.prototype.getContentVersionBody = function(data, callback) {
   var opts = this._getOpts(data, callback);
   var id = (opts.sobject) ? sobject.getId() : opts.id;
   opts.resource = '/sobjects/contentversion/' + id + '/body';
@@ -443,7 +441,8 @@ Connection.prototype._queryHandler = function(data, callback) {
     fetchAll: false,
     raw: false
   });
-  var resolver = data._resolver || promises.createResolver(opts.callback);
+  var resolver = promises.createResolver(opts.callback);
+
   opts.method = 'GET';
   opts.resource = '/query';
 
@@ -496,30 +495,33 @@ Connection.prototype.queryAll = function(data, callback) {
   return this._queryHandler(opts, opts.callback);
 }
 
-/**
- * data
- * - search: string
- * - oauth: object
- */
-
 Connection.prototype.search = function(data, callback) {
-  var opts = this._getOpts(data, callback);
-  var uri, opts;
+  var opts = _.defaults(this._getOpts(data, callback), {
+    raw: false
+  });
+  var resolver = promises.createResolver(opts.callback);
+
   opts.resource = '/search';
   opts.method = 'GET';
   opts.qs = { q: opts.search };
-  return this._apiRequest(opts, function(err, resp){
-    if(!err) {
-      if(resp.length) {
+
+  this._apiRequest(opts, function(err, resp) {
+    if(err) {
+      return resolver.reject(err);
+    } else {
+      if(opts.raw || !resp.length) {
+        return resolver.resolve(resp);
+      } else {
         var recs = [];
-        for(var i=0; i<resp.length; i++) {
-          recs.push(new Record(resp[i]));
-        }
-        resp = recs;
+        resp.forEach(function(r) {
+          recs.push(new Record(r));
+        });
+        return resolver.resolve(resp);
       }
     }
-    opts.callback(err, resp);
   });
+
+  return resolver.promise;
 }
 
 Connection.prototype.getUrl = function(data, callback) {
@@ -528,8 +530,6 @@ Connection.prototype.getUrl = function(data, callback) {
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
 }
-
-// chatter api methods
 
 // apex rest
 
@@ -622,27 +622,6 @@ Connection.prototype.expressOAuth = function(opts) {
     } else {
       next();
     }
-  }
-}
-
-Connection.prototype.updatePassword = function(data, oauth, callback) {
-  var opts = this._getOpts(data, callback);
-  var id = data.sobject.getId();
-  opts.resource = '/sobjects/user/' + id + '/password';
-  opts.method = 'POST';
-  opts.body = JSON.stringify(data.sobject._getPayload(false));
-  return this._apiRequest(opts, callback);
-}
-
-var errors = {
-  nonJsonResponse: function() {
-    return new Error('Non-JSON response from Salesforce');
-  },
-  invalidJson: function() {
-    return new Error('Invalid JSON response from Salesforce');
-  },
-  emptyResponse: function() {
-    return new Error('Unexpected empty response');
   }
 }
 
@@ -861,10 +840,6 @@ Connection.prototype._apiRequest = function(opts, callback) {
   return resolver.promise;
 }
 
-// exports
-
-module.exports.util = util;
-
 // plugin system
 
 function Plugin(opts) {
@@ -882,6 +857,10 @@ Plugin.prototype.fn = function(fnName, fn) {
   }
   this._fns[fnName] = fn;
 }
+
+// exports
+
+module.exports.util = util;
 
 module.exports.plugin = function(opts) {
   if(typeof opts === 'string') {

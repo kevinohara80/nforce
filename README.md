@@ -675,7 +675,7 @@ opts:
 
 Get the binary data for an attachment. You must supply either an `sobject` or an `id`.
 
-### getDocumentBody(id, [oauth], [callback])
+### getDocumentBody(opts, [callback])
 
 opts:
 
@@ -685,7 +685,7 @@ opts:
 
 Get the binary data for a document. You must supply either an `sobject` or an `id`.
 
-### getContentVersionBody(id, [oauth], [callback])
+### getContentVersionBody(opts, [callback])
 
 opts:
 
