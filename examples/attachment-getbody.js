@@ -18,12 +18,23 @@ var server = http.createServer(function(req, res) {
     // example using pipe (stream)
     // http://localhost:3000/pipe
     org.getAttachmentBody({ id: attId, oauth: oauth }).pipe(res);
-  } else {
+  } else if(req.url === '/') {
     // example using a callback
     // http://localhost:3000/
     org.getAttachmentBody({ id: attId, oauth: oauth }, function(err, resp) {
-      res.end(resp);
+      if(err) {
+        console.error(err);
+        throw(err);
+      } else {
+        res.writeHead(200, {
+          'content-type': 'image/png'
+        });
+        res.end(resp);
+      }
     });
+  } else {
+    res.writeHead(404);
+    res.end();
   }
 });
 

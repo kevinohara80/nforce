@@ -392,7 +392,7 @@ Connection.prototype.getBody = function(data, callback) {
   var opts = this._getOpts(data, callback);
   var type = (opts.sobject) ? opts.sobject.getType() : opts.type;
 
-  type = opts.type.toLowerCase();
+  type = type.toLowerCase();
 
   if(type === 'document') {
     return this.getDocumentBody(opts, opts.callback);
@@ -415,7 +415,7 @@ Connection.prototype.getAttachmentBody = function(data, callback) {
   var id = (opts.sobject) ? sobject.getId() : opts.id;
   opts.resource = '/sobjects/attachment/' + id + '/body';
   opts.method = 'GET';
-  return this._apiRequest(opts, opts.callback);
+  return this._apiBlobRequest(opts, opts.callback);
 };
 
 Connection.prototype.getDocumentBody = function(data, callback) {
@@ -721,23 +721,22 @@ Connection.prototype._apiRequest = function(opts, callback) {
     ropts.encoding = null;
   }
 
-  if(opts.multipart) {
-    ropts.multipart = opts.multipart;
-    ropts.headers['content-type'] = 'multipart/form-data';
-  } else {
-    ropts.headers['content-type'] = 'application/json';
+  // set body and content-type
+
+  if(opts.body) {
+    ropts.body = opts.body;
+    if(opts.multipart) {
+      ropts.multipart = opts.multipart;
+      ropts.headers['content-type'] = 'multipart/form-data';
+    } else {
+      ropts.headers['content-type'] = 'application/json';
+    }
   }
 
   if(opts.headers) {
     for(var item in opts.headers) {
       ropts.headers[item] = opts.headers[item];
     }
-  }
-
-  // set body
-
-  if(opts.body) {
-    ropts.body = opts.body;
   }
 
   // process qs
@@ -750,6 +749,10 @@ Connection.prototype._apiRequest = function(opts, callback) {
     ropts.timeout = this.timeout;
   }
 
+  console.log(ropts.uri);
+
+
+  // initiate the request
   request(ropts, function(err, res, body) {
 
     // request returned an error
@@ -778,11 +781,15 @@ Connection.prototype._apiRequest = function(opts, callback) {
       // salesforce returned an ok of some sort
       if(res.statusCode >= 200 && res.statusCode <= 204) {
         // attach the id back to the sobject on insert
+        if(util.isChunkedEncoding(res)) {
+          console.log('chunked');
+          return resolver.resolve(data);
+        }
         if(sobject) {
           if(sobject._reset) {
             sobject._reset();
           }
-          if(data && data.id) {
+          if(data && _.isObject(data) && data.id) {
             sobject._fields.id = data.id;
           }
         }
@@ -830,7 +837,7 @@ Connection.prototype._apiRequest = function(opts, callback) {
     if(res.headers && res.headers['content-encoding'] === 'gzip' && body) {
       //  response is compressed - decompress it
       zlib.gunzip(body, function(err, data) {
-        if (err) return callback(err);
+        if (err) return resolver.reject(err);
         processResponse(data);
       });
     } else {
@@ -840,6 +847,193 @@ Connection.prototype._apiRequest = function(opts, callback) {
   });
 
   return resolver.promise;
+};
+
+Connection.prototype._apiBlobRequest = function(opts, callback) {
+
+  /**
+  * options:
+  * - sobject
+  * - uri
+  * - callback
+  * - oauth
+  * - multipart
+  * - method
+  * - body
+  * - qs
+  * - headers
+  */
+
+  var self = this;
+  var ropts = {};
+  var resolver = opts._resolver || promises.createResolver(callback);
+  var sobject = opts.sobject;
+
+  // construct uri
+
+  if(opts.uri) {
+    ropts.uri = opts.uri;
+  } else {
+    if(!opts.resource || opts.resource.charAt(0) !== '/') {
+      opts.resource = '/' + (opts.resource || '');
+    }
+    ropts.uri = [
+    opts.oauth.instance_url,
+    '/services/data/',
+    this.apiVersion,
+    opts.resource
+    ].join('');
+  }
+
+  ropts.method = opts.method || 'GET';
+
+  // set headers
+
+  ropts.headers = {};
+
+  ropts.headers['Accept'] = 'application/json;charset=UTF-8';
+
+  if(opts.oauth) {
+    ropts.headers['Authorization'] = 'Bearer ' + opts.oauth.access_token;
+  }
+
+  if(opts.method === 'GET' && this.gzip === true) {
+    ropts.headers['Accept-Encoding'] = 'gzip';
+    ropts.encoding = null;
+  }
+
+  // set body and content-type
+
+  if(opts.body) {
+    ropts.body = opts.body;
+    if(opts.multipart) {
+      ropts.multipart = opts.multipart;
+      ropts.headers['content-type'] = 'multipart/form-data';
+    } else {
+      ropts.headers['content-type'] = 'application/json';
+    }
+  }
+
+  if(opts.headers) {
+    for(var item in opts.headers) {
+      ropts.headers[item] = opts.headers[item];
+    }
+  }
+
+  // process qs
+  if(opts.qs) {
+    ropts.qs = opts.qs;
+  }
+
+  // set timeout
+  if(this.timeout) {
+    ropts.timeout = this.timeout;
+  }
+
+  console.log(ropts.uri);
+
+
+  // initiate the request
+  return request(ropts, function(err, res, body) {
+
+    res.on('data', function(d) {
+      console.log('got data');
+    });
+
+    console.log(res.headers);
+
+    // request returned an error
+    if(err) return resolver.reject(err);
+
+    // request didn't return a response. Sumptin bad happened
+    if(!res) return resolver.reject(errors.emptyResponse());
+
+    // salesforce returned no body but an error in the header
+    if(!body && res.headers && res.headers.error) {
+      return resolver.reject(new Error(res.headers.error), null);
+    }
+
+    var processResponse = function(data) {
+      // attempt to parse the json now
+      if(util.isJsonResponse(res)) {
+        if(data) {
+          try {
+            data = JSON.parse(data);
+          } catch (e) {
+            return resolver.reject(errors.invalidJson());
+          }
+        }
+      }
+
+      // salesforce returned an ok of some sort
+      if(res.statusCode >= 200 && res.statusCode <= 204) {
+        // attach the id back to the sobject on insert
+        if(util.isChunkedEncoding(res)) {
+          console.log('chunked');
+          return resolver.resolve(data);
+        }
+        if(sobject) {
+          if(sobject._reset) {
+            sobject._reset();
+          }
+          if(data && _.isObject(data) && data.id) {
+            sobject._fields.id = data.id;
+          }
+        }
+        return resolver.resolve(data);
+      }
+
+      // salesforce returned an error with a body
+      if (data) {
+        var e;
+        if (Array.isArray(data) && data.length > 0) {
+          e = new Error(data[0].message);
+          e.errorCode = data[0].errorCode;
+          e.messageBody = data[0].message;
+        } else {
+          //  didn't get a json response back -- just a simple string as the body
+          e = new Error(data);
+          e.errorCode = data;
+          e.messageBody = data;
+        }
+        e.statusCode = res.statusCode;
+
+        // auto-refresh support
+        if(e.errorCode && (e.errorCode === 'INVALID_SESSION_ID' || e.errorCode === 'Bad_OAuth_Token') &&
+            self.autoRefresh === true && opts.oauth.refresh_token && !opts._retryCount) {
+          opts._retryCount = 1;
+          opts._resolver = resolver;
+          Connection.prototype.refreshToken.call(self, { oauth: opts.oauth, executeOnRefresh: true }, function(err2, res2) {
+            if(err2) {
+              return resolver.reject(err2);
+            } else {
+              return Connection.prototype._apiRequest.call(self, opts);
+            }
+          });
+        } else {
+          return resolver.reject(e);
+        }
+
+      } else {
+        // we don't know what happened
+        return resolver.reject(new Error('Salesforce returned no body and status code ' + res.statusCode));
+      }
+
+    };
+
+    if(res.headers && res.headers['content-encoding'] === 'gzip' && body) {
+      //  response is compressed - decompress it
+      zlib.gunzip(body, function(err, data) {
+        if (err) return resolver.reject(err);
+        processResponse(data);
+      });
+    } else {
+      processResponse(body);
+    }
+
+  });
+
+  //return resolver.promise;
 };
 
 // plugin system
