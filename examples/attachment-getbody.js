@@ -14,7 +14,7 @@ var org = nforce.createConnection({
 });
 
 var server = http.createServer(function(req, res) {
-  if(req.url = '/pipe') {
+  if(req.url === '/pipe') {
     // example using pipe (stream)
     // http://localhost:3000/pipe
     org.getAttachmentBody({ id: attId, oauth: oauth }).pipe(res);
@@ -24,10 +24,10 @@ var server = http.createServer(function(req, res) {
     org.getAttachmentBody({ id: attId, oauth: oauth }, function(err, resp) {
       res.end(resp);
     });
-  } 
+  }
 });
 
-console.log('authenticating to salesforce')
+console.log('authenticating to salesforce');
 org.authenticate({ username: sfuser, password: sfpass }, function(err, resp) {
   if(err) {
     console.error('unable to authenticate to salesforce');
@@ -37,4 +37,4 @@ org.authenticate({ username: sfuser, password: sfpass }, function(err, resp) {
     server.listen(port);
     console.log('http server listening on port ' + port);
   }
-})
+});

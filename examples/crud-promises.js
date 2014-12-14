@@ -13,7 +13,7 @@ var org = nforce.createConnection({
 
 var ld;
 
-console.log('authenticating')
+console.log('authenticating');
 
 org.authenticate({ username: sfuser, password: sfpass }).then(function(oauth){
   console.log('authenticated');

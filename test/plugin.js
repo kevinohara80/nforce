@@ -1,3 +1,5 @@
+/* jshint -W030 */
+
 var nforce = require('../');
 var should = require('should');
 
@@ -11,7 +13,7 @@ describe('index', function() {
       nforce.plugin.should.be.a.Function;
 
       var plugin = nforce.plugin('myplugin');
-      
+
       plugin.fn('foo', function(){
         return 'bar';
       });
@@ -20,7 +22,7 @@ describe('index', function() {
         clientId: 'SOME_OAUTH_CLIENT_ID',
         clientSecret: 'SOME_OAUTH_CLIENT_SECRET',
         redirectUri: 'http://localhost:3000/oauth/_callback',
-        apiVersion: 'v24.0',  
+        apiVersion: 'v24.0',
         environment: 'production',
         plugins: ['myplugin']
       });
@@ -35,7 +37,7 @@ describe('index', function() {
     });
 
     it('should not allow non-functions when calling fn', function() {
-      
+
     });
 
     it('should have util methods', function() {
@@ -43,7 +45,7 @@ describe('index', function() {
       var plugin = nforce.plugin('utilplugin');
 
       should.exist(plugin.util);
-      should.exist(plugin.util.validateOAuth)
+      should.exist(plugin.util.validateOAuth);
       plugin.util.validateOAuth.should.be.a.Function;
 
     });
@@ -55,7 +57,7 @@ describe('index', function() {
           clientId: 'SOME_OAUTH_CLIENT_ID',
           clientSecret: 'SOME_OAUTH_CLIENT_SECRET',
           redirectUri: 'http://localhost:3000/oauth/_callback',
-          apiVersion: 'v24.0',  
+          apiVersion: 'v24.0',
           environment: 'production',
           plugins: ['missingplugin']
         });
@@ -89,13 +91,13 @@ describe('index', function() {
         clientId: 'SOME_OAUTH_CLIENT_ID',
         clientSecret: 'SOME_OAUTH_CLIENT_SECRET',
         redirectUri: 'http://localhost:3000/oauth/_callback',
-        apiVersion: 'v24.0',  
+        apiVersion: 'v24.0',
         environment: 'production',
         plugins: []
       });
 
       should.not.exist(org.myplugin4);
-    
+
     });
 
   });

@@ -21,5 +21,5 @@ org.authenticate({ username: sfuser, password: sfpass }, function(err, oauth) {
         console.log('something went wrong, the token is still valid');
       }
     });
-  })
+  });
 });

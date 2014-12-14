@@ -9,6 +9,6 @@ var org = nforce.createConnection({
 });
 
 org.getVersions(function(err, res) {
-  if(err) console.log(err)
-  if(res) console.log(res);
+  if(err) return console.log(err);
+  console.log(res);
 });

@@ -30,4 +30,4 @@ org.authenticate({ username: sfuser, password: sfpass }).then(function(oauth){
   console.error('failed');
   console.error(err);
 
-})
+});

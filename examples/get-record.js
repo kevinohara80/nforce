@@ -20,7 +20,7 @@ function getRecord(id) {
     } else {
       console.log('--> lead retrieved');
       ld.set('firstname', 'Terry');
-      console.log('changed: ' + JSON.stringify(ld.changed(), '  '))
+      console.log('changed: ' + JSON.stringify(ld.changed(), '  '));
     }
   });
 }

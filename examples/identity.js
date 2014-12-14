@@ -13,5 +13,5 @@ org.authenticate({ username: sfuser, password: sfpass }, function(err, oauth) {
   org.getIdentity({ oauth: oauth }, function(err, res) {
     if(err) throw err;
     console.log(res);
-  })
+  });
 });

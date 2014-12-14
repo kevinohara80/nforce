@@ -1,3 +1,5 @@
+/* jshint -W030 */
+
 var Record = require('../lib/record');
 var should = require('should');
 
@@ -10,7 +12,7 @@ var accData = {
   Industry: 'Technology'
 };
 
-describe('lib/record', function(){ 
+describe('lib/record', function(){
 
   beforeEach(function(done){
     done();
@@ -58,11 +60,11 @@ describe('lib/record', function(){
       acc._previous.should.be.an.Object;
       Object.keys(acc._previous).length.should.equal(0);
     });
-  
+
     it('should allow me to set properties', function() {
-      
+
     });
-  
+
   });
 
   describe('#get', function() {
@@ -151,7 +153,7 @@ describe('lib/record', function(){
       });
       acc.getId().should.equal('abc123');
     });
-    
+
   });
 
   describe('#setExternalId', function() {
@@ -172,7 +174,7 @@ describe('lib/record', function(){
       acc.setExternalId('Field__c', '12312k21l3j21lk3j1');
       acc.getExternalId().should.equal('12312k21l3j21lk3j1');
     });
-    
+
   });
 
   describe('#getExternalIdField', function() {
@@ -182,7 +184,7 @@ describe('lib/record', function(){
       acc.setExternalId('Field__c', '12312k21l3j21lk3j1');
       acc.getExternalIdField().should.equal('field__c');
     });
-    
+
   });
 
   describe('#getUrl', function() {
@@ -197,7 +199,7 @@ describe('lib/record', function(){
       });
       acc.getUrl().should.equal('http://www.salesforce.com');
     });
-    
+
   });
 
   describe('#hasChanged', function() {
@@ -336,5 +338,5 @@ describe('lib/record', function(){
     });
 
   });
-  
+
 });
