@@ -54,7 +54,7 @@ var Connection = function(opts) {
 
   // convert option values
 
-  opts.apiVersion = opts.apiVersion.toString().toLowerCase().replace('v', '').replace('\.0', '');
+  opts.apiVersion = opts.apiVersion.toString().toLowerCase().replace('v', '').replace('.0', '');
   opts.environment = opts.environment.toLowerCase();
   opts.mode = opts.mode.toLowerCase();
 
@@ -107,7 +107,7 @@ var Connection = function(opts) {
     });
   }
 
-}
+};
 
 // argument parsing
 
@@ -127,7 +127,7 @@ Connection.prototype._getOpts = function(d, c) {
     data.oauth = this.oauth;
   }
   return data;
-}
+};
 
 // authentication methods
 
@@ -139,7 +139,7 @@ Connection.prototype.getAuthUri = function(opts) {
     'response_type': opts.responseType || 'code',
     'client_id': self.clientId,
     'redirect_uri': self.redirectUri
-  }
+  };
   if(opts.display) {
     urlOpts.display = opts.display.toLowerCase();
   }
@@ -159,7 +159,7 @@ Connection.prototype.getAuthUri = function(opts) {
   } else {
     return AUTH_ENDPOINT + '?' + qs.stringify(urlOpts);
   }
-}
+};
 
 Connection.prototype.authenticate = function(data, callback) {
   var self = this;
@@ -168,26 +168,26 @@ Connection.prototype.authenticate = function(data, callback) {
   opts.method = 'POST';
   opts.headers = {
     'Content-Type': 'application/x-www-form-urlencoded'
-  }
+  };
   var bopts = {
-    'client_id': self.clientId,
-    'client_secret': self.clientSecret
+    client_id: self.clientId,
+    client_secret: self.clientSecret
   };
   if(opts.code) {
-    bopts['grant_type'] = 'authorization_code';
-    bopts['code'] = opts.code;
-    bopts['redirect_uri'] = self.redirectUri;
+    bopts.grant_type = 'authorization_code';
+    bopts.code = opts.code;
+    bopts.redirect_uri = self.redirectUri;
   } else if(opts.username && opts.password) {
-    bopts['grant_type'] = 'password';
-    bopts['username'] = opts.username;
-    bopts['password'] = opts.password;
+    bopts.grant_type = 'password';
+    bopts.username = opts.username;
+    bopts.password = opts.password;
     if(opts.securityToken) {
-      bopts['password'] = bopts['password'] + opts.securityToken;
+      bopts.password = bopts.password + opts.securityToken;
     }
   }
   opts.body = qs.stringify(bopts);
   return this._apiAuthRequest(opts, opts.callback);
-}
+};
 
 Connection.prototype.refreshToken = function(data, callback) {
   var self = this;
@@ -204,17 +204,17 @@ Connection.prototype.refreshToken = function(data, callback) {
     'grant_type': 'refresh_token',
     'redirect_uri': this.redirectUri,
     'refresh_token': opts.oauth.refresh_token
-  }
+  };
 
   // check for clientSecret and include if found
   if(this.clientSecret) {
-    refreshOpts['client_secret'] = this.clientSecret;
+    refreshOpts.client_secret = this.clientSecret;
   }
 
   opts.body = qs.stringify(refreshOpts);
   opts.headers = {
     'Content-Type': 'application/x-www-form-urlencoded'
-  }
+  };
 
   this._apiAuthRequest(opts, function(err, res) {
     if(err) return resolver.reject(err);
@@ -231,7 +231,7 @@ Connection.prototype.refreshToken = function(data, callback) {
   });
 
   return resolver.promise;
-}
+};
 
 Connection.prototype.revokeToken = function(data, callback) {
   var opts = this._getOpts(data, callback);
@@ -244,8 +244,8 @@ Connection.prototype.revokeToken = function(data, callback) {
   if(opts.callbackParam) {
     opts.uri += '&callback=' + opts.callbackParam;
   }
-  return this._apiAuthRequest(opts, opts.callback)
-}
+  return this._apiAuthRequest(opts, opts.callback);
+};
 
 Connection.prototype.getPasswordStatus = function(data, callback) {
   var opts = this._getOpts(data, callback);
@@ -271,21 +271,21 @@ Connection.prototype.getIdentity = function(data, callback) {
   opts.uri = opts.oauth.id;
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
-}
+};
 
 Connection.prototype.getVersions = function(callback) {
   var opts = this._getOpts({}, callback);
-  opts.uri = 'http://na1.salesforce.com/services/data/',
+  opts.uri = 'http://na1.salesforce.com/services/data/';
   opts.method = 'GET';
   return this._apiAuthRequest(opts, callback);
-}
+};
 
 Connection.prototype.getResources = function(data, callback) {
   var opts = this._getOpts(data, callback);
   opts.resource = '/';
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
-}
+};
 
 Connection.prototype.getSObjects = function(data, callback) {
   var self = this;
@@ -293,21 +293,21 @@ Connection.prototype.getSObjects = function(data, callback) {
   opts.resource = '/sobjects';
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
-}
+};
 
 Connection.prototype.getMetadata = function(data, callback) {
   var opts = this._getOpts(data, callback);
   opts.resource = '/sobjects/' + opts.type;
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
-}
+};
 
 Connection.prototype.getDescribe = function(data, callback) {
   var opts = this._getOpts(data, callback);
   opts.resource = '/sobjects/' + opts.type + '/describe';
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
-}
+};
 
 Connection.prototype.insert = function(data, callback) {
   var opts = this._getOpts(data, callback);
@@ -320,7 +320,7 @@ Connection.prototype.insert = function(data, callback) {
     opts.body = JSON.stringify(opts.sobject._getPayload(false));
   }
   return this._apiRequest(opts, opts.callback);
-}
+};
 
 Connection.prototype.update = function(data, callback) {
   var opts = this._getOpts(data, callback);
@@ -334,7 +334,7 @@ Connection.prototype.update = function(data, callback) {
     opts.body = JSON.stringify(opts.sobject._getPayload(true));
   }
   return this._apiRequest(opts, opts.callback);
-}
+};
 
 Connection.prototype.upsert = function(data, callback) {
   var opts = this._getOpts(data, callback);
@@ -345,7 +345,7 @@ Connection.prototype.upsert = function(data, callback) {
   opts.method = 'PATCH';
   opts.body = JSON.stringify(opts.sobject._getPayload(false));
   return this._apiRequest(opts, opts.callback);
-}
+};
 
 Connection.prototype.delete = function(data, callback) {
   var opts = this._getOpts(data, callback);
@@ -354,7 +354,7 @@ Connection.prototype.delete = function(data, callback) {
   opts.resource = '/sobjects/' + type + '/' + id;
   opts.method = 'DELETE';
   return this._apiRequest(opts, opts.callback);
-}
+};
 
 Connection.prototype.getRecord = function(data, callback) {
   var opts = this._getOpts(data, callback);
@@ -369,7 +369,7 @@ Connection.prototype.getRecord = function(data, callback) {
     if(_.isString(opts.fields)) {
       opts.fields = [opts.fields];
     }
-    opts.resource + '?' + qs.stringify({ fields: opts.fields.join() });
+    opts.resource += '?' + qs.stringify({ fields: opts.fields.join() });
   }
 
   this._apiRequest(opts, function(err, resp){
@@ -384,7 +384,7 @@ Connection.prototype.getRecord = function(data, callback) {
   });
 
   return resolver.promise;
-}
+};
 
 // blob methods
 
@@ -408,7 +408,7 @@ Connection.prototype.getBody = function(data, callback) {
     });
     return resolver.promise;
   }
-}
+};
 
 Connection.prototype.getAttachmentBody = function(data, callback) {
   var opts = this._getOpts(data, callback);
@@ -416,7 +416,7 @@ Connection.prototype.getAttachmentBody = function(data, callback) {
   opts.resource = '/sobjects/attachment/' + id + '/body';
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
-}
+};
 
 Connection.prototype.getDocumentBody = function(data, callback) {
   var opts = this._getOpts(data, callback);
@@ -424,7 +424,7 @@ Connection.prototype.getDocumentBody = function(data, callback) {
   opts.resource = '/sobjects/document/' + id + '/body';
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
-}
+};
 
 Connection.prototype.getContentVersionBody = function(data, callback) {
   var opts = this._getOpts(data, callback);
@@ -432,7 +432,7 @@ Connection.prototype.getContentVersionBody = function(data, callback) {
   opts.resource = '/sobjects/contentversion/' + id + '/body';
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
-}
+};
 
 Connection.prototype._queryHandler = function(data, callback) {
   var self = this;
@@ -452,7 +452,7 @@ Connection.prototype._queryHandler = function(data, callback) {
 
   opts.qs = {
     q: opts.query
-  }
+  };
 
   function handleResults(err, resp) {
     if(err) {
@@ -487,13 +487,13 @@ Connection.prototype.query = function(data, callback) {
   var opts = this._getOpts(data, callback);
   opts.all = false;
   return this._queryHandler(opts, opts.callback);
-}
+};
 
 Connection.prototype.queryAll = function(data, callback) {
   var opts = this._getOpts(data, callback);
   opts.includeDeleted = true;
   return this._queryHandler(opts, opts.callback);
-}
+};
 
 Connection.prototype.search = function(data, callback) {
   var opts = _.defaults(this._getOpts(data, callback), {
@@ -522,14 +522,14 @@ Connection.prototype.search = function(data, callback) {
   });
 
   return resolver.promise;
-}
+};
 
 Connection.prototype.getUrl = function(data, callback) {
   var opts = this._getOpts(data, callback);
   opts.uri = opts.oauth.instance_url + data.url;
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
-}
+};
 
 // apex rest
 
@@ -542,7 +542,7 @@ Connection.prototype.apexRest = function(data, callback) {
     opts.qs = opts.urlParams;
   }
   return this._apiRequest(opts, opts.callback);
-}
+};
 
 // streaming methods
 
@@ -573,7 +573,7 @@ Connection.prototype.stream = function(data) {
   str.client = client;
 
   return str;
-}
+};
 
 // express middleware
 
@@ -611,7 +611,7 @@ Connection.prototype.expressOAuth = function(opts) {
             // not sure how to handle the error right now.
             if(opts.onError) {
               // need to dump the error messages into the querystring
-              res.redirect(opts.onError)
+              res.redirect(opts.onError);
             } else {
               next();
             }
@@ -622,8 +622,8 @@ Connection.prototype.expressOAuth = function(opts) {
     } else {
       next();
     }
-  }
-}
+  };
+};
 
 Connection.prototype._apiAuthRequest = function(opts, callback) {
 
@@ -666,7 +666,7 @@ Connection.prototype._apiAuthRequest = function(opts, callback) {
   });
 
   return resolver.promise;
-}
+};
 
 Connection.prototype._apiRequest = function(opts, callback) {
 
@@ -696,10 +696,12 @@ Connection.prototype._apiRequest = function(opts, callback) {
     if(!opts.resource || opts.resource.charAt(0) !== '/') {
       opts.resource = '/' + (opts.resource || '');
     }
-    ropts.uri = opts.oauth.instance_url
-      + '/services/data/'
-      + this.apiVersion
-      + opts.resource;
+    ropts.uri = [
+      opts.oauth.instance_url,
+      '/services/data/',
+      this.apiVersion,
+      opts.resource
+    ].join('');
   }
 
   ropts.method = opts.method || 'GET';
@@ -838,7 +840,7 @@ Connection.prototype._apiRequest = function(opts, callback) {
   });
 
   return resolver.promise;
-}
+};
 
 // plugin system
 
@@ -856,7 +858,7 @@ Plugin.prototype.fn = function(fnName, fn) {
     throw new Error('invalid function name provided');
   }
   this._fns[fnName] = fn;
-}
+};
 
 // exports
 
@@ -867,32 +869,32 @@ module.exports.plugin = function(opts) {
     opts = { namespace: opts };
   }
   if(!opts || !opts.namespace) {
-    throw new Error('no namespace provided for plugin')
+    throw new Error('no namespace provided for plugin');
   }
   opts = _.defaults(opts, {
     override: false
   });
-  if(plugins[opts.namespace] && !opts.override === true) {
+  if(plugins[opts.namespace] && opts.override !== true) {
     throw new Error('a plugin with namespace ' + opts.namespace + ' already exists');
   }
   plugins[opts.namespace] = new Plugin(opts);
   return plugins[opts.namespace];
-}
+};
 
 // connection creation
 
 module.exports.createConnection = function(opts) {
   return new Connection(opts);
-}
+};
 
 module.exports.createSObject = function(type, fields) {
   var data = fields || {};
   data.attributes = {
     type: type
-  }
+  };
   var rec = new Record(data);
   return rec;
-}
+};
 
 module.exports.Record = Record;
 module.exports.version = require('./package.json').version;
