@@ -805,8 +805,8 @@ Connection.prototype._apiRequest = function(opts, callback) {
         e.statusCode = res.statusCode;
 
         // auto-refresh support
-        if(e.errorCode && (e.errorCode === 'INVALID_SESSION_ID' || e.errorCode === 'Bad_OAuth_Token')
-          && self.autoRefresh === true && opts.oauth.refresh_token && !opts._retryCount) {
+        if(e.errorCode && (e.errorCode === 'INVALID_SESSION_ID' || e.errorCode === 'Bad_OAuth_Token') &&
+            self.autoRefresh === true && opts.oauth.refresh_token && !opts._retryCount) {
           opts._retryCount = 1;
           opts._resolver = resolver;
           Connection.prototype.refreshToken.call(self, { oauth: opts.oauth, executeOnRefresh: true }, function(err2, res2) {

@@ -1,5 +1,4 @@
 {
   "node": true,
-  "sub": true,
-  "laxbreak": true
+  "sub": true
 }
