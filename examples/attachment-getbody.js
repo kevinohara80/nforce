@@ -14,11 +14,7 @@ var org = nforce.createConnection({
 });
 
 var server = http.createServer(function(req, res) {
-  if(req.url === '/pipe') {
-    // example using pipe (stream)
-    // http://localhost:3000/pipe
-    org.getAttachmentBody({ id: attId, oauth: oauth }).pipe(res);
-  } else if(req.url === '/') {
+  if(req.url === '/') {
     // example using a callback
     // http://localhost:3000/
     org.getAttachmentBody({ id: attId, oauth: oauth }, function(err, resp) {
