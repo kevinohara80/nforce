@@ -102,10 +102,42 @@ var Connection = function(opts) {
       _.forOwn(self[pname], function(fn, key) {
         self[pname][key] = _.bind(self[pname][key], self);
       });
-
     });
   }
+};
 
+// auth getters/setters
+
+Connection.prototype.getOAuth = function() {
+  return this.oauth;
+};
+
+Connection.prototype.setOAuth = function(oauth) {
+  this.oauth = oauth;
+};
+
+Connection.prototype.getUsername = function() {
+  return this.username;
+};
+
+Connection.prototype.setUsername = function(username) {
+  this.username = username;
+};
+
+Connection.prototype.getPassword = function() {
+  return this.password;
+};
+
+Connection.prototype.setPassword = function(password) {
+  this.password = password;
+};
+
+Connection.prototype.getSecurityToken = function() {
+  return this.securityToken;
+};
+
+Connection.prototype.setSecurityToken = function(token) {
+  this.securityToken = token;
 };
 
 // argument parsing
@@ -199,9 +231,9 @@ Connection.prototype.refreshToken = function(data, callback) {
   opts.method = 'POST';
 
   var refreshOpts = {
-    'client_id': this.clientId,
-    'grant_type': 'refresh_token',
-    'redirect_uri': this.redirectUri,
+    'client_id':     this.clientId,
+    'grant_type':    'refresh_token',
+    'redirect_uri':  this.redirectUri,
     'refresh_token': opts.oauth.refresh_token
   };
 
