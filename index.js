@@ -32,7 +32,6 @@ var API_VERSIONS       = [
 var plugins = {};
 
 // nforce connection object
-
 var Connection = function(opts) {
   var self = this;
 
@@ -48,11 +47,14 @@ var Connection = function(opts) {
     gzip:          false,
     autoRefresh:   false,
     onRefresh:     undefined,
-    timeout:       undefined
+    timeout:       undefined,
+    oauth:         undefined,
+    username:      undefined,
+    password:      undefined,
+    securityToken: undefined
   });
 
   // convert option values
-
   opts.apiVersion = opts.apiVersion.toString().toLowerCase().replace('v', '').replace('.0', '');
   opts.environment = opts.environment.toLowerCase();
   opts.mode = opts.mode.toLowerCase();
@@ -60,7 +62,6 @@ var Connection = function(opts) {
   self = _.assign(this, opts);
 
   // validate options
-
   if(!_.isString(this.clientId)) throw new Error('invalid or missing clientId');
   if(!_.isString(this.redirectUri)) throw new Error('invalid or missing redirectUri');
   if(!_.isString(this.loginUri)) throw new Error('invalid or missing loginUri');
@@ -76,7 +77,6 @@ var Connection = function(opts) {
   if(this.timeout && !_.isNumber(this.timeout)) throw new Error('timeout must be a number');
 
   // parse api version
-
   try {
     this.apiVersion = 'v' + parseInt(this.apiVersion, 10) + '.0';
   } catch (err) {
@@ -87,11 +87,9 @@ var Connection = function(opts) {
   }
 
   // parse timeout into integer in case it's a floating point.
-
   this.timeout = parseInt(this.timeout, 10);
 
   // load plugins
-
   if(opts.plugins && _.isArray(opts.plugins)) {
     opts.plugins.forEach(function(pname) {
       if(!plugins[pname]) throw new Error('plugin ' + pname + ' not found');
@@ -194,16 +192,23 @@ Connection.prototype.getAuthUri = function(opts) {
 
 Connection.prototype.authenticate = function(data, callback) {
   var self = this;
-  var opts = this._getOpts(data, callback);
+  var opts = _.defaults(this._getOpts(data, callback), {
+    executeOnRefresh: false,
+    oauth: {}
+  });
+  var resolver = promises.createResolver(opts.callback);
+
   opts.uri = (self.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
   opts.method = 'POST';
   opts.headers = {
     'Content-Type': 'application/x-www-form-urlencoded'
   };
+
   var bopts = {
     client_id: self.clientId,
     client_secret: self.clientSecret
   };
+
   if(opts.code) {
     bopts.grant_type = 'authorization_code';
     bopts.code = opts.code;
@@ -217,7 +222,22 @@ Connection.prototype.authenticate = function(data, callback) {
     }
   }
   opts.body = qs.stringify(bopts);
-  return this._apiAuthRequest(opts, opts.callback);
+
+  this._apiAuthRequest(opts, function(err, res) {
+    if(err) return resolver.reject(err);
+    var old = _.clone(opts.oauth);
+    _.assign(opts.oauth, res);
+    if(self.onRefresh && opts.executeOnRefresh === true) {
+      self.onRefresh.call(self, opts.oauth, old, function(err3){
+        if(err3) return resolver.reject(err3);
+        else return resolver.resolve(opts.oauth);
+      });
+    } else {
+      resolver.resolve(opts.oauth);
+    }
+  });
+
+  return resolver.promise;
 };
 
 Connection.prototype.refreshToken = function(data, callback) {
@@ -659,6 +679,45 @@ Connection.prototype.expressOAuth = function(opts) {
   };
 };
 
+Connection.prototype.autoRefresh = function(data, callback) {
+  var self = this;
+  var opts = _.defaults(this._getOpts(data, callback), {
+    executeOnRefresh: true
+  });
+  var resolver = promises.createResolver(opts.callback);
+
+  var refreshOpts = {
+    oauth: opts.oauth,
+    executeOnRefresh: opts.executeOnRefresh
+  };
+
+  // auto-refresh: refresh token
+  if(opts.oauth.refresh_token) {
+    Connection.prototype.refreshToken.call(self, refreshOpts, function(err, res) {
+      if(err) {
+        return resolver.reject(err);
+      } else {
+        return resolver.resolve(res);
+      }
+    });
+    // auto-refresh: un/pw
+  } else {
+    refreshOpts.username      = opts.oauth.username;
+    refreshOpts.password      = opts.oauth.password;
+    refreshOpts.securityToken = opts.oauth.securityToken;
+
+    Connection.prototype.authenticate.call(self, refreshOpts, function(err, res) {
+      if(err) {
+        return resolver.reject(err);
+      } else {
+        return resolver.resolve(res);
+      }
+    });
+  }
+
+  return resolver.promise;
+};
+
 Connection.prototype._apiAuthRequest = function(opts, callback) {
 
   var self = this;
@@ -687,8 +746,13 @@ Connection.prototype._apiAuthRequest = function(opts, callback) {
 
     if(res.statusCode === 200) {
       // detect oauth response for single mode
-      if(self.mode === 'single' && body.access_token) {
-        self.oauth = body;
+      if(body.access_token) {
+        body.username = opts.username;
+        body.password = opts.password;
+        body.securityToken = opts.securityToken;
+        if(self.mode === 'single') {
+          self.oauth = body;
+        }
       }
       return resolver.resolve(body);
     } else {
@@ -718,10 +782,10 @@ Connection.prototype._apiRequest = function(opts, callback) {
    * - headers
    */
 
-  var self = this;
-  var ropts = {};
+  var self     = this;
+  var ropts    = {};
   var resolver = opts._resolver || promises.createResolver(callback);
-  var sobject = opts.sobject;
+  var sobject  = opts.sobject;
 
   // construct uri
 
@@ -788,9 +852,6 @@ Connection.prototype._apiRequest = function(opts, callback) {
     ropts.timeout = this.timeout;
   }
 
-  console.log(ropts.uri);
-
-
   // initiate the request
   request(ropts, function(err, res, body) {
 
@@ -802,15 +863,17 @@ Connection.prototype._apiRequest = function(opts, callback) {
 
     // salesforce returned no body but an error in the header
     if(!body && res.headers && res.headers.error) {
-      return resolver.reject(new Error(res.headers.error), null);
+      var e = new Error(res.headers.error);
+      e.statusCode = res.statusCode;
+      return resolver.reject(e);
     }
 
-    var processResponse = function(data) {
+    function processResponse() {
       // attempt to parse the json now
       if(util.isJsonResponse(res)) {
-        if(data) {
+        if(body) {
           try {
-            data = JSON.parse(data);
+            body = JSON.parse(body);
           } catch (e) {
             return resolver.reject(errors.invalidJson());
           }
@@ -824,59 +887,66 @@ Connection.prototype._apiRequest = function(opts, callback) {
           if(sobject._reset) {
             sobject._reset();
           }
-          if(data && _.isObject(data) && data.id) {
-            sobject._fields.id = data.id;
+          if(body && _.isObject(body) && body.id) {
+            sobject._fields.id = body.id;
           }
         }
-        return resolver.resolve(data);
+        return resolver.resolve(body);
       }
 
-      // salesforce returned an error with a body
-      if (data) {
-        var e;
-        if (Array.isArray(data) && data.length > 0) {
-          e = new Error(data[0].message);
-          e.errorCode = data[0].errorCode;
-          e.messageBody = data[0].message;
-        } else {
-          //  didn't get a json response back -- just a simple string as the body
-          e = new Error(data);
-          e.errorCode = data;
-          e.messageBody = data;
-        }
-        e.statusCode = res.statusCode;
+      // error handling
+      var e;
 
-        // auto-refresh support
-        if(e.errorCode && (e.errorCode === 'INVALID_SESSION_ID' || e.errorCode === 'Bad_OAuth_Token') &&
-            self.autoRefresh === true && opts.oauth.refresh_token && !opts._retryCount) {
-          opts._retryCount = 1;
-          opts._resolver = resolver;
-          Connection.prototype.refreshToken.call(self, { oauth: opts.oauth, executeOnRefresh: true }, function(err2, res2) {
-            if(err2) {
-              return resolver.reject(err2);
-            } else {
-              return Connection.prototype._apiRequest.call(self, opts);
-            }
-          });
-        } else {
-          return resolver.reject(e);
-        }
+      // error: no body
+      if(!body) {
+        e = new Error('Salesforce returned no body and status code ' + res.statusCode);
+      // error: array body
+      } else if (_.isArray(body) && body.length > 0) {
+        e = new Error(body[0].message);
+        e.errorCode = body[0].errorCode;
+        e.messageBody = body[0].message;
+      // error: string body
+      } else {
+        e = new Error(body);
+        e.errorCode = body;
+        e.messageBody = body;
+      }
+
+      e.statusCode = res.statusCode;
+
+      // confirm auto-refresh support
+      if(e.errorCode &&
+          (e.errorCode === 'INVALID_SESSION_ID' || e.errorCode === 'Bad_OAuth_Token') &&
+          self.autoRefresh === true &&
+          (opts.oauth.refresh_token || (opts.oauth.username && opts.oauth.password)) &&
+          !opts._retryCount) {
+
+        // attempt the autorefresh
+        Connection.prototype.autoRefresh.call(self, opts, function(err2, res2) {
+          if(err2) {
+            return resolver.reject(err2);
+          } else {
+            opts._retryCount = 1;
+            opts._resolver = resolver;
+            return Connection.prototype._apiRequest.call(self, opts);
+          }
+        });
 
       } else {
-        // we don't know what happened
-        return resolver.reject(new Error('Salesforce returned no body and status code ' + res.statusCode));
+        return resolver.reject(e);
       }
+    }
 
-    };
-
+    // check for gzip compression
     if(res.headers && res.headers['content-encoding'] === 'gzip' && body) {
       //  response is compressed - decompress it
-      zlib.gunzip(body, function(err, data) {
+      zlib.gunzip(body, function(err, decompressed) {
         if (err) return resolver.reject(err);
-        processResponse(data);
+        body = decompressed;
+        processResponse();
       });
     } else {
-      processResponse(body);
+      processResponse();
     }
 
   });
@@ -938,5 +1008,5 @@ module.exports.createSObject = function(type, fields) {
   return rec;
 };
 
-module.exports.Record = Record;
+module.exports.Record  = Record;
 module.exports.version = require('./package.json').version;
