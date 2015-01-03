@@ -15,7 +15,7 @@ org.authenticate({ username: sfuser, password: sfpass}, function(err, oauth) {
     console.error('unable to authenticate to sfdc');
   } else {
     var docPath = path.resolve(__dirname, './documents/testdoc.docx');
-    
+
     var doc = nforce.createSObject('Document', {
       Name: 'testdoc',
       Description: 'This is a test doc',
@@ -27,14 +27,12 @@ org.authenticate({ username: sfuser, password: sfpass}, function(err, oauth) {
       }
     });
 
-    org.insert(doc, oauth, function(err, resp) {
+    org.insert({ sobject: doc, oauth: oauth }, function(err, resp) {
       if(err) {
         return console.error(err);
       } else {
         return console.log(resp);
       }
     });
-
   }
-
 });

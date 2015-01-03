@@ -7,6 +7,7 @@ var org = nforce.createConnection({
   clientSecret: '9154137956044345875',
   redirectUri: 'http://localhost:3000/oauth/_callback',
   autoRefresh: true,
+  mode: 'single',
   onRefresh: function(newOAuth, oldOauth, cb) {
     console.log('onRefresh called');
     cb();

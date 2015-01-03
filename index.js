@@ -213,14 +213,20 @@ Connection.prototype.authenticate = function(data, callback) {
     bopts.grant_type = 'authorization_code';
     bopts.code = opts.code;
     bopts.redirect_uri = self.redirectUri;
-  } else if(opts.username && opts.password) {
+  } else if(opts.username || this.username) {
     bopts.grant_type = 'password';
-    bopts.username = opts.username;
-    bopts.password = opts.password;
-    if(opts.securityToken) {
-      bopts.password = bopts.password + opts.securityToken;
+    bopts.username = opts.username || this.getUsername();
+    bopts.password = opts.password || this.getPassword();
+    if(opts.securityToken || this.getSecurityToken()) {
+      bopts.password += opts.securityToken || this.getSecurityToken();
+    }
+    if(this.mode === 'single') {
+      this.setUsername(bopts.username);
+      this.setPassword(bopts.password);
+      this.setSecurityToken(bopts.securityToken);
     }
   }
+
   opts.body = qs.stringify(bopts);
 
   this._apiAuthRequest(opts, function(err, res) {
@@ -702,9 +708,9 @@ Connection.prototype.autoRefresh = function(data, callback) {
     });
     // auto-refresh: un/pw
   } else {
-    refreshOpts.username      = opts.oauth.username;
-    refreshOpts.password      = opts.oauth.password;
-    refreshOpts.securityToken = opts.oauth.securityToken;
+    // refreshOpts.username      = opts.oauth.username;
+    // refreshOpts.password      = opts.oauth.password;
+    // refreshOpts.securityToken = opts.oauth.securityToken;
 
     Connection.prototype.authenticate.call(self, refreshOpts, function(err, res) {
       if(err) {
@@ -747,9 +753,6 @@ Connection.prototype._apiAuthRequest = function(opts, callback) {
     if(res.statusCode === 200) {
       // detect oauth response for single mode
       if(body.access_token) {
-        body.username = opts.username;
-        body.password = opts.password;
-        body.securityToken = opts.securityToken;
         if(self.mode === 'single') {
           self.oauth = body;
         }
@@ -803,43 +806,49 @@ Connection.prototype._apiRequest = function(opts, callback) {
     ].join('');
   }
 
+  // set blob mode
   if(opts.blob === true) {
     ropts.encoding = null;
   }
 
   ropts.method = opts.method || 'GET';
 
-  // set headers
+  // set accept headers
+  ropts.headers = {
+    'Accept': 'application/json;charset=UTF-8'
+  };
 
-  ropts.headers = {};
-
-  ropts.headers['Accept'] = 'application/json;charset=UTF-8';
-
+  // set oauth header
   if(opts.oauth) {
     ropts.headers['Authorization'] = 'Bearer ' + opts.oauth.access_token;
   }
 
+  // set gzip headers
   if(opts.method === 'GET' && this.gzip === true) {
     ropts.headers['Accept-Encoding'] = 'gzip';
     ropts.encoding = null;
   }
 
-  // set body and content-type
-
-  if(opts.body) {
-    ropts.body = opts.body;
-    if(opts.multipart) {
-      ropts.multipart = opts.multipart;
-      ropts.headers['content-type'] = 'multipart/form-data';
-    } else {
-      ropts.headers['content-type'] = 'application/json';
-    }
+  // set content-type
+  if(opts.multipart) {
+    ropts.headers['content-type'] = 'multipart/form-data';
+    ropts.multipart = opts.multipart;
+    ropts.preambleCRLF = true;
+    ropts.postambleCRLF = true;
+  } else {
+    ropts.headers['content-type'] = 'application/json';
   }
 
+  // set additional user-supplied headers
   if(opts.headers) {
     for(var item in opts.headers) {
       ropts.headers[item] = opts.headers[item];
     }
+  }
+
+  // set body
+  if(opts.body) {
+    ropts.body = opts.body;
   }
 
   // process qs
@@ -918,7 +927,7 @@ Connection.prototype._apiRequest = function(opts, callback) {
       if(e.errorCode &&
           (e.errorCode === 'INVALID_SESSION_ID' || e.errorCode === 'Bad_OAuth_Token') &&
           self.autoRefresh === true &&
-          (opts.oauth.refresh_token || (opts.oauth.username && opts.oauth.password)) &&
+          (opts.oauth.refresh_token || (self.getUsername() && self.getPassword())) &&
           !opts._retryCount) {
 
         // attempt the autorefresh
