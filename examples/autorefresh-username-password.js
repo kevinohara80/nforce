@@ -26,7 +26,6 @@ org.authenticate({ username: sfuser, password: sfpass }, function(err, oauth) {
         console.log(err);
       } else {
         console.log('query ran...looks good');
-        console.log(res);
       }
     });
   });
