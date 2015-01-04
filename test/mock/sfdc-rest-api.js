@@ -18,7 +18,7 @@ module.exports.start = function(port, cb) {
   if(!port) port = process.env.PORT || 3000;
 
   server = http.createServer(function(req, res) {
-      
+
     lastRequest = req;
     lastRequest.body = '';
 
@@ -43,13 +43,13 @@ module.exports.start = function(port, cb) {
           res.write(nextResponse.body, 'utf8')
         }
       } else {
-        res.writeHead(200, { 
+        res.writeHead(200, {
           'Content-Type': 'application/json'
         });
-      } 
+      }
       res.end();
     });
- 
+
   });
 
   server.on('listening', function() {
@@ -68,17 +68,20 @@ module.exports.start = function(port, cb) {
   });
 
   server.listen(port, cb);
-
 }
 
 // return an example client
-module.exports.getClient = function() {
+module.exports.getClient = function(opts) {
+  opts = opts || {};
   return {
     clientId: 'ADFJSD234ADF765SFG55FD54S',
     clientSecret: 'adsfkdsalfajdskfa',
     redirectUri: 'http://localhost:' + port + '/oauth/_callback',
     loginUri: 'http://localhost:' + port + '/login/uri',
-    apiVersion: '27.0'
+    apiVersion: opts.apiVersion || '27.0',
+    mode: opts.mode || 'multi',
+    autoRefresh: opts.autoRefresh || false,
+    onRefresh: opts.onRefresh || undefined,
   }
 }
 
