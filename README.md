@@ -245,7 +245,7 @@ org.query({ query: 'SELECT Id FROM Lead LIMIT 1' }, function(err, res) {
 **nforce** provides an optional, built-in function for auto-refreshing access
 tokens when able it's able to. This requires you are using the web-server flow
 and you've requested the right scope that returns you a refresh_token. The
-username/password flow is also supported.
+username/password flow is also supported if using single-user mode.
 
 To enable auto-refreshes, you just need to set the `autoRefresh` argument when
 creating your connection...
