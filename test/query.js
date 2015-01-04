@@ -11,6 +11,11 @@ var oauth     = api.getOAuth();
 
 orgSingle.setOAuth(oauth);
 
+function verifyAccessToken() {
+  api.getLastRequest().headers
+    .should.have.property('authorization', 'Bearer ' + oauth.access_token);
+}
+
 describe('query', function(){
 
   // set up mock server
@@ -73,6 +78,7 @@ describe('query', function(){
     it('should work in multi-user mode', function(done){
       orgMulti.queryAll({ query: testQuery, oauth: oauth }, function(err, res) {
         api.getLastRequest().url.should.equal(expected);
+        verifyAccessToken();
         done();
       });
     });
@@ -80,7 +86,7 @@ describe('query', function(){
     it('should work in multi-user mode with promises', function(done){
       orgMulti.queryAll({ query: testQuery, oauth: oauth }).then(function(res) {
         api.getLastRequest().url.should.equal(expected);
-        api.getLastRequest().headers.should.have.property('authorization', 'Bearer ' + oauth.access_token);
+        verifyAccessToken();
         done();
       }).error(function(err){
         should.not.exist(err);
@@ -91,6 +97,7 @@ describe('query', function(){
     it('should work in single-user mode', function(done){
       orgSingle.queryAll({ query: testQuery }, function(err, res) {
         api.getLastRequest().url.should.equal(expected);
+        verifyAccessToken();
         done();
       });
     });
@@ -98,6 +105,7 @@ describe('query', function(){
     it('should work in single-user mode with promises', function(done){
       orgSingle.queryAll({ query: testQuery }).then(function(res) {
         api.getLastRequest().url.should.equal(expected);
+        verifyAccessToken();
         done();
       }).error(function(err){
         should.not.exist(err);
@@ -108,6 +116,7 @@ describe('query', function(){
     it('should allow a string query in single-user mode', function(done) {
       orgSingle.queryAll(testQuery, function(err, res) {
         api.getLastRequest().url.should.equal(expected);
+        verifyAccessToken();
         done();
       });
     });

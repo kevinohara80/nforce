@@ -376,14 +376,18 @@ Connection.prototype.getSObjects = function(data, callback) {
 };
 
 Connection.prototype.getMetadata = function(data, callback) {
-  var opts = this._getOpts(data, callback);
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'type'
+  });
   opts.resource = '/sobjects/' + opts.type;
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
 };
 
 Connection.prototype.getDescribe = function(data, callback) {
-  var opts = this._getOpts(data, callback);
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'type'
+  });
   opts.resource = '/sobjects/' + opts.type + '/describe';
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
@@ -620,17 +624,19 @@ Connection.prototype.search = function(data, callback) {
 };
 
 Connection.prototype.getUrl = function(data, callback) {
-  var opts = this._getOpts(data, callback);
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'url'
+  });
   opts.uri = opts.oauth.instance_url + data.url;
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
 };
 
 // apex rest
-
 Connection.prototype.apexRest = function(data, callback) {
-  // need to specify resource
-  var opts = this._getOpts(data, callback);
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'uri'
+  });
   opts.uri = opts.oauth.instance_url + '/services/apexrest/' + data.uri;
   opts.method = opts.method || 'GET';
   if(opts.urlParams) {
@@ -640,20 +646,18 @@ Connection.prototype.apexRest = function(data, callback) {
 };
 
 // streaming methods
-
 Connection.prototype.stream = function(data) {
-  var that = this;
-  var opts = this._getOpts(data, null);
-  var client, endpoint;
+  var opts = this._getOpts(data, null, {
+    singleProp: 'topic'
+  });
 
-  var str = new FDCStream();
+  var str      = new FDCStream();
+  var endpoint = opts.oauth.instance_url + '/cometd/' + this.apiVersion.substring(1);
+  var client   = new faye.Client(endpoint, {});
 
-  endpoint = opts.oauth.instance_url + '/cometd/' + that.apiVersion.substring(1);
+  client.setHeader('Authorization', 'Bearer ' + opts.oauth.access_token);
 
-  client = new faye.Client(endpoint, {});
-  client.setHeader('Authorization', 'OAuth ' + opts.oauth.access_token);
-
-  sub = client.subscribe('/topic/' + opts.topic, function(d){
+  var sub = client.subscribe('/topic/' + opts.topic, function(d){
     str.write(d);
   });
 
@@ -722,9 +726,13 @@ Connection.prototype.expressOAuth = function(opts) {
 
 Connection.prototype.autoRefresh = function(data, callback) {
   var self = this;
-  var opts = _.defaults(this._getOpts(data, callback), {
-    executeOnRefresh: true
+
+  var opts = this._getOpts(data, callback, {
+    defaults: {
+      executeOnRefresh: true
+    }
   });
+
   var resolver = promises.createResolver(opts.callback);
 
   var refreshOpts = {
@@ -743,10 +751,6 @@ Connection.prototype.autoRefresh = function(data, callback) {
     });
     // auto-refresh: un/pw
   } else {
-    // refreshOpts.username      = opts.oauth.username;
-    // refreshOpts.password      = opts.oauth.password;
-    // refreshOpts.securityToken = opts.oauth.securityToken;
-
     Connection.prototype.authenticate.call(self, refreshOpts, function(err, res) {
       if(err) {
         return resolver.reject(err);

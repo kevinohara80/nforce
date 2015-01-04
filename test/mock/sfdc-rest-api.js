@@ -1,9 +1,9 @@
-var http        = require('http');
-var port        = process.env.PORT || 3000;
-var lastRequest = null;
-var nextResponse = null;
+var http           = require('http');
+var port           = process.env.PORT || 3000;
+var lastRequest    = null;
+var nextResponse   = null;
 var closeOnRequest = false;
-var isListening = false;
+var isListening    = false;
 
 var sockets = [];
 
