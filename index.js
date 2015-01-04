@@ -105,7 +105,6 @@ var Connection = function(opts) {
 };
 
 // auth getters/setters
-
 Connection.prototype.getOAuth = function() {
   return this.oauth;
 };
@@ -139,27 +138,41 @@ Connection.prototype.setSecurityToken = function(token) {
 };
 
 // argument parsing
+Connection.prototype._getOpts = function(d, c, opts) {
+  var data, cb, dt;
 
-Connection.prototype._getOpts = function(d, c) {
-  var data, callback;
-  if(_.isFunction(c)) {
-    callback = c;
-    data = d;
-  } else if(_.isFunction(d)) {
-    callback = d;
-    data = {};
+  opts = opts || {};
+
+  if(_.isFunction(d)) {
+    cb = d;
+    dt = null;
   } else {
-    data = d || {};
+    cb = c;
+    dt = d;
   }
-  data.callback = callback;
+
+  if(opts.singleProp && dt && !_.isObject(dt)) {
+    data = {};
+    data[opts.singleProp] = dt;
+  } else if(_.isObject(dt)) {
+    data = dt;
+  } else {
+    data = {};
+  }
+
+  data.callback = cb;
+
   if(this.mode === 'single' && !data.oauth) {
     data.oauth = this.oauth;
+  }
+
+  if(opts.defaults && _.isObject(opts.defaults)) {
+    data = _.defaults(data, opts.defaults);
   }
   return data;
 };
 
 // authentication methods
-
 Connection.prototype.getAuthUri = function(opts) {
   if(!opts) opts = {};
   var urlOpts;
@@ -248,9 +261,13 @@ Connection.prototype.authenticate = function(data, callback) {
 
 Connection.prototype.refreshToken = function(data, callback) {
   var self = this;
-  var opts = _.defaults(this._getOpts(data, callback), {
-    executeOnRefresh: false
+
+  var opts = this._getOpts(data, callback, {
+    defaults: {
+      executeOnRefresh: true
+    }
   });
+
   var resolver = promises.createResolver(opts.callback);
 
   opts.uri = (this.environment == 'sandbox') ? this.testLoginUri : this.loginUri;
@@ -291,7 +308,10 @@ Connection.prototype.refreshToken = function(data, callback) {
 };
 
 Connection.prototype.revokeToken = function(data, callback) {
-  var opts = this._getOpts(data, callback);
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'token'
+  });
+
   if(this.environment === 'sandbox') {
     opts.uri = 'https://test.salesforce.com/services/oauth2/revoke';
   } else {
@@ -305,7 +325,10 @@ Connection.prototype.revokeToken = function(data, callback) {
 };
 
 Connection.prototype.getPasswordStatus = function(data, callback) {
-  var opts = this._getOpts(data, callback);
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'id'
+  });
+
   var id = (opts.sobject) ? opts.sobject.getId() : opts.id;
   opts.resource = '/sobjects/user/' + id + '/password';
   opts.method = 'GET';
@@ -331,7 +354,7 @@ Connection.prototype.getIdentity = function(data, callback) {
 };
 
 Connection.prototype.getVersions = function(callback) {
-  var opts = this._getOpts({}, callback);
+  var opts = this._getOpts(null, callback);
   opts.uri = 'http://na1.salesforce.com/services/data/';
   opts.method = 'GET';
   return this._apiAuthRequest(opts, callback);
@@ -497,10 +520,7 @@ Connection.prototype.getContentVersionBody = function(data, callback) {
 Connection.prototype._queryHandler = function(data, callback) {
   var self = this;
   var recs = [];
-  var opts = _.defaults(this._getOpts(data, callback), {
-    fetchAll: false,
-    raw: false
-  });
+  var opts = this._getOpts(data, callback);
   var resolver = promises.createResolver(opts.callback);
 
   opts.method = 'GET';
@@ -544,20 +564,35 @@ Connection.prototype._queryHandler = function(data, callback) {
 };
 
 Connection.prototype.query = function(data, callback) {
-  var opts = this._getOpts(data, callback);
-  opts.all = false;
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'query',
+    defaults: {
+      fetchAll: false,
+      includeDeleted: false,
+      raw: false
+    }
+  });
   return this._queryHandler(opts, opts.callback);
 };
 
 Connection.prototype.queryAll = function(data, callback) {
-  var opts = this._getOpts(data, callback);
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'query',
+    defaults: {
+      fetchAll: false,
+      raw: false
+    }
+  });
   opts.includeDeleted = true;
   return this._queryHandler(opts, opts.callback);
 };
 
 Connection.prototype.search = function(data, callback) {
-  var opts = _.defaults(this._getOpts(data, callback), {
-    raw: false
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'search',
+    defaults: {
+      raw: false
+    }
   });
   var resolver = promises.createResolver(opts.callback);
 
@@ -608,7 +643,7 @@ Connection.prototype.apexRest = function(data, callback) {
 
 Connection.prototype.stream = function(data) {
   var that = this;
-  var opts = this._getOpts(data);
+  var opts = this._getOpts(data, null);
   var client, endpoint;
 
   var str = new FDCStream();
