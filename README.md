@@ -13,7 +13,6 @@ and salesforce.com.
 * Helper OAuth methods
 * Simple streaming
 * Multi-user design with single user mode
-* Express middleware
 * Plugin support
 
 ## Installation
@@ -313,41 +312,6 @@ var org = nforce.createConnection({
 ```
 
 ## Other Features
-
-### Express Middleware
-
-**nforce** has built-in support for
-[express](https://github.com/visionmedia/express) using the express/connect
-middleware system. The middleware handles the oauth callbacks for you and
-automatically stores the OAuth credentials in the user's session. Therefore,
-to use the middleware you must have sessions enabled in your express
-configuration.
-
-```js
-app.configure(function(){
-  app.set('views', __dirname + '/views');
-  app.set('view engine', 'jade');
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(express.cookieParser());
-  app.use(express.session({ secret: 'nforce testing baby' }));
-  app.use(org.expressOAuth({onSuccess: '/home', onError: '/oauth/error'}));  // <--- nforce middleware
-  app.use(app.router);
-  app.use(express.static(__dirname + '/public'));
-});
-```
-
-Once this OAuth flow completes, subsequent requests just need to retrieve the
-OAuth requests from the user's session. Having this OAuth data in the
-session is quite handy.
-
-```js
-// express route
-app.get('ajax/cases', function(req, res) {
-  var q = 'SELECT Id, CaseNumber FROM Cases WHERE IsClosed = false';
-  org.query({ query:q, oauth: req.session.oauth }).pipe(res);
-});
-```
 
 ### Streaming API Responses
 

@@ -713,58 +713,6 @@ Connection.prototype.stream = function(data) {
 };
 
 /*****************************
- * express middleware
- *****************************/
-
-Connection.prototype.expressOAuth = function(opts) {
-  var self = this;
-  var matchUrl = url.parse(this.redirectUri);
-
-  matchUrl.pathname.replace(/\/$/, '');
-
-  if(opts.onSuccess && opts.onSuccess.substring(0,1) !== '/') {
-    opts.onSuccess = '/' + opts.onSuccess;
-  }
-
-  if(opts.onError && opts.onError.substring(0,1) !== '/') {
-    opts.onError = '/' + opts.onError;
-  }
-
-  return function(req, res, next) {
-
-    var reqUrl;
-
-    if(req.session && req.query.code) {
-      reqUrl = req.url.replace(/\?.*/i, '').replace(/\/$/, '');
-      if(matchUrl.pathname == reqUrl) {
-        // its an oauth callback
-        self.authenticate({ code: req.query.code }, function(err, resp){
-          if(!err) {
-            req.session.oauth = resp;
-            if(opts.onSuccess) {
-              res.redirect(opts.onSuccess);
-            } else {
-              res.redirect('/');
-            }
-          } else {
-            // not sure how to handle the error right now.
-            if(opts.onError) {
-              // need to dump the error messages into the querystring
-              res.redirect(opts.onError);
-            } else {
-              next();
-            }
-          }
-        });
-
-      }
-    } else {
-      next();
-    }
-  };
-};
-
-/*****************************
  * auto-refresh
  *****************************/
 
