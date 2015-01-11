@@ -39,8 +39,8 @@ var org = nforce.createConnection({
 });
 ```
 
-Now we just need to authenticate and get our salesforce OAuth credentials.
-Here is one way to do this in multi-user mode...
+Now we just need to authenticate and get our salesforce OAuth
+credentials. Here is one way to do this in multi-user mode...
 
 ```js
 // multi user mode
@@ -61,8 +61,9 @@ org.authenticate({ username: 'my_test@gmail.com', password: 'mypassword'}, funct
 });
 ```
 
-Now we can go nuts. **nforce** has an salesforce sObject factory method
-that creates records for you. Let's use that and insert a record...
+Now we can go nuts. **nforce** has an salesforce sObject factory
+method that creates records for you. Let's use that and insert a
+record...
 
 ```js
 var acc = nforce.createSObject('Account');
@@ -75,8 +76,8 @@ org.insert({ sobject: acc, oauth: oauth }, function(err, resp){
 });
 ```
 
-If you are in single-user mode, the `oauth` argument can be ommitted since
-it's cached as part of your connection object.
+If you are in single-user mode, the `oauth` argument can be ommitted
+since it's cached as part of your connection object.
 
 ```js
 org.insert({ sobject: acc }, function(err, resp){
@@ -84,12 +85,14 @@ org.insert({ sobject: acc }, function(err, resp){
 });
 ```
 
-Querying and updating records is super easy. **nforce** wraps API-queried
-records in a special object. The object caches field updates that you make
-to the record and allows you to pass the record directly into the update
-method without having to scrub out the unchanged fields. In the example below,
-only the Name and Industry fields will be sent in the update call despite the
-fact that the query returned other fields such as BillingCity and CreatedDate.
+Querying and updating records is super easy. **nforce** wraps
+API-queried records in a special object. The object caches field
+updates that you make to the record and allows you to pass the
+record directly into the update
+method without having to scrub out the unchanged fields. In the
+example below, only the Name and Industry fields will be sent in the
+update call despite the fact that the query returned other fields
+such as BillingCity and CreatedDate.
 
 ```js
 var q = 'SELECT Id, Name, CreatedDate, BillingCity FROM Account WHERE Name = "Spiffy Cleaners" LIMIT 1';
@@ -112,10 +115,10 @@ org.query({ query: q }, function(err, resp){
 
 ## Using the Example Files
 
-Most of the files in the examples directory can be used by simply setting two
-environment variables then running the files. The two environment variables
-are `SFUSER` and `SFPASS` which are your Salesforce.com username and
-passsword, respectively. Example below:
+Most of the files in the examples directory can be used by simply
+setting two environment variables then running the files. The two
+environment variables are `SFUSER` and `SFPASS` which are your
+Salesforce.com username and passsword, respectively. Example below:
 
 ```bash
 $ export SFUSER=myusername@salesforce.com
@@ -125,17 +128,18 @@ $ node examples/crud.js
 
 ## Authentication
 
-**nforce** supports three Salesforce OAuth 2.0 flows, username/password, Web Server and User-Agent.
+**nforce** supports three Salesforce OAuth 2.0 flows,
+username/password, Web Server and User-Agent.
 
 ### Username/Password flow
 
-To request an access token and other oauth information using the username and
-password flow, use the `authenticate()` method and pass in your username,
-password and security token in the options.
+To request an access token and other oauth information using the
+username and password flow, use the `authenticate()` method and pass
+in your username, password and security token in the options.
 
-**Note:** A security token can be generated from the Salesforce dashboard
-under: Account Name > Setup > My Personal Information > Reset My Security
-Token.
+**Note:** A security token can be generated from the Salesforce
+dashboard under: Account Name > Setup > My Personal Information >
+Reset My Security Token.
 
 ```js
 var username      = 'my_test@gmail.com',
@@ -153,30 +157,31 @@ org.authenticate({ username: username, password: password, securityToken: securi
 });
 ```
 
-The Salesforce website suggests appending the security token to the password
-in order to authenticate. This works, but using the `securityToken` parameter
-as shown above is cleaner. Here's why the security token is necessary,
-from the [Salesforce Website][sf]:
+The Salesforce website suggests appending the security token to the
+password in order to authenticate. This works, but using the
+`securityToken` parameter as shown above is cleaner. Here's why the
+security token is necessary, from the [Salesforce Website][sf]:
 
-> The security token is an automatically generated key that must be added to
-the end of the password in order to log in to Salesforce from an untrusted
-network. You must concatenate their password and token when passing the
-request for authentication.
+> The security token is an automatically generated key that must be
+added to the end of the password in order to log in to Salesforce
+from an untrusted network. You must concatenate their password and
+token when passing the request for authentication.
 
 [sf]: http://help.salesforce.com/apex/HTViewHelpDoc?id=remoteaccess_oauth_username_password_flow.htm&language=en_US
 
 ### Web Server Code Flow
 
 To perform an authorization code flow, first redirect users to the
-Authorization URI at Salesforce. **nforce** provides a helper function
-to build this url for you.
+Authorization URI at Salesforce. **nforce** provides a helper
+function to build this url for you.
 
 ```js
 org.getAuthUri();
 ```
 
-Once you get a callback at the Redirect URI that you specify, you need to
-request your access token and other important oauth information by calling
+Once you get a callback at the Redirect URI that you specify, you
+need to request your access token and other important oauth
+information by calling
 `authenticate()` and passing in the "code" that you received.
 
 ```js
@@ -194,9 +199,10 @@ org.authenticate({ code: 'SOMEOAUTHAUTHORIZATIONCODE' }, function(err, resp){
 
 ### User-Agent Flow
 
-The user-agent flow simply redirects to your `redirectUri` after the user
-authenticates and logs in. The `getAuthUri()` method can be used similar
-to the Web Server flow but a responseType property must be set to `token`.
+The user-agent flow simply redirects to your `redirectUri` after the
+user authenticates and logs in. The `getAuthUri()` method can be
+used similar to the Web Server flow but a responseType property must
+be set to `token`.
 
 ```js
 org.getAuthUri({ responseType: 'token' });
@@ -204,31 +210,33 @@ org.getAuthUri({ responseType: 'token' });
 
 ### OAuth Object
 
-At the end of a successful authorization, you a returned an OAuth object for
-the user. This object contains your salesforce access token, endpoint, id,
-and other information.  If you have `mode` set to `multi`, cache this object
-for the user as it will be used for subsequent requests. If you are in
-`single` user mode, the OAuth object is stored as a property on your
-salesforce connection object.
+At the end of a successful authorization, you a returned an OAuth
+object fo the user. This object contains your salesforce access
+token, endpoint, id, and other information.  If you have `mode` set
+to `multi`, cache this object for the user as it will be used for
+subsequent requests. If you are in `single` user mode, the OAuth
+object is stored as a property on your salesforce connection object.
 
 ### OAuth Object De-Coupling (Multi-user mode)
 
-**nforce** decouples the oauth credentials from the connection object when
-`mode` is set to `multi` so that in a multi-user situation, a separate
-connection object doesn't need to be created for each user. This makes the
-module more efficient. Essentially, you only need one connection object for
-multiple users and pass the OAuth object in with the request. In this
-scenario, it makes the most sense to store the OAuth credentials in the
-users session or in some other data store. If you are using
-[express](https://github.com/visionmedia/express), **nforce** can take
-care of storing this for you (see Express Middleware).
+**nforce** decouples the oauth credentials from the connection
+object when `mode` is set to `multi` so that in a multi-user
+situation, a separate connection object doesn't need to be created
+for each user. This makes the
+module more efficient. Essentially, you only need one connection
+object for multiple users and pass the OAuth object in with the
+request. In this scenario, it makes the most sense to store the
+OAuth credentials in the users session or in some other data store.
+If you are using [express](https://github.com/visionmedia/express),
+**nforce** can take care of storing this for you (see Express
+Middleware).
 
 ### Integrated OAuth Object (Single-user mode)
 
-If you specified `single` as your `mode` when creating the connection,
-calling authenticate will store the OAuth object within the connection object.
-Then, in subsequent API requests, you can simply omit the OAuth object from
-the request like so.
+If you specified `single` as your `mode` when creating the
+connection, calling authenticate will store the OAuth object within
+the connection object. Then, in subsequent API requests, you can
+simply omit the OAuth object from the request like so.
 
 ```js
 // look ma, no oauth argument!
@@ -240,13 +248,14 @@ org.query({ query: 'SELECT Id FROM Lead LIMIT 1' }, function(err, res) {
 
 ### Access Token Auto-Refreshes
 
-**nforce** provides an optional, built-in function for auto-refreshing access
-tokens when able it's able to. This requires you are using the web-server flow
-and you've requested the right scope that returns you a refresh_token. The
-username/password flow is also supported if using single-user mode.
+**nforce** provides an optional, built-in function for
+auto-refreshing access tokens when able it's able to. This requires
+you are using the web-server flow and you've requested the right
+scope that returns you a refresh_token. The username/password flow
+is also supported if using single-user mode.
 
-To enable auto-refreshes, you just need to set the `autoRefresh` argument when
-creating your connection...
+To enable auto-refreshes, you just need to set the `autoRefresh`
+argument when creating your connection...
 
 ```js
 var nforce = require('nforce');
@@ -262,9 +271,9 @@ var org = nforce.createConnection({
 });
 ```
 
-Now when you make requests and your access token is expired, **nforce**
-will automatically refresh your access token from Salesforce and re-try your
-original request...
+Now when you make requests and your access token is expired,
+**nforce** will automatically refresh your access token from
+Salesforce and re-try your original request...
 
 ```js
 console.log('old token: ' + oauth.access_token);
@@ -277,15 +286,17 @@ org.query({ query: 'SELECT Id FROM Account LIMIT 1', oauth: oauth }, function(er
 });
 ```
 
-**NOTE:** If you're using express and storing your oauth in the session, if
-you pass in your session oauth directly, it's going to be updated automatically
-by nforce since the autoRefresh function mutates the oauth object that's
+**NOTE:** If you're using express and storing your oauth in the
+session, if you pass in your session oauth directly, it's going to
+be updated automatically by nforce since the autoRefresh function
+mutates the oauth object that's
 passed in.
 
-There's also a handy callback function called `onRefresh` that can be added
-to your connection that will execute when any request triggers an auto-refresh
-of your access token. This makes keeping stored credentials up-to-date a
-breeze. Here's a pseudo-example of how that would work.
+There's also a handy callback function called `onRefresh` that can
+be added to your connection that will execute when any request
+triggers an auto-refresh of your access token. This makes keeping
+stored credentials up-to-date a breeze. Here's a pseudo-example of
+how that would work.
 
 ```js
 var nforce = require('nforce');
@@ -311,38 +322,6 @@ var org = nforce.createConnection({
 ```
 
 ## Other Features
-
-### Streaming API Responses
-
-Under the covers, **nforce** leverages
-[request](https://github.com/mikeal/request) for all http requests to the
-Salesforce REST API. **request** returns a readable stream that can be used
-to pipe the data to a writable stream.
-
-Here is an example of piping an nforce api request for the binary data of
-an Attachment directly to the response object in an http server.
-
-```js
-var http = require('http');
-
-var server = http.createServer(function(req, res) {
-  if(req.url === '/myimage') {
-    org.getAttachmentBody({ id: attId, oauth: oauth }).pipe(res);
-  } else {
-    res.statusCode = 404;
-    res.end();
-  }
-});
-```
-
-Here is an example of how you could get all sobjects in an org and write
-directly to a file in the local file system.
-
-```js
-var fs = require('fs');
-
-org.getSObjects(oauth).pipe(fs.createWriteStream('./sobjects.txt'));
-```
 
 ### Force.com Streaming API Support
 
@@ -400,12 +379,13 @@ As of **nforce** v0.7.0, a plugin API is now exposed so that the
 capabilities of nforce can easily be extended. This plugin system
 also allows the core of nforce to remain small, handling mostly
 authentication, CRUD, query, search,and other basic API requests.
-As Salesforce releases additional API's or as authors find interesting ways to extend nforce, these can easily be built into
+As Salesforce releases additional API's or as authors find
+interesting ways to extend nforce, these can easily be built into
 plugins and added to your nforce configuration as-needed.
 
-To use plugins in your application, you'll need to load them into nforce and
-specify which plugins to use when creating a connection object.
-Here is an example.
+To use plugins in your application, you'll need to load them
+into nforce and specify which plugins to use when creating a
+connection object. Here is an example.
 
 ```js
 var nforce = require('nforce');
@@ -425,10 +405,12 @@ org.myplugin.getSomeData(function(err, data) {
 });
 ```
 
-You'll notice that the plugins methods are all namespaced. This is to prevent
-method naming conflicts between plugins. As a best-practice, plugin authors
-should make their namespace the same as the module name but it's best to refer
-to their documentation for the exact namespace when using their plugin.
+You'll notice that the plugins methods are all namespaced. This is
+to prevent method naming conflicts between plugins. As a
+best-practice, plugin authors should make their namespace the same
+as the module name but it's best to refer
+to their documentation for the exact namespace when using their
+plugin.
 
 Documentation on authoring plugins is coming soon...
 
@@ -436,32 +418,57 @@ Documentation on authoring plugins is coming soon...
 
 ### Callbacks
 
-The API of **nforce** follows typical node.js standards. Callbacks will
-always pass an optional error object, and a response object. The response
-object closely resembles the typical responses from the Salesforce REST API.
+The API of **nforce** follows typical node.js standards. Callbacks
+will always pass an optional error object, and a response object. The
+response object closely resembles the typical responses from the
+Salesforce REST API.
 
 ```js
-callback(err, resp);
+var myCallback = function(err, resp);
+
+org.getUrl(url, myCallback);
+```
+
+### Promises
+
+**nforce** also supports promises based on
+[Bluebird](https://github.com/petkaantonov/bluebird). When no
+callback is supplied to an asynchronous method (like an api call),
+a promise will be returned. This makes control-flow very simple.
+
+```js
+org.authenticate({ username: un, password: pw }).then(function(){
+  return org.getResources();
+}).then(function(resources) {
+  console.log('resources: ' + resources);
+}).error(function(err) {
+  console.error('there was a problem');
+});
 ```
 
 ## nforce Base Methods
 
 ### createConnection(opts)
 
-The createConnection method creates an *nforce* salesforce connection object.
-You need to supply some arguments including oauth information and some
-optional arguments for version and salesforce environment type.
+The createConnection method creates an *nforce* salesforce connection
+object.
+You need to supply some arguments including oauth information and
+some optional arguments for version and salesforce environment type.
 
 * `clientId`: (String:Required) This is the OAuth client id
 * `clientSecret`: (String:Required) This is the OAuth client secret
-* `redirectUri`: (String:Required) This is the redirect URI for OAuth callbacks
+* `redirectUri`: (String:Required) This is the redirect URI for OAuth
+callbacks
 * `apiVersion`: (String|Number:Required) This is a number or string
 representing a valid REST API version. Default is the latest current
 api version.
-* `environment`: (String:Optional) Values can be 'production' or 'sandbox'.
+* `environment`: (String:Optional) Values can be 'production' or
+'sandbox'.
 Default is production.
-* `loginUri`: (String:Optional) Used to override the login URI if needed.
-* `testLoginUri`: (String:Optional) Used to override the testLoginUri if needed.
+* `loginUri`: (String:Optional) Used to override the login URI if
+needed.
+* `testLoginUri`: (String:Optional) Used to override the testLoginUri
+if needed.
 * `gzip`: (Boolean:Optional) If set to boolean 'true', then *nforce*
 will request that salesforce compress responses (using gzip) before
 transmitting over-the-wire.
@@ -469,12 +476,15 @@ transmitting over-the-wire.
 *nforce* will auto-refresh your oauth access token if it tries a
 request and fails due to an expired token. Only works with web oauth
 and username/password flows.
-* `onRefresh`: (Function:Optional) This is a function that is called when
-a request going through the connection triggers an auto-refresh. This hook
-is handy for updating your oauth tokens in a database or other store. The
-function is passed three arguments `newOauth`, `oldOauth`, and a `callback`
-function. The callback must be called with either an error or null value.
-* `timeout`: (Number:Optional) Integer containing the number of milliseconds
+* `onRefresh`: (Function:Optional) This is a function that is called
+when a request going through the connection triggers an auto-refresh.
+This hook is handy for updating your oauth tokens in a database or
+other store. The function is passed three arguments `newOauth`,
+`oldOauth`, and a `callback`
+function. The callback must be called with either an error or null
+value.
+* `timeout`: (Number:Optional) Integer containing the number of
+milliseconds
 to wait for a request to respond before aborting the request.
 * `username`: (String:Optional) The username to be used
 for the connection (single-user mode only)
@@ -487,21 +497,24 @@ connection (single-user mode only)
 
 ### createSObject(type, [fieldValues])
 
-This creates an sObject record that you can use to insert, update, upsert,
-and delete. `type` should be the salesforce API name of the sObject that
-you are updating. `fieldValues` should be a hash of field names and values
-that you want to initialize your sObject with. You can also just assign
-fields and values by setting properties after you create the sObject.
+This creates an sObject record that you can use to insert, update,
+upsert, and delete. `type` should be the salesforce API name of the
+sObject that you are updating. `fieldValues` should be a hash of
+field names and values that you want to initialize your sObject with.
+You can also just assign fields and values by setting properties
+after you create the sObject.
 
 ## plugin(namespace|opts)
 
-This creates an nforce plugin. Plugins allow you to extend the functionality
-of nforce. You need to initialize the plugin with a `namespace` or an options
-hash containing a namespace. Valid options include:
+This creates an nforce plugin. Plugins allow you to extend the
+functionality of nforce. You need to initialize the plugin with a
+`namespace` or an options hash containing a namespace. Valid options
+include:
 
-* `namespace`: (String:Required) This sets the namespace for your plugin
-* `override`: (Boolean:Optional) Override *true* allows you to overwrite an
-existing plugin. Default is false.
+* `namespace`: (String:Required) This sets the namespace for your
+plugin
+* `override`: (Boolean:Optional) Override *true* allows you to
+overwrite an existing plugin. Default is false.
 
 ## Salesforce sObject Methods
 
@@ -569,7 +582,8 @@ Sets the body of the attachment
 
 ### hasChanged(field)
 
-Checks to see if the field has been changed since the last save on the server
+Checks to see if the field has been changed since the last save on
+the server
 
 ### changed()
 
@@ -613,23 +627,28 @@ device type. Currently the only values supported are `page`,
 `popup`, and `touch`
 * `immediate`: (Boolean:Optional) Avoid interacting with the user.
 Default is false.
-* `scope`: (Array:Optional) The scope parameter allows you to fine-tune what
-the client application can access. Supported values are `api`, `chatter_api`,
+* `scope`: (Array:Optional) The scope parameter allows you to
+fine-tune what the client application can access. Supported values
+are `api`, `chatter_api`,
 `full`, `id`, `refresh_token`, `visualforce`, and `web`
 * `state`: (String:Optional) Any value that you wish to be sent
 with the callback
-* `nonce`: (String:Optional) Optional with the openid scope for getting a
-user ID token
-* `prompt`: (String|Array:Optional) Specifies how the authorization server
-prompts the user for re-authentication and reapproval. Values are `login`,
+* `nonce`: (String:Optional) Optional with the openid scope for
+getting a user ID token
+* `prompt`: (String|Array:Optional) Specifies how the authorization
+server
+prompts the user for re-authentication and reapproval. Values are
+`login`,
 `consent` or both in the form of an array.
-* `loginHint`: (String:Optional) Provide a valid username value with this
+* `loginHint`: (String:Optional) Provide a valid username value with
+this
 parameter to pre-populate the login page with the username.
 
 ### authenticate(opts, [callback])
 
 This method requests the OAuth access token and instance information
-from Salesforce or Force.com. This method either requires that you pass
+from Salesforce or Force.com. This method either requires that you
+pass
 in the authorization code (authorization code flow) or username and
 password (username/password flow).
 
@@ -637,19 +656,24 @@ password (username/password flow).
 
 -- OR --
 
-* `username`: (String:Optional) Your salesforce/force.com/database.com username
-* `password`: (String:Optional) Your salesforce/force.com/database.com password
+* `username`: (String:Optional) Your
+salesforce/force.com/database.com username
+* `password`: (String:Optional) Your
+salesforce/force.com/database.com password
 * `securityToken`: (String:Optional) Your Salesforce security token.
 This will be appended to your password if this property is set.
-* `executeOnRefresh`: (Boolean:Optional) If an onRefresh callback is defined
+* `executeOnRefresh`: (Boolean:Optional) If an onRefresh callback is
+defined
 in the connection, run the callback. Default is false.
 
 ### refreshToken(opts, [callback])
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `executeOnRefresh`: (Boolean:Optional) If an onRefresh callback is defined
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
+* `executeOnRefresh`: (Boolean:Optional) If an onRefresh callback is
+defined
 in the connection, run the callback. Default is true.
 
 ### revokeToken(opts|token, [callback])
@@ -671,24 +695,29 @@ opts:
 mode
 * `id`: (String:Optional) The id of the User. Required only if
 `sobject` is not defined
-* `sobject`: (String:Optional) The user sobject. Required only if `id` is not
-defined.
+* `sobject`: (String:Optional) The user sobject. Required only if
+`id` is not defined.
 
 ### updatePassword(opts, [callback])
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `newPassword`: (String:Required) The new password to be set for the user.
-* `id`: (String:Optional) The id of the User. Required only if `sobject` is
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
+* `newPassword`: (String:Required) The new password to be set for
+the user.
+* `id`: (String:Optional) The id of the User. Required only if
+`sobject` is
 not defined.
-* `sobject`: (String:Optional) The user sobject. Required only if `id` is not
+* `sobject`: (String:Optional) The user sobject. Required only if
+`id` is not
 defined.
 
 ## getIdentity(opts, [callback])
 
 opts:
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 
 ### getVersions([callback])
 
@@ -698,7 +727,8 @@ Gets the salesforce versions. Note: Does not require authentication.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 
 Gets the available salesforce resources
 
@@ -706,7 +736,8 @@ Gets the available salesforce resources
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 
 Get all sObjects for an org
 
@@ -714,7 +745,8 @@ Get all sObjects for an org
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `type`: (String:Required) The metadata type that is being requested
 
 Get metadata for a single sObject. `type` is a required String
@@ -724,7 +756,8 @@ for the sObject type
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `type`: (String:Required) The metadata type that is being requested
 
 Get describe information for a single sObject. `type` is a required
@@ -734,7 +767,8 @@ String for the sObject type
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `sobject`: (Object:Required) An sObject instance
 
 Insert a record.
@@ -743,7 +777,8 @@ Insert a record.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `sobject`: (Object:Required) An sObject instance
 
 Update a record.
@@ -752,7 +787,8 @@ Update a record.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `sobject`: (Object:Required) An sObject instance
 
 Update a record. NOTE: you must use the setExternalId() method to set
@@ -762,7 +798,8 @@ the external Id field and the value to match on.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `sobject`: (Object:Required) An sObject instance
 
 Delete a record.
@@ -771,21 +808,25 @@ Delete a record.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `sobject`: (Object:Optional) An sObject instance.
 * `fields`: (Array:Optional) An array of fields to return
 * `type:`: (String:Optional) A string value sObject type
 * `id`: (String:Optional) A string value for the sObject record id
-* `raw`: (Boolean:Optional) Tells nforce to return the raw response from
-Salesforce and skip the SObject wrapping. Default is false.
+* `raw`: (Boolean:Optional) Tells nforce to return the raw
+response from Salesforce and skip the SObject wrapping. Default
+is false.
 
-Get a single record. You must supply either an `sobject` or `type` and `id`
+Get a single record. You must supply either an `sobject` or `type`
+and `id`
 
 ### getBody(opts, [callback])
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `sobject`: (Object:Optional) An sObject instance.
 * `type:`: (String:Optional) A string value sObject type
 * `id`: (String:Optional) A string value for the sObject record id
@@ -798,7 +839,8 @@ must be one of those three types.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `sobject`: (Object:Optional) An sObject instance.
 * `id`: (String:Optional) A string value for the sObject record id
 
@@ -809,7 +851,8 @@ Get the binary data for an attachment. You must supply either an
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `sobject`: (Object:Optional) An sObject instance.
 * `id`: (String:Optional) A string value for the sObject record id
 
@@ -820,7 +863,8 @@ Get the binary data for a document. You must supply either an
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `sobject`: (Object:Optional) An sObject instance.
 * `id`: (String:Optional) A string value for the sObject record id
 
@@ -831,13 +875,17 @@ an `sobject` or an `id`.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `query`: (String:Required) An query string
-* `includeDeleted`: (Boolean:Optional) Query also deleted records. Default is false.
-* `raw`: (Boolean:Optional) Tells nforce to return the raw response from
-Salesforce and skip the SObject wrapping. Default is false.
-* `fetchAll`: (Boolean:Optional) Specifying fetchAll to true tells nforce
-to recursively query to get all possible returned records. Default is false.
+* `includeDeleted`: (Boolean:Optional) Query also deleted records.
+Default is false.
+* `raw`: (Boolean:Optional) Tells nforce to return the raw
+response from Salesforce and skip the SObject wrapping.
+Default is false.
+* `fetchAll`: (Boolean:Optional) Specifying fetchAll to true tells
+nforce to recursively query to get all possible returned records.
+Default is false.
 
 Execute a SOQL query for records.
 
@@ -845,10 +893,11 @@ Execute a SOQL query for records.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `query`: (String:Required) An query string
-* `raw`: (Boolean:Optional) Tells nforce to return the raw response from
-Salesforce and skip the SObject wrapping. Default is false.
+* `raw`: (Boolean:Optional) Tells nforce to return the raw response
+from Salesforce and skip the SObject wrapping. Default is false.
 
 Same as query but includes deleted records.
 
@@ -856,10 +905,11 @@ Same as query but includes deleted records.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `search`: (String:Required) An search string
-* `raw`: (Boolean:Optional) Tells nforce to return the raw response from
-Salesforce and skip the SObject wrapping. Default is false.
+* `raw`: (Boolean:Optional) Tells nforce to return the raw response
+from Salesforce and skip the SObject wrapping. Default is false.
 
 Execute a SOSL search for records. `search` should be a SOSL string.
 
@@ -867,7 +917,8 @@ Execute a SOSL search for records. `search` should be a SOSL string.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `url`: (String:Required) An url string for an api resource
 
 Get a REST API resource by its url.
@@ -875,10 +926,12 @@ Get a REST API resource by its url.
 ### createStreamClient(opts)
 
 opts:
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `timeout`: (Integer:Optional) The timeout in seconds to pass to the Faye
-client
-* `retry`: (Integer:Optional) The retry interval to pass to the Faye client
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
+* `timeout`: (Integer:Optional) The timeout in seconds to pass to
+the Faye client
+* `retry`: (Integer:Optional) The retry interval to pass to the
+Faye client
 
 Creates and returns a streaming api client object. See the *Streaming
 Client* section for more details on the client object that is
@@ -888,26 +941,32 @@ returned from this method.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 * `topic`: (String:Required) An string value for the streaming topic
-* `isSystem`: (Boolean:Optional) Specify `true` if the topic to be streamed is a SystemTopic
-* `timeout`: (Integer:Optional) The timeout in seconds to pass to the Faye
-client
-* `retry`: (Integer:Optional) The retry interval to pass to the Faye client
+* `isSystem`: (Boolean:Optional) Specify `true` if the topic to be
+streamed is a SystemTopic
+* `timeout`: (Integer:Optional) The timeout in seconds to pass to
+the Faye client
+* `retry`: (Integer:Optional) The retry interval to pass to the
+Faye client
 
-Creates and returns a streaming api subscription object. See the *Streaming Subscription* section for more details on the subscription object that is returned from this method.
+Creates and returns a streaming api subscription object. See the
+*Streaming Subscription* section for more details on the
+subscription object that is returned from this method.
 
 ### apexRest(opts|uri, [callback])
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `uri`: (String:Required) A string value for endpoint. Should not include
-'/services/apexrest'
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
+* `uri`: (String:Required) A string value for endpoint. Should
+not include '/services/apexrest'
 * `method`: (String:Optional) String method that defaults to GET if
 not supplied
-* `urlParams:` (Object|String:Optional) A hash or url params to add to
-the request
+* `urlParams:` (Object|String:Optional) A hash or url params to
+add to the request
 
 This method handles integration with salesforce ApexRest
 (Custom Rest endpoints)
@@ -917,10 +976,11 @@ http://wiki.developerforce.com/page/Creating_REST_APIs_using_Apex_REST
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
 
-Auto-refresh the current access token. Works with refresh tokens and also
-if using username/password in single user mode
+Auto-refresh the current access token. Works with refresh tokens
+and also if using username/password in single user mode
 
 ## Streaming Client
 
@@ -938,9 +998,12 @@ events:
 opts:
 
 * `topic`: (String:Required) An string value for the streaming topic
-* `isSystem`: (Boolean:Optional) Specify `true` if the topic to be streamed is a SystemTopic
+* `isSystem`: (Boolean:Optional) Specify `true` if the topic to be
+streamed is a SystemTopic
 
-Creates and returns a streaming api subscription object. See the *Streaming Subscription Methods* section for more details on the subscription object.
+Creates and returns a streaming api subscription object. See the
+*Streaming Subscription Methods* section for more details on the
+subscription object.
 
 ### disconnect()
 
