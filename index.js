@@ -187,9 +187,8 @@ Connection.prototype._getOpts = function(d, c, opts) {
 
 Connection.prototype.getAuthUri = function(opts) {
   if(!opts) opts = {};
-  var urlOpts;
   var self = this;
-  urlOpts = {
+  var urlOpts = {
     'response_type': opts.responseType || 'code',
     'client_id': self.clientId,
     'redirect_uri': self.redirectUri
@@ -201,12 +200,27 @@ Connection.prototype.getAuthUri = function(opts) {
     urlOpts.immediate = opts.immediate;
   }
   if(opts.scope) {
-    if(typeof opts.scope === 'object') {
+    if(_.isArray(opts.scope)) {
       urlOpts.scope = opts.scope.join(' ');
+    } else {
+      urlOpts.scope = opts.scope;
     }
   }
   if(opts.state) {
     urlOpts.state = opts.state;
+  }
+  if(opts.nonce) {
+    urlOpts.nonce = opts.nonce;
+  }
+  if(opts.prompt) {
+    if(_.isArray(opts.prompt)) {
+      urlOpts.prompt = opts.prompt.join(' ');
+    } else {
+      urlOpts.prompt = opts.prompt;
+    }
+  }
+  if(opts.loginHint) {
+    urlOpts.login_hint = opts.loginHint;
   }
   if(self.environment == 'sandbox') {
     return TEST_AUTH_ENDPOINT + '?' + qs.stringify(urlOpts);

@@ -623,6 +623,13 @@ the client application can access. Supported values are `api`, `chatter_api`,
 `full`, `id`, `refresh_token`, `visualforce`, and `web`
 * `state`: (String:Optional) Any value that you wish to be sent
 with the callback
+* `nonce`: (String:Optional) Optional with the openid scope for getting a
+user ID token
+* `prompt`: (String|Array:Optional) Specifies how the authorization server
+prompts the user for re-authentication and reapproval. Values are `login`,
+`consent` or both in the form of an array.
+* `loginHint`: (String:Optional) Provide a valid username value with this
+parameter to pre-populate the login page with the username.
 
 ### authenticate(opts, [callback])
 
