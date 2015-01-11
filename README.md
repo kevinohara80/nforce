@@ -652,23 +652,25 @@ opts:
 * `executeOnRefresh`: (Boolean:Optional) If an onRefresh callback is defined
 in the connection, run the callback. Default is true.
 
-### revokeToken(opts, [callback])
+### revokeToken(opts|token, [callback])
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user
+mode
 * `token`: (String:Required) The oauth access_token or refresh_token
 you want to revoke
-* `callbackParam`: (String:Optional) A callback parameter to be supplied to
-the request for JSONP support
+* `callbackParam`: (String:Optional) A callback parameter to be
+supplied to the request for JSONP support
 
-### getPasswordStatus(opts, [callback])
+### getPasswordStatus(opts|id, [callback])
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `id`: (String:Optional) The id of the User. Required only if `sobject` is
-not defined
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user
+mode
+* `id`: (String:Optional) The id of the User. Required only if
+`sobject` is not defined
 * `sobject`: (String:Optional) The user sobject. Required only if `id` is not
 defined.
 
@@ -708,7 +710,7 @@ opts:
 
 Get all sObjects for an org
 
-### getMetadata(opts, [callback])
+### getMetadata(opts|type, [callback])
 
 opts:
 
@@ -718,7 +720,7 @@ opts:
 Get metadata for a single sObject. `type` is a required String
 for the sObject type
 
-### getDescribe(opts, [callback])
+### getDescribe(opts|type, [callback])
 
 opts:
 
@@ -825,7 +827,7 @@ opts:
 Get the binary data for a contentversion. You must supply either
 an `sobject` or an `id`.
 
-### query(opts, [callback])
+### query(opts|query, [callback])
 
 opts:
 
@@ -839,7 +841,7 @@ to recursively query to get all possible returned records. Default is false.
 
 Execute a SOQL query for records.
 
-### queryAll(opts, [callback])
+### queryAll(opts|query, [callback])
 
 opts:
 
@@ -850,7 +852,7 @@ Salesforce and skip the SObject wrapping. Default is false.
 
 Same as query but includes deleted records.
 
-### search(opts, [callback])
+### search(opts|search, [callback])
 
 opts:
 
@@ -861,7 +863,7 @@ Salesforce and skip the SObject wrapping. Default is false.
 
 Execute a SOSL search for records. `search` should be a SOSL string.
 
-### getUrl(opts, [callback])
+### getUrl(opts|url, [callback])
 
 opts:
 
@@ -895,7 +897,7 @@ client
 
 Creates and returns a streaming api subscription object. See the *Streaming Subscription* section for more details on the subscription object that is returned from this method.
 
-### apexRest(opts, [callback])
+### apexRest(opts|uri, [callback])
 
 opts:
 
