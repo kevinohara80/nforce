@@ -125,8 +125,7 @@ $ node examples/crud.js
 
 ## Authentication
 
-**nforce** supports two Salesforce OAuth 2.0 flows, username/password and
-authorization code.
+**nforce** supports three Salesforce OAuth 2.0 flows, username/password, Web Server and User-Agent.
 
 ### Username/Password flow
 
@@ -166,7 +165,7 @@ request for authentication.
 
 [sf]: http://help.salesforce.com/apex/HTViewHelpDoc?id=remoteaccess_oauth_username_password_flow.htm&language=en_US
 
-### Authorization (Web Server) Code Flow
+### Web Server Code Flow
 
 To perform an authorization code flow, first redirect users to the
 Authorization URI at Salesforce. **nforce** provides a helper function
@@ -345,64 +344,63 @@ var fs = require('fs');
 org.getSObjects(oauth).pipe(fs.createWriteStream('./sobjects.txt'));
 ```
 
-### Query Streaming
-
-The Salesforce query call in the REST API returns a 2000 record chunk at one
-time. The example below shows a normal query returning 2000 records only.
-
-```js
-// dataset of 50k records.
-var query = 'SELECT Name, CreatedDate FROM Account ORDER BY CreatedDate DESC';
-org.query({ query: query, oauth: req.session.oauth }, callback(err, resp) {
-  if(!err) console.log(resp.records.length) // this will be 2000 max
-});
-```
-
-Like other API requests, **nforce** query method returns a node stream.
-By calling the `pipe` method on this object, your query call will automatically
-start streaming ALL of the records from your query in 2000 record batches.
-
-```js
-// dataset of 50k records.
-var query = 'SELECT Name, CreatedDate FROM Account ORDER BY CreatedDate DESC';
-org.query({query: query, oauth: req.session.oauth }).pipe(res); // streaming all 50k records
-```
-
 ### Force.com Streaming API Support
 
-**nforce** supports the Force.com Streaming API. Connecting to one of your
-PushTopics is easy using the node.js EventEmitter interface.
+**nforce** supports the Force.com Streaming API. Connecting to one of
+your PushTopics is easy using nforce. Here's how you create a
+streaming client and subscribe to a PushTopic.
 
 ```js
 org.authenticate({ username: user, password: pass }, function(err, oauth) {
 
   if(err) return console.log(err);
 
-  // subscribe to a pushtopic
-  var str = org.stream({ topic: 'AllAccounts', oauth: oauth });
+  var client = org.createStreamClient();
 
-  str.on('connect', function(){
-    console.log('connected to pushtopic');
+  console.log('subscribing to ' + logs._topic);
+  var accs = client.subscribe({ topic: 'NewAccounts' });
+
+  accs.on('error', function(err) {
+    console.log('subscription error');
+    console.log(err);
+    client.disconnect();
   });
 
-  str.on('error', function(error) {
-    console.log('error: ' + error);
-  });
-
-  str.on('data', function(data) {
+  accs.on('data', function(data) {
     console.log(data);
   });
 
 });
 ```
 
+There is also a short-hand method for creating a client and a
+subscription right from your nforce connection object. You can
+access the underlying client from the subscription object.
+
+```js
+var accs = org.subscribe({ topic: 'NewAccounts' });
+
+// close the client after 5 seconds
+setTimeout(function(){
+  accs.client.disconnect();
+}, 5000);
+```
+
+When you are done with your subscription you can close it. You can
+also disconnect the client connection.
+
+```js
+accs.cancel();
+client.disconnect();
+```
+
 ### Plugins
 
-As of **nforce** v0.7.0, a plugin API is now exposed so that the capabilities
-of nforce can easily be extended. This plugin system also allows the core of
-nforce to remain small, handling mostly authentication, CRUD, query, search,
-and other basic API requests. As Salesforce releases additional API's or as
-authors find interesting ways to extend nforce, these can easily be built into
+As of **nforce** v0.7.0, a plugin API is now exposed so that the
+capabilities of nforce can easily be extended. This plugin system
+also allows the core of nforce to remain small, handling mostly
+authentication, CRUD, query, search,and other basic API requests.
+As Salesforce releases additional API's or as authors find interesting ways to extend nforce, these can easily be built into
 plugins and added to your nforce configuration as-needed.
 
 To use plugins in your application, you'll need to load them into nforce and
@@ -444,18 +442,6 @@ object closely resembles the typical responses from the Salesforce REST API.
 
 ```js
 callback(err, resp);
-```
-
-### Streams
-
-Most of the org methods take a callback, but also return a stream. This is
-useful if you want to **pipe** stuff around. Here is a quick example of
-how you could dump all sobjects in an org to a file.
-
-```js
-var so = fs.createWriteStream('sobjects.txt', {'flags': 'a'});
-
-org.getSObjects({ oauth: oauth }).pipe(so);
 ```
 
 ## nforce Base Methods
@@ -649,7 +635,7 @@ This will be appended to your password if this property is set.
 * `executeOnRefresh`: (Boolean:Optional) If an onRefresh callback is defined
 in the connection, run the callback. Default is false.
 
-### refreshToken(opts, callback)
+### refreshToken(opts, [callback])
 
 opts:
 
@@ -657,15 +643,17 @@ opts:
 * `executeOnRefresh`: (Boolean:Optional) If an onRefresh callback is defined
 in the connection, run the callback. Default is true.
 
-### revokeToken(opts, callback)
+### revokeToken(opts, [callback])
 
 opts:
 
 * `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
 * `token`: (String:Required) The oauth access_token or refresh_token
 you want to revoke
+* `callbackParam`: (String:Optional) A callback parameter to be supplied to
+the request for JSONP support
 
-### getPasswordStatus(opts, callback)
+### getPasswordStatus(opts, [callback])
 
 opts:
 
@@ -675,7 +663,7 @@ not defined
 * `sobject`: (String:Optional) The user sobject. Required only if `id` is not
 defined.
 
-### updatePassword(opts, callback)
+### updatePassword(opts, [callback])
 
 opts:
 
@@ -686,10 +674,10 @@ not defined.
 * `sobject`: (String:Optional) The user sobject. Required only if `id` is not
 defined.
 
-### expressOAuth(onSuccess, onError)
+## getIdentity(opts, [callback])
 
-The express middleware. `onSuccess` and `onError` should be uri routes
-for redirection after OAuth callbacks.
+opts:
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
 
 ### getVersions([callback])
 
@@ -834,7 +822,7 @@ opts:
 
 * `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
 * `query`: (String:Required) An query string
-* `all`: (Boolean:Optional) Query also deleted records. Default is false.
+* `includeDeleted`: (Boolean:Optional) Query also deleted records. Default is false.
 * `raw`: (Boolean:Optional) Tells nforce to return the raw response from
 Salesforce and skip the SObject wrapping. Default is false.
 * `fetchAll`: (Boolean:Optional) Specifying fetchAll to true tells nforce
@@ -873,19 +861,30 @@ opts:
 
 Get a REST API resource by its url.
 
-### stream(opts)
+### createStreamClient(opts)
+
+opts:
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `timeout`: (Integer:Optional) The timeout in seconds to pass to the Faye
+client
+* `retry`: (Integer:Optional) The retry interval to pass to the Faye client
+
+Creates and returns a streaming api client object. See the *Streaming
+Client* section for more details on the client object that is
+returned from this method.
+
+### subscribe|stream(opts)
 
 opts:
 
 * `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
 * `topic`: (String:Required) An string value for the streaming topic
+* `isSystem`: (Boolean:Optional) Specify `true` if the topic to be streamed is a SystemTopic
+* `timeout`: (Integer:Optional) The timeout in seconds to pass to the Faye
+client
+* `retry`: (Integer:Optional) The retry interval to pass to the Faye client
 
-Start a force.com streaming API connection. An EventEmitter is returned
-with the following events:
-
-* `connect`: subscribed to the topic
-* `data`: got a streaming event
-* `error`: there was a problem with the subscription
+Creates and returns a streaming api subscription object. See the *Streaming Subscription* section for more details on the subscription object that is returned from this method.
 
 ### apexRest(opts, [callback])
 
@@ -903,22 +902,52 @@ This method handles integration with salesforce ApexRest
 (Custom Rest endpoints)
 http://wiki.developerforce.com/page/Creating_REST_APIs_using_Apex_REST
 
-```js
-var opts = {
-  uri: 'test',
-  method: 'POST',
-  body: body,
-  oauth: oauth,
-  urlParams: params
-};
+## autoRefresh(opts, [callback])
 
-org.apexRest(opts, function(err,resp){
-  if(!err) {
-    console.log(resp);
-    res.send(resp);
-  }else{
-    console.log(err);
-    res.send(err);
-  }
-})
-```
+opts:
+
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+
+Auto-refresh the current access token. Works with refresh tokens and also
+if using username/password in single user mode
+
+## Streaming Client
+
+The streaming Client object represents a streaming client created
+from the connections `createStreamClient()` method. The Streaming
+Client emits several events:
+
+events:
+
+* `connect`: Emits when the clients transport is up
+* `disconnect`: Emits when the clients transport is down
+
+### subscribe(opts)
+
+opts:
+
+* `topic`: (String:Required) An string value for the streaming topic
+* `isSystem`: (Boolean:Optional) Specify `true` if the topic to be streamed is a SystemTopic
+
+Creates and returns a streaming api subscription object. See the *Streaming Subscription Methods* section for more details on the subscription object.
+
+### disconnect()
+
+Disconnects the streaming client and will close all subscriptions
+
+## Streaming Subscription
+
+The Subscription object represents a subscription created from the
+streaming Client by calling `client.subscribe()`. This object emits
+several events.
+
+events:
+
+* `connect`: Emits when the subscription becomes active.
+* `error`: Emits an error object when the subscription encounters
+an error
+* `data`: Emits a data object when the subscription receives an event
+
+### cancel()
+
+Cancels the subscription. This does not close the client.

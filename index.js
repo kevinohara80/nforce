@@ -3,7 +3,6 @@ var promises    = require('./lib/promises');
 var qs          = require('querystring');
 var url         = require('url');
 var Record      = require('./lib/record');
-var QueryStream = require('./lib/querystream');
 var FDCStream   = require('./lib/fdcstream');
 var util        = require('./lib/util');
 var errors      = require('./lib/errors');
