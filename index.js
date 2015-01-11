@@ -1,5 +1,3 @@
-// module dependencies
-
 var request     = require('request');
 var promises    = require('./lib/promises');
 var qs          = require('querystring');
@@ -15,7 +13,9 @@ var mime        = require('mime');
 var zlib        = require('zlib');
 var _           = require('lodash');
 
-// constants
+/*****************************
+ * constants
+ *****************************/
 
 var AUTH_ENDPOINT      = 'https://login.salesforce.com/services/oauth2/authorize';
 var TEST_AUTH_ENDPOINT = 'https://test.salesforce.com/services/oauth2/authorize';
@@ -31,7 +31,10 @@ var API_VERSIONS       = [
 
 var plugins = {};
 
-// nforce connection object
+/*****************************
+ * connection object
+ *****************************/
+
 var Connection = function(opts) {
   var self = this;
 
@@ -104,7 +107,10 @@ var Connection = function(opts) {
   }
 };
 
-// auth getters/setters
+/*****************************
+ * auth getters/setters
+ *****************************/
+
 Connection.prototype.getOAuth = function() {
   return this.oauth;
 };
@@ -137,7 +143,10 @@ Connection.prototype.setSecurityToken = function(token) {
   this.securityToken = token;
 };
 
-// argument parsing
+/*****************************
+ * helper methods
+ *****************************/
+
 Connection.prototype._getOpts = function(d, c, opts) {
   var data, cb, dt;
 
@@ -172,7 +181,10 @@ Connection.prototype._getOpts = function(d, c, opts) {
   return data;
 };
 
-// authentication methods
+/*****************************
+ * authentication methods
+ *****************************/
+
 Connection.prototype.getAuthUri = function(opts) {
   if(!opts) opts = {};
   var urlOpts;
@@ -344,14 +356,16 @@ Connection.prototype.updatePassword = function(data, callback) {
   return this._apiRequest(opts, opts.callback);
 };
 
-// api methods
-
 Connection.prototype.getIdentity = function(data, callback) {
   var opts = this._getOpts(data, callback);
   opts.uri = opts.oauth.id;
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
 };
+
+/*****************************
+ * system api methods
+ *****************************/
 
 Connection.prototype.getVersions = function(callback) {
   var opts = this._getOpts(null, callback);
@@ -392,6 +406,10 @@ Connection.prototype.getDescribe = function(data, callback) {
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
 };
+
+/*****************************
+ * crud methods
+ *****************************/
 
 Connection.prototype.insert = function(data, callback) {
   var opts = this._getOpts(data, callback);
@@ -470,7 +488,9 @@ Connection.prototype.getRecord = function(data, callback) {
   return resolver.promise;
 };
 
-// blob methods
+/*****************************
+ * blob/binary methods
+ *****************************/
 
 Connection.prototype.getBody = function(data, callback) {
   var opts = this._getOpts(data, callback);
@@ -521,6 +541,34 @@ Connection.prototype.getContentVersionBody = function(data, callback) {
   return this._apiRequest(opts, opts.callback);
 };
 
+/*****************************
+ * query
+ *****************************/
+
+Connection.prototype.query = function(data, callback) {
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'query',
+    defaults: {
+      fetchAll: false,
+      includeDeleted: false,
+      raw: false
+    }
+  });
+  return this._queryHandler(opts, opts.callback);
+};
+
+Connection.prototype.queryAll = function(data, callback) {
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'query',
+    defaults: {
+      fetchAll: false,
+      raw: false
+    }
+  });
+  opts.includeDeleted = true;
+  return this._queryHandler(opts, opts.callback);
+};
+
 Connection.prototype._queryHandler = function(data, callback) {
   var self = this;
   var recs = [];
@@ -567,29 +615,9 @@ Connection.prototype._queryHandler = function(data, callback) {
   return resolver.promise;
 };
 
-Connection.prototype.query = function(data, callback) {
-  var opts = this._getOpts(data, callback, {
-    singleProp: 'query',
-    defaults: {
-      fetchAll: false,
-      includeDeleted: false,
-      raw: false
-    }
-  });
-  return this._queryHandler(opts, opts.callback);
-};
-
-Connection.prototype.queryAll = function(data, callback) {
-  var opts = this._getOpts(data, callback, {
-    singleProp: 'query',
-    defaults: {
-      fetchAll: false,
-      raw: false
-    }
-  });
-  opts.includeDeleted = true;
-  return this._queryHandler(opts, opts.callback);
-};
+/*****************************
+ * search
+ *****************************/
 
 Connection.prototype.search = function(data, callback) {
   var opts = this._getOpts(data, callback, {
@@ -632,7 +660,10 @@ Connection.prototype.getUrl = function(data, callback) {
   return this._apiRequest(opts, opts.callback);
 };
 
-// apex rest
+/*****************************
+ * apex rest
+ *****************************/
+
 Connection.prototype.apexRest = function(data, callback) {
   var opts = this._getOpts(data, callback, {
     singleProp: 'uri'
@@ -645,36 +676,42 @@ Connection.prototype.apexRest = function(data, callback) {
   return this._apiRequest(opts, opts.callback);
 };
 
-// streaming methods
-Connection.prototype.stream = function(data) {
+/*****************************
+ * streaming api
+ *****************************/
+
+Connection.prototype.createStreamClient = function(data) {
+  var self = this;
   var opts = this._getOpts(data, null, {
-    singleProp: 'topic'
+    defaults: {
+      apiVersion: self.apiVersion
+    }
   });
-
-  var str      = new FDCStream();
-  var endpoint = opts.oauth.instance_url + '/cometd/' + this.apiVersion.substring(1);
-  var client   = new faye.Client(endpoint, {});
-
-  client.setHeader('Authorization', 'Bearer ' + opts.oauth.access_token);
-
-  var sub = client.subscribe('/topic/' + opts.topic, function(d){
-    str.write(d);
-  });
-
-  sub.callback(function(){
-    str.emit('connect');
-  });
-
-  sub.errback(function(error) {
-    str.emit('error', error);
-  });
-
-  str.client = client;
-
-  return str;
+  return new FDCStream.Client(opts);
 };
 
-// express middleware
+Connection.prototype.subscribe = function(data) {
+  var opts = this._getOpts(data, null, {
+    singleProp: 'topic',
+    defaults: {
+      isSystem: false
+    }
+  });
+
+  var client = this.createStreamClient(opts);
+
+  return client.subscribe(opts);
+};
+
+// keeping this method for backwards compatibility
+// proxies to connection.subscribe now
+Connection.prototype.stream = function(data) {
+  return this.subscribe(data);
+};
+
+/*****************************
+ * express middleware
+ *****************************/
 
 Connection.prototype.expressOAuth = function(opts) {
   var self = this;
@@ -724,6 +761,10 @@ Connection.prototype.expressOAuth = function(opts) {
   };
 };
 
+/*****************************
+ * auto-refresh
+ *****************************/
+
 Connection.prototype.autoRefresh = function(data, callback) {
   var self = this;
 
@@ -762,6 +803,10 @@ Connection.prototype.autoRefresh = function(data, callback) {
 
   return resolver.promise;
 };
+
+/*****************************
+ * internal api methods
+ *****************************/
 
 Connection.prototype._apiAuthRequest = function(opts, callback) {
 
@@ -1002,7 +1047,9 @@ Connection.prototype._apiRequest = function(opts, callback) {
   return resolver.promise;
 };
 
-// plugin system
+/*****************************
+ * plugin system
+ *****************************/
 
 function Plugin(opts) {
   this.namespace = opts.namespace;
@@ -1020,7 +1067,9 @@ Plugin.prototype.fn = function(fnName, fn) {
   this._fns[fnName] = fn;
 };
 
-// exports
+/*****************************
+ * exports
+ *****************************/
 
 module.exports.util = util;
 
@@ -1042,7 +1091,6 @@ module.exports.plugin = function(opts) {
 };
 
 // connection creation
-
 module.exports.createConnection = function(opts) {
   return new Connection(opts);
 };
