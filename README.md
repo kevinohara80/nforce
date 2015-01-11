@@ -462,12 +462,13 @@ api version.
 Default is production.
 * `loginUri`: (String:Optional) Used to override the login URI if needed.
 * `testLoginUri`: (String:Optional) Used to override the testLoginUri if needed.
-* `gzip`: (Boolean:Optional) If set to boolean 'true', then *nforce* will
-request that salesforce compress responses (using gzip) before transmitting
-over-the-wire.
-* `autoRefresh`: (Boolean:Optional) If set to boolean 'true', *nforce* will
-auto-refresh your oauth access token if it tries a request and fails due to
-an expired token. Only works with web oauth and username/password flows.
+* `gzip`: (Boolean:Optional) If set to boolean 'true', then *nforce*
+will request that salesforce compress responses (using gzip) before
+transmitting over-the-wire.
+* `autoRefresh`: (Boolean:Optional) If set to boolean 'true',
+*nforce* will auto-refresh your oauth access token if it tries a
+request and fails due to an expired token. Only works with web oauth
+and username/password flows.
 * `onRefresh`: (Function:Optional) This is a function that is called when
 a request going through the connection triggers an auto-refresh. This hook
 is handy for updating your oauth tokens in a database or other store. The
@@ -475,6 +476,14 @@ function is passed three arguments `newOauth`, `oldOauth`, and a `callback`
 function. The callback must be called with either an error or null value.
 * `timeout`: (Number:Optional) Integer containing the number of milliseconds
 to wait for a request to respond before aborting the request.
+* `username`: (String:Optional) The username to be used
+for the connection (single-user mode only)
+* `password`: (String:Optional) The password to be used
+for the connection (single-user mode only)
+* `securityToken`: (String:Optional) The security token to be used
+for the connection (single-user mode only)
+* `oauth`: (Object:Optional) The oauth object to be used for the
+connection (single-user mode only)
 
 ### createSObject(type, [fieldValues])
 
