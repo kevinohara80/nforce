@@ -684,7 +684,9 @@ Connection.prototype.createStreamClient = function(data) {
   var self = this;
   var opts = this._getOpts(data, null, {
     defaults: {
-      apiVersion: self.apiVersion
+      apiVersion: self.apiVersion,
+      timeout: null,
+      retry: null
     }
   });
   return new FDCStream.Client(opts);
@@ -694,12 +696,13 @@ Connection.prototype.subscribe = function(data) {
   var opts = this._getOpts(data, null, {
     singleProp: 'topic',
     defaults: {
-      isSystem: false
+      isSystem: false,
+      timeout: null,
+      retry: null
     }
   });
 
   var client = this.createStreamClient(opts);
-
   return client.subscribe(opts);
 };
 
