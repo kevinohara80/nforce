@@ -247,6 +247,32 @@ describe('index', function(){
       uri.should.match(/.*state=something.*/);
     });
 
+    it('should allow for custom auth endpoint', function() {
+      var org = nforce.createConnection({
+        clientId: 'ADFJSD234ADF765SFG55FD54S',
+        clientSecret: 'ADFJSD234ADF765SFG55FD54S',
+        redirectUri: 'http://localhost:3000/oauth/_callback',
+        authEndpoint: 'http://foo.com',
+        testAuthEndpoint: 'http://test.foo.com',
+        environment: 'production'
+      });
+      var uri = org.getAuthUri();
+      uri.should.match(/^http:\/\/foo\.com/);
+    });
+
+    it('should allow for custom test auth endpoint', function() {
+      var org = nforce.createConnection({
+        clientId: 'ADFJSD234ADF765SFG55FD54S',
+        clientSecret: 'ADFJSD234ADF765SFG55FD54S',
+        redirectUri: 'http://localhost:3000/oauth/_callback',
+        authEndpoint: 'http://foo.com',
+        testAuthEndpoint: 'http://test.foo.com',
+        environment: 'sandbox'
+      });
+      var uri = org.getAuthUri();
+      uri.should.match(/^http:\/\/test\.foo\.com/);
+    });
+
   });
 
 });

@@ -38,22 +38,24 @@ var Connection = function(opts) {
   var self = this;
 
   opts = _.defaults(opts || {}, {
-    clientId:      null,
-    clientSecret:  null,
-    redirectUri:   null,
-    loginUri:      LOGIN_URI,
-    testLoginUri:  TEST_LOGIN_URI,
-    apiVersion:    _.last(API_VERSIONS),
-    environment:   'production',
-    mode:          'multi',
-    gzip:          false,
-    autoRefresh:   false,
-    onRefresh:     undefined,
-    timeout:       undefined,
-    oauth:         undefined,
-    username:      undefined,
-    password:      undefined,
-    securityToken: undefined
+    clientId:         null,
+    clientSecret:     null,
+    redirectUri:      null,
+    authEndpoint:     AUTH_ENDPOINT,
+    testAuthEndpoint: TEST_AUTH_ENDPOINT,
+    loginUri:         LOGIN_URI,
+    testLoginUri:     TEST_LOGIN_URI,
+    apiVersion:       _.last(API_VERSIONS),
+    environment:      'production',
+    mode:             'multi',
+    gzip:             false,
+    autoRefresh:      false,
+    onRefresh:        undefined,
+    timeout:          undefined,
+    oauth:            undefined,
+    username:         undefined,
+    password:         undefined,
+    securityToken:    undefined
   });
 
   // convert option values
@@ -66,6 +68,8 @@ var Connection = function(opts) {
   // validate options
   if(!_.isString(this.clientId)) throw new Error('invalid or missing clientId');
   if(!_.isString(this.redirectUri)) throw new Error('invalid or missing redirectUri');
+  if(!_.isString(this.authEndpoint)) throw new Error('invalid or missing authEndpoint');
+  if(!_.isString(this.testAuthEndpoint)) throw new Error('invalid or missing testAuthEndpoint');
   if(!_.isString(this.loginUri)) throw new Error('invalid or missing loginUri');
   if(!_.isString(this.testLoginUri)) throw new Error('invalid or missing testLoginUri');
   if(!_.isBoolean(this.gzip)) throw new Error('gzip must be a boolean');
@@ -222,9 +226,9 @@ Connection.prototype.getAuthUri = function(opts) {
     urlOpts.login_hint = opts.loginHint;
   }
   if(self.environment == 'sandbox') {
-    return TEST_AUTH_ENDPOINT + '?' + qs.stringify(urlOpts);
+    return this.testAuthEndpoint + '?' + qs.stringify(urlOpts);
   } else {
-    return AUTH_ENDPOINT + '?' + qs.stringify(urlOpts);
+    return this.authEndpoint + '?' + qs.stringify(urlOpts);
   }
 };
 

@@ -465,6 +465,10 @@ api version.
 * `environment`: (String:Optional) Values can be 'production' or
 'sandbox'.
 Default is production.
+* `authEndpoint`: (String:Optional) Used to override the
+authentication endpoint for production environments.
+* `testAuthEndpoint`: (String:Optional) Used to override the
+authentication endpoint for production environments.
 * `loginUri`: (String:Optional) Used to override the login URI if
 needed.
 * `testLoginUri`: (String:Optional) Used to override the testLoginUri
