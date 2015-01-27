@@ -976,7 +976,7 @@ This method handles integration with salesforce ApexRest
 (Custom Rest endpoints)
 http://wiki.developerforce.com/page/Creating_REST_APIs_using_Apex_REST
 
-## autoRefresh(opts, [callback])
+## autoRefreshToken(opts, [callback])
 
 opts:
 

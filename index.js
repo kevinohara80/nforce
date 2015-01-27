@@ -733,7 +733,7 @@ Connection.prototype.stream = function(data) {
  * auto-refresh
  *****************************/
 
-Connection.prototype.autoRefresh = function(data, callback) {
+Connection.prototype.autoRefreshToken = function(data, callback) {
   var self = this;
 
   var opts = this._getOpts(data, callback, {
@@ -983,7 +983,7 @@ Connection.prototype._apiRequest = function(opts, callback) {
           !opts._retryCount) {
 
         // attempt the autorefresh
-        Connection.prototype.autoRefresh.call(self, opts, function(err2, res2) {
+        Connection.prototype.autoRefreshToken.call(self, opts, function(err2, res2) {
           if(err2) {
             return resolver.reject(err2);
           } else {
