@@ -179,6 +179,16 @@ function to build this url for you.
 org.getAuthUri();
 ```
 
+An example of using this function in a typical node route would be:
+
+```js
+app.get('/auth/sfdc', 
+        function(req,res){
+          res.redirect(org.getAuthUri());
+        }
+       );
+```
+
 Once you get a callback at the Redirect URI that you specify, you
 need to request your access token and other important oauth
 information by calling
@@ -195,6 +205,21 @@ org.authenticate({ code: 'SOMEOAUTHAUTHORIZATIONCODE' }, function(err, resp){
     console.log('Error: ' + err.message);
   }
 });
+```
+
+An example of using this function in a typical node route and populating the code from the request would be:
+```js
+app.get('/auth/sfdc/callback',
+        function(req, res) {
+          org.authenticate({code: req.query.code}, function(err, resp){
+            if(!err) {
+              console.log('Access Token: ' + resp.access_token);
+            } else {
+              console.log('Error: ' + err.message);
+            }
+          });   
+        }
+       );
 ```
 
 ### User-Agent Flow
