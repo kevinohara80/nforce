@@ -619,7 +619,7 @@ Connection.prototype._queryHandler = function(data, callback) {
         });
       }
       if(opts.fetchAll && resp.nextRecordsUrl) {
-        self.getUrl({ url: url, oauth: opts.oauth }, handleResults);
+        self.getUrl({ url: resp.nextRecordsUrl, oauth: opts.oauth }, handleResults);
       } else {
         resp.records = recs;
         return resolver.resolve(resp);
