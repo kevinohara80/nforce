@@ -19,3 +19,4 @@
 * Joe Porcheddu -> [joe-spanning](https://github.com/joe-spanning)
 * Ian Sinnott -> [iansinnott](https://github.com/iansinnott)
 * Nathan Selvidge -> [nselvidge](https://github.com/nselvidge)
+* Timmy Sze -> [timmysze](https://github.com/timmysze)
