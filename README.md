@@ -434,6 +434,14 @@ as the module name but it's best to refer
 to their documentation for the exact namespace when using their
 plugin.
 
+Here is a list of some available plugins today:
+
+* [nforce-tooling](https://github.com/jeffdonthemic/nforce-tooling) Tooling API support
+* [nforce-chatter](https://github.com/jeffdonthemic/nforce-chatter) Chatter API support
+* [nforce-metadata](https://github.com/kevinohara80/nforce-metadata) Metadata API support
+* [nforce-express](https://github.com/kevinohara80/nforce-express) Express.js plugin for
+OAuth authentication helpers
+
 Documentation on authoring plugins is coming soon...
 
 ## nforce API Basics
