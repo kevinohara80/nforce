@@ -182,7 +182,7 @@ org.getAuthUri();
 An example of using this function in a typical node route would be:
 
 ```js
-app.get('/auth/sfdc', 
+app.get('/auth/sfdc',
         function(req,res){
           res.redirect(org.getAuthUri());
         }
@@ -217,7 +217,7 @@ app.get('/auth/sfdc/callback',
             } else {
               console.log('Error: ' + err.message);
             }
-          });   
+          });
         }
        );
 ```
@@ -651,6 +651,8 @@ authorization code OAuth 2.0 flow. You can optionally pass in an
 OAuth options argument. The supported options are:
 * `responseType`: (String:Optional) Any valid response_type that is
 supported by Salesforce OAuth 2.0. Default is `code`.
+* `authEndpoint`: (String:Optional) Override the auth endpoint to
+use for the token request
 * `display`: (String:Optional) Tailors the login page to the user's
 device type. Currently the only values supported are `page`,
 `popup`, and `touch`
@@ -670,8 +672,9 @@ prompts the user for re-authentication and reapproval. Values are
 `login`,
 `consent` or both in the form of an array.
 * `loginHint`: (String:Optional) Provide a valid username value with
-this
-parameter to pre-populate the login page with the username.
+this parameter to pre-populate the login page with the username.
+* `urlOpts`: (Object:Optional) Specify any other url arguments to
+include in the request.
 
 ### authenticate(opts, [callback])
 

@@ -190,18 +190,23 @@ Connection.prototype._getOpts = function(d, c, opts) {
 
 Connection.prototype.getAuthUri = function(opts) {
   if(!opts) opts = {};
+
   var self = this;
+
   var urlOpts = {
     'response_type': opts.responseType || 'code',
     'client_id': self.clientId,
     'redirect_uri': self.redirectUri
   };
+
   if(opts.display) {
     urlOpts.display = opts.display.toLowerCase();
   }
+
   if(opts.immediate) {
     urlOpts.immediate = opts.immediate;
   }
+
   if(opts.scope) {
     if(_.isArray(opts.scope)) {
       urlOpts.scope = opts.scope.join(' ');
@@ -209,12 +214,15 @@ Connection.prototype.getAuthUri = function(opts) {
       urlOpts.scope = opts.scope;
     }
   }
+
   if(opts.state) {
     urlOpts.state = opts.state;
   }
+
   if(opts.nonce) {
     urlOpts.nonce = opts.nonce;
   }
+
   if(opts.prompt) {
     if(_.isArray(opts.prompt)) {
       urlOpts.prompt = opts.prompt.join(' ');
@@ -222,14 +230,26 @@ Connection.prototype.getAuthUri = function(opts) {
       urlOpts.prompt = opts.prompt;
     }
   }
+
   if(opts.loginHint) {
     urlOpts.login_hint = opts.loginHint;
   }
-  if(self.environment == 'sandbox') {
-    return this.testAuthEndpoint + '?' + qs.stringify(urlOpts);
-  } else {
-    return this.authEndpoint + '?' + qs.stringify(urlOpts);
+
+  if(opts.urlOpts) {
+    urlOpts = _.assign(urlOpts, opts.urlOpts);
   }
+
+  var endpoint;
+
+  if(opts.authEndpoint) {
+    endpoint = opts.authEndpoint;
+  } else if(self.environment == 'sandbox') {
+    endpoint = this.testAuthEndpoint;
+  } else {
+    endpoint = this.authEndpoint;
+  }
+
+  return endpoint + '?' + qs.stringify(urlOpts);
 };
 
 Connection.prototype.authenticate = function(data, callback) {
@@ -255,6 +275,10 @@ Connection.prototype.authenticate = function(data, callback) {
     bopts.grant_type = 'authorization_code';
     bopts.code = opts.code;
     bopts.redirect_uri = self.redirectUri;
+  } else if(opts.assertion) {
+    bopts.grant_type = 'assertion';
+    bopts.assertion_type = 'urn:oasis:names:tc:SAML:2.0:profiles:SSO:browser';
+    bopts.assertion = opts.assertion;
   } else if(opts.username || this.username) {
     bopts.grant_type = 'password';
     bopts.username = opts.username || this.getUsername();
