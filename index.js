@@ -299,6 +299,7 @@ Connection.prototype.authenticate = function(data, callback) {
     if(err) return resolver.reject(err);
     var old = _.clone(opts.oauth);
     _.assign(opts.oauth, res);
+    if(opts.assertion) opts.oauth.assertion = opts.assertion;
     if(self.onRefresh && opts.executeOnRefresh === true) {
       self.onRefresh.call(self, opts.oauth, old, function(err3){
         if(err3) return resolver.reject(err3);
@@ -327,11 +328,19 @@ Connection.prototype.refreshToken = function(data, callback) {
   opts.method = 'POST';
 
   var refreshOpts = {
-    'client_id':     this.clientId,
-    'grant_type':    'refresh_token',
-    'redirect_uri':  this.redirectUri,
-    'refresh_token': opts.oauth.refresh_token
+    client_id:     this.clientId,
+    redirect_uri:  this.redirectUri
   };
+
+  // support for SAML-based token refreshes
+  if(!opts.oauth.refresh_token && (opts.oauth.assertion || opts.assertion)) {
+    refreshOpts.grant_type = 'assertion';
+    refreshOpts.assertion_type = 'urn:oasis:names:tc:SAML:2.0:profiles:SSO:browser';
+    refreshOpts.assertion = opts.assertion || opts.oauth.assertion;
+  } else {
+    refreshOpts.grant_type = 'refresh_token';
+    refreshOpts.refresh_token = opts.oauth.refresh_token;
+  }
 
   // check for clientSecret and include if found
   if(this.clientSecret) {
@@ -347,6 +356,7 @@ Connection.prototype.refreshToken = function(data, callback) {
     if(err) return resolver.reject(err);
     var old = _.clone(opts.oauth);
     _.assign(opts.oauth, res);
+    if(opts.assertion) opts.oauth.assertion = opts.assertion;
     if(self.onRefresh && opts.executeOnRefresh === true) {
       self.onRefresh.call(self, opts.oauth, old, function(err3){
         if(err3) return resolver.reject(err3);

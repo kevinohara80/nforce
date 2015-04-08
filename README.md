@@ -680,20 +680,19 @@ include in the request.
 
 This method requests the OAuth access token and instance information
 from Salesforce or Force.com. This method either requires that you
-pass
-in the authorization code (authorization code flow) or username and
-password (username/password flow).
+pass in the authorization code (authorization code flow), username and
+password (username/password flow), or a SAML assertion (SAML Bearer
+Assertion Flow).
 
 * `code`: (String:Optional) An OAuth authorization code
-
--- OR --
-
 * `username`: (String:Optional) Your
 salesforce/force.com/database.com username
 * `password`: (String:Optional) Your
 salesforce/force.com/database.com password
 * `securityToken`: (String:Optional) Your Salesforce security token.
 This will be appended to your password if this property is set.
+* `assertion`: (String:Optional) A base64-encoded SAML assertion used
+in a SAML Bearer Assertion flow.
 * `executeOnRefresh`: (Boolean:Optional) If an onRefresh callback is
 defined
 in the connection, run the callback. Default is false.
@@ -704,6 +703,9 @@ opts:
 
 * `oauth`: (Object:Optional) The oauth object. Required in
 multi-user mode
+* `assertion`: (String:Optional) A base64-encoded SAML assertion for use
+with the SAML Bearer Assertion Flow. The assertion can also be supplied as
+property of the `oauth` hash.
 * `executeOnRefresh`: (Boolean:Optional) If an onRefresh callback is
 defined
 in the connection, run the callback. Default is true.
