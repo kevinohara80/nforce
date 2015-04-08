@@ -1,5 +1,7 @@
 ## Changelog
 
+* `v1.1.0`: Experimental SAML Bearer Assertion Flow support
+* `v1.0.0`: Adds promises, improves streaming, better plugin support
 * `v0.10.0`: Moves onRefresh call to refreshToken and makes it's execution optional
 * `v0.9.4`: Avoids using request v2.48 because of a bug
 * `v0.9.3`: Addresses abnormal getIdentity response from SFDC on invalid token
