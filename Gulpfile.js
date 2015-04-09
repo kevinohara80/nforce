@@ -23,7 +23,16 @@ gulp.task('lint', function() {
 // run mocha tests
 gulp.task('test', function(cb) {
 
-  var test = spawn('npm', [ 'test' ], { stdio: 'inherit' });
+  var pkg = require('./package.json');
+
+  if(!pkg || !pkg.scripts || !pkg.scripts.test) {
+    return cb(new Error('No test script provided in package.json'));
+  }
+
+  var args = pkg.scripts.test.split(' ');
+  var cmd  = args.shift();
+
+  var test = spawn(cmd, args, { stdio: 'inherit' });
 
   test.on('close', function(code) {
     if(code !== 0) {

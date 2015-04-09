@@ -46,8 +46,7 @@
     "url": "http://github.com/kevinohara80/nforce/issues"
   },
   "scripts": {
-    "test": "mocha --reporter spec",
-    "testrecord": "mocha test/record.js --reporter spec"
+    "test": "./node_modules/mocha/bin/mocha --reporter spec"
   },
   "license": {
     "type": "MIT",
