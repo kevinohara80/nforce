@@ -81,6 +81,14 @@ describe('lib/record', function(){
       acc.get('NaMe').should.equal('Test Account');
     });
 
+    it('should return false properties', function() {
+      var acc = new Record(accData);
+      acc.set('Test', false);
+      acc.get('Test').should.equal(false);
+      acc.set('Test', 0);
+      acc.get('Test').should.equal(0);
+    });
+
   });
 
   describe('#set', function() {
