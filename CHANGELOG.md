@@ -1,5 +1,6 @@
 ## Changelog
 
+* `v1.1.1`: Fixing sobject get method for falsey values
 * `v1.1.0`: Experimental SAML Bearer Assertion Flow support
 * `v1.0.0`: Adds promises, improves streaming, better plugin support
 * `v0.10.0`: Moves onRefresh call to refreshToken and makes it's execution optional
