@@ -1004,8 +1004,9 @@ multi-user mode
 not include '/services/apexrest'
 * `method`: (String:Optional) String method that defaults to GET if
 not supplied
-* `urlParams:` (Object|String:Optional) A hash or url params to
+* `urlParams`: (Object|String:Optional) A hash or url params to
 add to the request
+* `body`: (Object:Optional) The optional JSON body for the request.
 
 This method handles integration with salesforce ApexRest
 (Custom Rest endpoints)
