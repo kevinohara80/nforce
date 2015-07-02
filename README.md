@@ -701,6 +701,8 @@ in a SAML Bearer Assertion flow.
 * `executeOnRefresh`: (Boolean:Optional) If an onRefresh callback is
 defined
 in the connection, run the callback. Default is false.
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 ### refreshToken(opts, [callback])
 
@@ -714,6 +716,8 @@ property of the `oauth` hash.
 * `executeOnRefresh`: (Boolean:Optional) If an onRefresh callback is
 defined
 in the connection, run the callback. Default is true.
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 ### revokeToken(opts|token, [callback])
 
@@ -725,6 +729,8 @@ mode
 you want to revoke
 * `callbackParam`: (String:Optional) A callback parameter to be
 supplied to the request for JSONP support
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 ### getPasswordStatus(opts|id, [callback])
 
@@ -736,6 +742,8 @@ mode
 `sobject` is not defined
 * `sobject`: (String:Optional) The user sobject. Required only if
 `id` is not defined.
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 ### updatePassword(opts, [callback])
 
@@ -751,14 +759,23 @@ not defined.
 * `sobject`: (String:Optional) The user sobject. Required only if
 `id` is not
 defined.
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 ## getIdentity(opts, [callback])
 
 opts:
 * `oauth`: (Object:Optional) The oauth object. Required in
 multi-user mode
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 ### getVersions([callback])
+
+opts:
+
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Gets the salesforce versions. Note: Does not require authentication.
 
@@ -768,6 +785,8 @@ opts:
 
 * `oauth`: (Object:Optional) The oauth object. Required in
 multi-user mode
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Gets the available salesforce resources
 
@@ -777,6 +796,8 @@ opts:
 
 * `oauth`: (Object:Optional) The oauth object. Required in
 multi-user mode
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Get all sObjects for an org
 
@@ -787,6 +808,8 @@ opts:
 * `oauth`: (Object:Optional) The oauth object. Required in
 multi-user mode
 * `type`: (String:Required) The metadata type that is being requested
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Get metadata for a single sObject. `type` is a required String
 for the sObject type
@@ -798,6 +821,8 @@ opts:
 * `oauth`: (Object:Optional) The oauth object. Required in
 multi-user mode
 * `type`: (String:Required) The metadata type that is being requested
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Get describe information for a single sObject. `type` is a required
 String for the sObject type
@@ -809,6 +834,8 @@ opts:
 * `oauth`: (Object:Optional) The oauth object. Required in
 multi-user mode
 * `sobject`: (Object:Required) An sObject instance
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Insert a record.
 
@@ -819,6 +846,8 @@ opts:
 * `oauth`: (Object:Optional) The oauth object. Required in
 multi-user mode
 * `sobject`: (Object:Required) An sObject instance
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Update a record.
 
@@ -829,6 +858,8 @@ opts:
 * `oauth`: (Object:Optional) The oauth object. Required in
 multi-user mode
 * `sobject`: (Object:Required) An sObject instance
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Update a record. NOTE: you must use the setExternalId() method to set
 the external Id field and the value to match on.
@@ -840,6 +871,8 @@ opts:
 * `oauth`: (Object:Optional) The oauth object. Required in
 multi-user mode
 * `sobject`: (Object:Required) An sObject instance
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Delete a record.
 
@@ -856,6 +889,8 @@ multi-user mode
 * `raw`: (Boolean:Optional) Tells nforce to return the raw
 response from Salesforce and skip the SObject wrapping. Default
 is false.
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Get a single record. You must supply either an `sobject` or `type`
 and `id`
@@ -869,6 +904,8 @@ multi-user mode
 * `sobject`: (Object:Optional) An sObject instance.
 * `type:`: (String:Optional) A string value sObject type
 * `id`: (String:Optional) A string value for the sObject record id
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Get the binary data for an attachment, document, or contentversion.
 You must supply either an `sobject` or `type` and `id`. The `sobject`
@@ -882,6 +919,8 @@ opts:
 multi-user mode
 * `sobject`: (Object:Optional) An sObject instance.
 * `id`: (String:Optional) A string value for the sObject record id
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Get the binary data for an attachment. You must supply either an
 `sobject` or an `id`.
@@ -894,6 +933,8 @@ opts:
 multi-user mode
 * `sobject`: (Object:Optional) An sObject instance.
 * `id`: (String:Optional) A string value for the sObject record id
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Get the binary data for a document. You must supply either an
 `sobject` or an `id`.
@@ -906,6 +947,8 @@ opts:
 multi-user mode
 * `sobject`: (Object:Optional) An sObject instance.
 * `id`: (String:Optional) A string value for the sObject record id
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Get the binary data for a contentversion. You must supply either
 an `sobject` or an `id`.
@@ -925,6 +968,8 @@ Default is false.
 * `fetchAll`: (Boolean:Optional) Specifying fetchAll to true tells
 nforce to recursively query to get all possible returned records.
 Default is false.
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Execute a SOQL query for records.
 
@@ -937,6 +982,8 @@ multi-user mode
 * `query`: (String:Required) An query string
 * `raw`: (Boolean:Optional) Tells nforce to return the raw response
 from Salesforce and skip the SObject wrapping. Default is false.
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Same as query but includes deleted records.
 
@@ -949,6 +996,8 @@ multi-user mode
 * `search`: (String:Required) An search string
 * `raw`: (Boolean:Optional) Tells nforce to return the raw response
 from Salesforce and skip the SObject wrapping. Default is false.
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Execute a SOSL search for records. `search` should be a SOSL string.
 
@@ -959,6 +1008,8 @@ opts:
 * `oauth`: (Object:Optional) The oauth object. Required in
 multi-user mode
 * `url`: (String:Required) An url string for an api resource
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Get a REST API resource by its url.
 
@@ -1007,6 +1058,8 @@ not supplied
 * `urlParams`: (Object|String:Optional) A hash or url params to
 add to the request
 * `body`: (Object:Optional) The optional JSON body for the request.
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 This method handles integration with salesforce ApexRest
 (Custom Rest endpoints)
@@ -1018,6 +1071,8 @@ opts:
 
 * `oauth`: (Object:Optional) The oauth object. Required in
 multi-user mode
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
 
 Auto-refresh the current access token. Works with refresh tokens
 and also if using username/password in single user mode

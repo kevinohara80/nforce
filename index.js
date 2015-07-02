@@ -821,6 +821,11 @@ Connection.prototype._apiAuthRequest = function(opts, callback) {
     opts.timeout = this.timeout;
   }
 
+  // process request opts
+  if(opts.requestOpts) {
+    _.merge(opts, opts.requestOpts);
+  }
+
   request(opts, function(err, res, body){
     // request returned an error
     if(err) return resolver.reject(err);
@@ -940,6 +945,11 @@ Connection.prototype._apiRequest = function(opts, callback) {
   // process qs
   if(opts.qs) {
     ropts.qs = opts.qs;
+  }
+
+  // process request opts
+  if(opts.requestOpts) {
+    _.merge(ropts, opts.requestOpts);
   }
 
   // set timeout
