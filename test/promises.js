@@ -160,6 +160,10 @@ describe('promises', function() {
 
   });
 
+  // reset the lastRequest
+  afterEach(function() {
+    api.reset();
+  });
 
   after(function(done) {
     api.stop(done);

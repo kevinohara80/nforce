@@ -67,7 +67,11 @@ module.exports.start = function(port, cb) {
     });
   });
 
-  server.listen(port, cb);
+  server.listen(port, function(err){
+    if(err) return cb(err);
+    console.log('started server');
+    cb();
+  });
 }
 
 // return an example client
