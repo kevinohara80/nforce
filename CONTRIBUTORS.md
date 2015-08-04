@@ -21,3 +21,4 @@
 * Nathan Selvidge -> [nselvidge](https://github.com/nselvidge)
 * Timmy Sze -> [timmysze](https://github.com/timmysze)
 * Elias Dawson -> [eliasdawson](https://github.com/eliasdawson)
+* michacom -> [michacom](https://github.com/michacom)
