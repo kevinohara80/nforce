@@ -1,5 +1,7 @@
 ## Changelog
 
+* `v1.2.1`: Added two new api versions
+* `v1.2.0`: Adding ability to override request opts
 * `v1.1.1`: Fixing sobject get method for falsey values
 * `v1.1.0`: Experimental SAML Bearer Assertion Flow support
 * `v1.0.0`: Adds promises, improves streaming, better plugin support
