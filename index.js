@@ -719,7 +719,9 @@ Connection.prototype.apexRest = function(data, callback) {
   var opts = this._getOpts(data, callback, {
     singleProp: 'uri'
   });
-  opts.uri = opts.oauth.instance_url + '/services/apexrest/' + data.uri;
+  opts.uri = opts.oauth.instance_url + '/services/apexrest/' 
+    // Allow for data.uri to start with or without a /
+    + ((data.uri.substring(0,1)==='/') ? data.uri.substring(1) : data.uri);
   opts.method = opts.method || 'GET';
   if(opts.urlParams) {
     opts.qs = opts.urlParams;
