@@ -1079,6 +1079,8 @@ Plugin.prototype.fn = function(fnName, fn) {
     throw new Error('invalid function name provided');
   }
   this._fns[fnName] = fn;
+  
+  return this;
 };
 
 /*****************************
