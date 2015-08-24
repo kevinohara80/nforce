@@ -1,5 +1,6 @@
 ## Changelog
 
+* `v1.2.2`: Better URI handling for apexrest
 * `v1.2.1`: Added two new api versions
 * `v1.2.0`: Adding ability to override request opts
 * `v1.1.1`: Fixing sobject get method for falsey values
