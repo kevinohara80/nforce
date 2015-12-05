@@ -1010,13 +1010,11 @@ Connection.prototype._apiRequest = function(opts, callback) {
       // error: array body
       } else if (_.isArray(body) && body.length > 0) {
         e = new Error(body[0].message);
-        e.errorCode = body[0].errorCode;
-        e.messageBody = body[0].message;
+        _.assign(e, body[0]);
       // error: string body
       } else {
-        e = new Error(body);
-        e.errorCode = body;
-        e.messageBody = body;
+        e = new Error(body.message);
+        _.assign(e, body);
       }
 
       e.statusCode = res.statusCode;
