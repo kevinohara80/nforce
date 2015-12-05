@@ -22,3 +22,4 @@
 * Timmy Sze -> [timmysze](https://github.com/timmysze)
 * Elias Dawson -> [eliasdawson](https://github.com/eliasdawson)
 * michacom -> [michacom](https://github.com/michacom)
+* pentode -> [pentode](https://github.com/pentode)
