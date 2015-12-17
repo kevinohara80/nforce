@@ -1010,11 +1010,16 @@ Connection.prototype._apiRequest = function(opts, callback) {
       // error: array body
       } else if (_.isArray(body) && body.length > 0) {
         e = new Error(body[0].message);
-        _.assign(e, body[0]);
+        e.errorCode = body[0].errorCode;
+        e.body = body;
       // error: string body
+      } else if(_.isString(body)) {
+        e = new Error(body);
+        e.errorCode = body;
+        e.body = body;
       } else {
-        e = new Error(body.message);
-        _.assign(e, body);
+        e = new Error('Salesforce returned an unrecognized error ' + res.statusCode);
+        e.body = body;
       }
 
       e.statusCode = res.statusCode;
