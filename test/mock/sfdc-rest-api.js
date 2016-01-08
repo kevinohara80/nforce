@@ -91,7 +91,7 @@ module.exports.getClient = function(opts) {
 // return an example oauth
 module.exports.getOAuth = function() {
   return {
-    id: 'http://localhost: ' + port + '/id/00Dd0000000fOlWEAU/005d00000014XTPAA2',
+    id: 'http://localhost:' + port + '/id/00Dd0000000fOlWEAU/005d00000014XTPAA2',
     issued_at: '1362448234803',
     instance_url: 'http://localhost:' + port,
     signature: 'djaflkdjfdalkjfdalksjfalkfjlsdj',
