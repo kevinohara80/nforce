@@ -28,7 +28,7 @@ describe('promises', function() {
     });
 
     it('should return a promise with no callback', function(){
-      var promise = org.getIdentity({ oauth: oauth });
+      var promise = org.getIdentity({ oauth: oauth }).catch(function(err) {});
       should.exist(promise);
     });
 
@@ -42,7 +42,7 @@ describe('promises', function() {
     });
 
     it('should return a promise with no callback', function(){
-      var promise = org.getVersions();
+      var promise = org.getVersions().catch(function(err) {});
       should.exist(promise);
     });
 
@@ -56,7 +56,7 @@ describe('promises', function() {
     });
 
     it('should return a promise with no callback', function(){
-      var promise = org.insert({ sobject: testAccount, oauth: oauth });
+      var promise = org.insert({ sobject: testAccount, oauth: oauth }).catch(function(err) {});
       should.exist(promise);
     });
 
@@ -70,7 +70,7 @@ describe('promises', function() {
     });
 
     it('should return a promise with no callback', function(){
-      var promise = org.update({ sobject: testAccount, oauth: oauth });
+      var promise = org.update({ sobject: testAccount, oauth: oauth }).catch(function(err) {});
       should.exist(promise);
     });
 
@@ -84,7 +84,7 @@ describe('promises', function() {
     });
 
     it('should return a promise with no callback', function(){
-      var promise = org.upsert({ sobject: testAccount, oauth: oauth });
+      var promise = org.upsert({ sobject: testAccount, oauth: oauth }).catch(function(err) {});
       should.exist(promise);
     });
 
@@ -98,7 +98,7 @@ describe('promises', function() {
     });
 
     it('should return a promise with no callback', function(){
-      var promise = org.delete({ sobject: testAccount, oauth: oauth });
+      var promise = org.delete({ sobject: testAccount, oauth: oauth }).catch(function(err) {});
       should.exist(promise);
     });
 
@@ -112,7 +112,7 @@ describe('promises', function() {
     });
 
     it('should return a promise with no callback', function(){
-      var promise = org.getRecord({ type: 'Account', id: 'Id', oauth: oauth });
+      var promise = org.getRecord({ type: 'Account', id: 'Id', oauth: oauth }).catch(function(err) {});
       should.exist(promise);
     });
 
@@ -126,7 +126,7 @@ describe('promises', function() {
     });
 
     it('should return a promise with no callback', function(){
-      var promise = org.getBody({ type: 'Document', id: 'Id', oauth: oauth });
+      var promise = org.getBody({ type: 'Document', id: 'Id', oauth: oauth }).catch(function(err) {});
       should.exist(promise);
     });
 
@@ -140,7 +140,7 @@ describe('promises', function() {
     });
 
     it('should return a promise with no callback', function(){
-      var promise = org.query({ query: testQuery, oauth: oauth });
+      var promise = org.query({ query: testQuery, oauth: oauth }).catch(function(err) {});
       should.exist(promise);
     });
 
@@ -154,7 +154,7 @@ describe('promises', function() {
     });
 
     it('should return a promise with no callback', function(){
-      var promise = org.search({ search: testSearch, oauth: oauth });
+      var promise = org.search({ search: testSearch, oauth: oauth }).catch(function(err) {});
       should.exist(promise);
     });
 
