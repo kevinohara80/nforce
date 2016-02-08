@@ -555,7 +555,7 @@ Connection.prototype.getBody = function(data, callback) {
   } else if(type === 'attachment') {
     return this.getAttachmentBody(opts, opts.callback);
   } else if(type === 'contentversion') {
-    return this.getContentVersionBody(opts, opts.callback);
+    return this.getContentVersionData(opts, opts.callback);
   } else {
     var resolver = promises.createResolver(opts.callback);
     // resolve async
@@ -588,6 +588,15 @@ Connection.prototype.getContentVersionBody = function(data, callback) {
   var opts = this._getOpts(data, callback);
   var id = (opts.sobject) ? sobject.getId() : opts.id;
   opts.resource = '/sobjects/contentversion/' + id + '/body';
+  opts.method = 'GET';
+  opts.blob = true;
+  return this._apiRequest(opts, opts.callback);
+};
+
+Connection.prototype.getContentVersionData = function(data, callback) {
+  var opts = this._getOpts(data, callback);
+  var id = (opts.sobject) ? sobject.getId() : opts.id;
+  opts.resource = '/sobjects/contentversion/' + id + '/versiondata';
   opts.method = 'GET';
   opts.blob = true;
   return this._apiRequest(opts, opts.callback);
