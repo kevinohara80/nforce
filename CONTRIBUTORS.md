@@ -23,3 +23,4 @@
 * Elias Dawson -> [eliasdawson](https://github.com/eliasdawson)
 * michacom -> [michacom](https://github.com/michacom)
 * pentode -> [pentode](https://github.com/pentode)
+* Caleb Everett -> [CalebEverett](https://github.com/CalebEverett)
