@@ -1,5 +1,6 @@
 ## Changelog
 
+* `v1.4.0`: Fixing content version body requests
 * `v1.3.0`: Better errors - includes field errors
 * `v1.2.3`: Allow plugin chaining
 * `v1.2.2`: Better URI handling for apexrest
