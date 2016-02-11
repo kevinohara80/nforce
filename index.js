@@ -459,6 +459,15 @@ Connection.prototype.getDescribe = function(data, callback) {
   return this._apiRequest(opts, opts.callback);
 };
 
+Connection.prototype.getLimits = function(data, callback) {
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'type'
+  });
+  opts.resource = '/limits'
+  opts.method = 'GET';
+  return this._apiRequest(opts, opts.callback);
+};
+
 /*****************************
  * crud methods
  *****************************/
@@ -720,7 +729,7 @@ Connection.prototype.apexRest = function(data, callback) {
   var opts = this._getOpts(data, callback, {
     singleProp: 'uri'
   });
-  opts.uri = opts.oauth.instance_url + '/services/apexrest/' 
+  opts.uri = opts.oauth.instance_url + '/services/apexrest/'
     // Allow for data.uri to start with or without a /
     + ((data.uri.substring(0,1)==='/') ? data.uri.substring(1) : data.uri);
   opts.method = opts.method || 'GET';
@@ -1083,7 +1092,7 @@ Plugin.prototype.fn = function(fnName, fn) {
     throw new Error('invalid function name provided');
   }
   this._fns[fnName] = fn;
-  
+
   return this;
 };
 
