@@ -55,7 +55,7 @@ describe('index', function(){
       }).should.not.throw();
     });
 
-    it('should throw for apiVersion 45', function(){
+    it('should not throw for apiVersion 45', function(){
       (function() {
         var org = nforce.createConnection({
           clientId: 'ADFJSD234ADF765SFG55FD54S',
@@ -63,7 +63,7 @@ describe('index', function(){
           redirectUri: 'http://localhost:3000/oauth/_callback',
           apiVersion: 45.0
         });
-      }).should.throw();
+      }).should.not.throw();
     });
 
     it('should accept production for environment', function(){
