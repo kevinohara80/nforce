@@ -1007,6 +1007,9 @@ Connection.prototype._apiRequest = function(opts, callback) {
           if(body && _.isObject(body) && body.id) {
             sobject._fields.id = body.id;
           }
+          if (body && _.isObject(body) && res && res.headers) {
+            body.headers = res.headers;
+          }
         }
         return resolver.resolve(body);
       }
