@@ -729,7 +729,7 @@ Connection.prototype.apexRest = function(data, callback) {
   var opts = this._getOpts(data, callback, {
     singleProp: 'uri'
   });
-  opts.uri = opts.oauth.instance_url + '/services/apexrest/' 
+  opts.uri = opts.oauth.instance_url + '/services/apexrest/'
     // Allow for data.uri to start with or without a /
     + ((data.uri.substring(0,1)==='/') ? data.uri.substring(1) : data.uri);
   opts.method = opts.method || 'GET';
@@ -1007,10 +1007,12 @@ Connection.prototype._apiRequest = function(opts, callback) {
           if(body && _.isObject(body) && body.id) {
             sobject._fields.id = body.id;
           }
-          if (body && _.isObject(body) && res && res.headers) {
-            body.headers = res.headers;
-          }
         }
+
+        if (body && _.isObject(body) && res && res.headers) {
+          body.headers = res.headers;
+        }
+
         return resolver.resolve(body);
       }
 
@@ -1095,7 +1097,7 @@ Plugin.prototype.fn = function(fnName, fn) {
     throw new Error('invalid function name provided');
   }
   this._fns[fnName] = fn;
-  
+
   return this;
 };
 
