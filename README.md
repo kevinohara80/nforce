@@ -827,6 +827,15 @@ pass to the underlying request.
 Get describe information for a single sObject. `type` is a required
 String for the sObject type
 
+### getLimits(opts|type, [callback])
+
+opts:
+
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
+
+Lists information about limits in your organization
+
 ### insert(opts, [callback])
 
 opts:
