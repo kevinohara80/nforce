@@ -232,8 +232,8 @@ org.getAuthUri({ responseType: 'token' });
 
 ### OAuth Object
 
-At the end of a successful authorization, you a returned an OAuth
-object fo the user. This object contains your salesforce access
+At the end of a successful authorization, you are returned an OAuth
+object for the user. This object contains your salesforce access
 token, endpoint, id, and other information.  If you have `mode` set
 to `multi`, cache this object for the user as it will be used for
 subsequent requests. If you are in `single` user mode, the OAuth
