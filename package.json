@@ -2,7 +2,7 @@
   "author": "Kevin O'Hara <kevnohara80@gmail.com> (http://kevinmohara.com)",
   "name": "nforce",
   "description": "nforce is a REST API wrapper for force.com, database.com, and salesforce.com",
-  "version": "1.4.1",
+  "version": "1.6.0",
   "keywords": [
     "salesforce",
     "salesforce.com",
@@ -20,7 +20,7 @@
   "main": "index.js",
   "dependencies": {
     "bluebird": "^2.3.11",
-    "faye": "1.1.0",
+    "faye": "1.2.3",
     "lodash": "^3.10.1",
     "mime": "1.2.11",
     "request": "^2.49.0"
@@ -46,7 +46,9 @@
     "url": "http://github.com/kevinohara80/nforce/issues"
   },
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha ./test --reporter spec"
+    "preversion": "npm test",
+    "test": "./node_modules/mocha/bin/mocha ./test --reporter spec",
+    "postversion": "git push && git push --tags"
   },
   "license": {
     "type": "MIT",

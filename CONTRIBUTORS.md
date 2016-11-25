@@ -24,3 +24,5 @@
 * michacom -> [michacom](https://github.com/michacom)
 * pentode -> [pentode](https://github.com/pentode)
 * Caleb Everett -> [CalebEverett](https://github.com/CalebEverett)
+* Laboratory -> [Laboratory](https://github.com/Laboratory)
+* Kessiler -> [kessiler](https://github.com/kessiler)

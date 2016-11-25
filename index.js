@@ -26,7 +26,7 @@ var API_VERSIONS       = [
   'v20.0', 'v21.0', 'v22.0', 'v23.0', 'v24.0',
   'v25.0', 'v26.0', 'v27.0', 'v28.0', 'v29.0',
   'v30.0', 'v31.0', 'v32.0', 'v33.0', 'v34.0',
-  'v35.0', 'v36.0'
+  'v35.0', 'v36.0', 'v37.0'
 ];
 
 var plugins = {};
@@ -455,6 +455,15 @@ Connection.prototype.getDescribe = function(data, callback) {
     singleProp: 'type'
   });
   opts.resource = '/sobjects/' + opts.type + '/describe';
+  opts.method = 'GET';
+  return this._apiRequest(opts, opts.callback);
+};
+
+Connection.prototype.getLimits = function(data, callback) {
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'type'
+  });
+  opts.resource = '/limits'
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
 };
