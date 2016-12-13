@@ -422,9 +422,8 @@ Connection.prototype.getApiUsage = function() {
 
 function updateApiUsage(headers) {
     var self = this;
-    var limitsInfo;
     if (headers && headers["sforce-limit-info"]) {
-        limitsInfo = headers["sforce-limit-info"].match(/api\-usage=(\d+)\/(\d+)/);
+        var limitsInfo = headers["sforce-limit-info"].match(/api\-usage=(\d+)\/(\d+)/);
         if (limitsInfo) {
             self.apiUsage = {
                 used: parseInt(limitsInfo[1], 10),
