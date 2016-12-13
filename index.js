@@ -63,6 +63,7 @@ var Connection = function(opts) {
   opts.apiVersion = opts.apiVersion.toString().toLowerCase().replace('v', '').replace('.0', '');
   opts.environment = opts.environment.toLowerCase();
   opts.mode = opts.mode.toLowerCase();
+  opts.apiUsage = {};
 
   self = _.assign(this, opts);
 
@@ -414,6 +415,24 @@ Connection.prototype.getIdentity = function(data, callback) {
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
 };
+
+Connection.prototype.getApiUsage = function() {
+    return this.apiUsage;
+};
+
+function updateApiUsage(headers) {
+    var self = this;
+    var limitsInfo;
+    if (headers && headers["sforce-limit-info"]) {
+        limitsInfo = headers["sforce-limit-info"].match(/api\-usage=(\d+)\/(\d+)/);
+        if (limitsInfo) {
+            self.apiUsage = {
+                used: parseInt(limitsInfo[1], 10),
+                limit: parseInt(limitsInfo[2], 10)
+            };
+        }
+    }
+}
 
 /*****************************
  * system api methods
@@ -1018,9 +1037,8 @@ Connection.prototype._apiRequest = function(opts, callback) {
           }
         }
 
-        if (body && _.isObject(body) && res && res.headers) {
-          body.headers = res.headers;
-        }
+        // log api usage and its quota
+        updateApiUsage.call(self, res && res.headers);
 
         return resolver.resolve(body);
       }
