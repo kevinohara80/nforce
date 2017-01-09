@@ -22,12 +22,6 @@ var LOGIN_URI          = 'https://login.salesforce.com/services/oauth2/token';
 var TEST_LOGIN_URI     = 'https://test.salesforce.com/services/oauth2/token';
 var ENVS               = ['sandbox', 'production'];
 var MODES              = ['multi', 'single'];
-var API_VERSIONS       = [
-  'v20.0', 'v21.0', 'v22.0', 'v23.0', 'v24.0',
-  'v25.0', 'v26.0', 'v27.0', 'v28.0', 'v29.0',
-  'v30.0', 'v31.0', 'v32.0', 'v33.0', 'v34.0',
-  'v35.0', 'v36.0', 'v37.0'
-];
 
 var plugins = {};
 
@@ -46,7 +40,7 @@ var Connection = function(opts) {
     testAuthEndpoint: TEST_AUTH_ENDPOINT,
     loginUri:         LOGIN_URI,
     testLoginUri:     TEST_LOGIN_URI,
-    apiVersion:       _.last(API_VERSIONS),
+    apiVersion:       38,
     environment:      'production',
     mode:             'multi',
     gzip:             false,
@@ -89,9 +83,6 @@ var Connection = function(opts) {
   } catch (err) {
     throw new Error('invalid apiVersion number');
   }
-  // if(API_VERSIONS.indexOf(this.apiVersion) === -1) {
-  //   throw new Error('api version ' + this.apiVersion + ' is not supported');
-  // }
 
   // parse timeout into integer in case it's a floating point.
   this.timeout = parseInt(this.timeout, 10);
