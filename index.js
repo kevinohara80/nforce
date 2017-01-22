@@ -29,6 +29,7 @@ var API_VERSIONS       = [
   'v35.0', 'v36.0', 'v37.0', 'v38.0'
 ];
 
+
 var plugins = {};
 
 /*****************************
@@ -46,7 +47,7 @@ var Connection = function(opts) {
     testAuthEndpoint: TEST_AUTH_ENDPOINT,
     loginUri:         LOGIN_URI,
     testLoginUri:     TEST_LOGIN_URI,
-    apiVersion:       _.last(API_VERSIONS),
+    apiVersion:       38,
     environment:      'production',
     mode:             'multi',
     gzip:             false,
@@ -90,9 +91,6 @@ var Connection = function(opts) {
   } catch (err) {
     throw new Error('invalid apiVersion number');
   }
-  // if(API_VERSIONS.indexOf(this.apiVersion) === -1) {
-  //   throw new Error('api version ' + this.apiVersion + ' is not supported');
-  // }
 
   // parse timeout into integer in case it's a floating point.
   this.timeout = parseInt(this.timeout, 10);
