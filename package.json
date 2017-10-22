@@ -22,7 +22,7 @@
     "bluebird": "^2.3.11",
     "faye": "1.2.3",
     "lodash": "^3.10.1",
-    "mime": "1.2.11",
+    "mime": "1.4.1",
     "request": "^2.49.0"
   },
   "devDependencies": {
