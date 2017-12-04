@@ -190,7 +190,7 @@ Connection.prototype.getAuthUri = function(opts) {
 
     const self = this;
 
-    const urlOpts = {
+    var urlOpts = {
         response_type: opts.responseType || 'code',
         client_id: self.clientId,
         redirect_uri: self.redirectUri
@@ -233,7 +233,7 @@ Connection.prototype.getAuthUri = function(opts) {
     }
 
     if (opts.urlOpts) {
-        _.merge(urlOpts, opts.urlOpts);
+        urlOpts = _.assign(urlOpts, opts.urlOpts);
     }
 
     var endpoint;
@@ -294,7 +294,7 @@ Connection.prototype.authenticate = function(data, callback) {
 
     this._apiAuthRequest(opts, function(err, res) {
         if (err) return resolver.reject(err);
-        var old = _.clone(opts.oauth);
+        const old = _.clone(opts.oauth);
         _.assign(opts.oauth, res);
         if (opts.assertion) opts.oauth.assertion = opts.assertion;
         if (self.onRefresh && opts.executeOnRefresh === true) {
