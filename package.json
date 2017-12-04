@@ -23,7 +23,7 @@
     "faye": "1.2.3",
     "lodash": "^3.10.1",
     "mime": "1.2.11",
-    "request": "^2.49.0"
+    "request": "2.81.0"
   },
   "devDependencies": {
     "body-parser": "1.0.2",
