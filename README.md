@@ -3,7 +3,7 @@ nforce :: node.js salesforce REST API wrapper
 
 [![Build Status](https://secure.travis-ci.org/kevinohara80/nforce.png)](http://travis-ci.org/kevinohara80/nforce)
 [![npm version](https://badge.fury.io/js/nforce.svg)](https://badge.fury.io/js/nforce)
- 
+
 
 
 **nforce** is node.js a REST API wrapper for force.com, database.com,
@@ -1104,9 +1104,10 @@ events:
 
 opts:
 
-* `topic`: (String:Required) An string value for the streaming topic
+* `topic`: (String:Required) An string value for the streaming topic or Platform Event object (ex: event_name__e)
 * `isSystem`: (Boolean:Optional) Specify `true` if the topic to be
 streamed is a SystemTopic
+* `isEvent`: (Boolean:Optional) Specify `true` if you want to subscribe to a Platform Event instead of a push topic.
 
 Creates and returns a streaming api subscription object. See the
 *Streaming Subscription Methods* section for more details on the
