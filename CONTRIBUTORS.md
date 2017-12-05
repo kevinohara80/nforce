@@ -26,3 +26,4 @@
 * Caleb Everett -> [CalebEverett](https://github.com/CalebEverett)
 * Laboratory -> [Laboratory](https://github.com/Laboratory)
 * Kessiler -> [kessiler](https://github.com/kessiler)
+* Vineet Sinha -> [vineet-sinha](https://github.com/vineet-sinha)
