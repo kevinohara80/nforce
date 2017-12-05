@@ -1008,6 +1008,7 @@ Connection.prototype._apiRequest = function(opts, callback) {
             sobject._fields.id = body.id;
           }
         }
+        body.headers = res && res.headers;
         return resolver.resolve(body);
       }
 
