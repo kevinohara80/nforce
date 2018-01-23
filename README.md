@@ -1019,11 +1019,53 @@ opts:
 
 * `oauth`: (Object:Optional) The oauth object. Required in
 multi-user mode
-* `url`: (String:Required) An url string for an api resource
+* `url`: (String:Required) A url string for an api resource. Should
+start with a forward slash
 * `requestOpts`: (Object:Optional) Optional hash of parameters to
 pass to the underlying request.
 
-Get a REST API resource by its url.
+GET a REST API resource by its url.
+
+### putUrl(opts|url, [callback])
+
+opts:
+
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
+* `url`: (String:Required) A url string for an api resource. Should
+start with a forward slash 
+* `body`: (Object:Optional) The body for the request
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
+
+PUT a REST API resource by its url.
+
+### postUrl(opts|url, [callback])
+
+opts:
+
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
+* `url`: (String:Required) A url string for an api resource. Should
+start with a forward slash
+* `body`: (Object:Optional) The body for the request
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
+
+POST a REST API resource by its url.
+
+### deleteUrl(opts|url, [callback])
+
+opts:
+
+* `oauth`: (Object:Optional) The oauth object. Required in
+multi-user mode
+* `url`: (String:Required) A url string for an api resource. Should
+start with a forward slash
+* `requestOpts`: (Object:Optional) Optional hash of parameters to
+pass to the underlying request.
+
+DELETE a REST API resource by its url.
 
 ### createStreamClient(opts)
 

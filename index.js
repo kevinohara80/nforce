@@ -712,12 +712,49 @@ Connection.prototype.search = function(data, callback) {
   return resolver.promise;
 };
 
+function requireForwardSlash(uri) {
+  if (!uri) return '/';
+  if (uri.charAt(0) !== '/') {
+    return '/' + uri;
+  }
+  return uri;
+}
+
 Connection.prototype.getUrl = function(data, callback) {
   var opts = this._getOpts(data, callback, {
     singleProp: 'url'
   });
-  opts.uri = opts.oauth.instance_url + data.url;
+  opts.uri = opts.oauth.instance_url + requireForwardSlash(opts.url);
   opts.method = 'GET';
+  return this._apiRequest(opts, opts.callback);
+};
+
+Connection.prototype.putUrl = function(data, callback) {
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'url'
+  });
+  opts.uri = opts.oauth.instance_url + requireForwardSlash(opts.url);
+  opts.method = 'PUT';
+  if (opts.body) opts.body = JSON.stringify(opts.body);
+  return this._apiRequest(opts, opts.callback);
+};
+
+Connection.prototype.postUrl = function (data, callback) {
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'url'
+  });
+  opts.uri = opts.oauth.instance_url + requireForwardSlash(opts.url);
+  opts.method = 'POST';
+  if(opts.body) opts.body = JSON.stringify(opts.body);
+  return this._apiRequest(opts, opts.callback);
+};
+
+Connection.prototype.deleteUrl = function (data, callback) {
+  var opts = this._getOpts(data, callback, {
+    singleProp: 'url'
+  });
+  opts.uri = opts.oauth.instance_url + requireForwardSlash(opts.url);
+  opts.method = 'DELETE';
   return this._apiRequest(opts, opts.callback);
 };
 
