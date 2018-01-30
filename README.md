@@ -597,7 +597,7 @@ value that you are trying to match on.
 
 Returns the attachment object if set
 
-### setAttachement(fileName, body)
+### setAttachment(fileName, body)
 
 Sets the fileName (String) and body (buffer) for an attachment
 
