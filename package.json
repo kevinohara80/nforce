@@ -20,9 +20,9 @@
   "main": "index.js",
   "dependencies": {
     "bluebird": "^2.3.11",
-    "faye": "1.2.3",
+    "faye": "^1.2.3",
     "lodash": "^4.0.0",
-    "mime": "1.4.1",
+    "mime": "^1.4.1",
     "request": "^2.85.0"
   },
   "devDependencies": {
