@@ -1094,6 +1094,8 @@ streamed is a SystemTopic
 the Faye client
 * `retry`: (Integer:Optional) The retry interval to pass to the
 Faye client
+* `replayId`: (Integer:Optional) The replayId of the last received event.
+Special values: -1 for only new messages, -2 for all saved messages.
 
 Creates and returns a streaming api subscription object. See the
 *Streaming Subscription* section for more details on the
