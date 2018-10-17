@@ -464,8 +464,7 @@ org.getUrl(url, myCallback);
 
 ### Promises
 
-**nforce** also supports promises based on
-[Bluebird](https://github.com/petkaantonov/bluebird). When no
+**nforce** also supports promises based on native promises. When no
 callback is supplied to an asynchronous method (like an api call),
 a promise will be returned. This makes control-flow very simple.
 
@@ -474,7 +473,7 @@ org.authenticate({ username: un, password: pw }).then(function(){
   return org.getResources();
 }).then(function(resources) {
   console.log('resources: ' + resources);
-}).error(function(err) {
+}).catch(function(err) {
   console.error('there was a problem');
 });
 ```
