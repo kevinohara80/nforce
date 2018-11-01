@@ -16,6 +16,7 @@ function deleteLead(ld) {
     if(err) {
       console.error('--> unable to delete lead');
       console.error('--> ' + JSON.stringify(err));
+      throw err;
     } else {
       console.log('--> lead deleted');
     }
@@ -29,6 +30,7 @@ function updateLead(ld) {
     if(err) {
       console.error('--> unable to update lead');
       console.error('--> ' + JSON.stringify(err));
+      throw err;
     } else {
       console.log('--> lead updated');
       deleteLead(ld);
@@ -48,6 +50,7 @@ function insertLead() {
     if(err) {
       console.error('--> unable to insert lead');
       console.error('--> ' + JSON.stringify(err));
+      throw err;
     } else {
       console.log('--> lead inserted');
       updateLead(ld);
@@ -61,6 +64,7 @@ org.authenticate({ username: sfuser, password: sfpass}, function(err, resp) {
   if(err) {
     console.error('--> unable to authenticate to sfdc');
     console.error('--> ' + JSON.stringify(err));
+    throw err;
   } else {
     console.log('--> authenticated!');
     oauth = resp;

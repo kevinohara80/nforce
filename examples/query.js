@@ -13,6 +13,7 @@ var org = nforce.createConnection({
 org.authenticate({ username: sfuser, password: sfpass}, function(err, oauth) {
   if(err) {
     console.error('unable to authenticate to sfdc');
+    throw err;
   } else {
     org.query({ query: query, oauth: oauth }, function(err, resp) {
       if(err) throw err;
