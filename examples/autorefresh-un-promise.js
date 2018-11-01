@@ -25,7 +25,7 @@ org.authenticate({ username: sfuser, password: sfpass }).then(function() {
 }).then(function(results){
   console.log('query successful!');
   console.log('records returned: ' + results.records.length);
-}).error(function(err){
+}).catch(function(err){
   console.error('failed!');
   console.error(err);
 });

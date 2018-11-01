@@ -19,7 +19,6 @@
   },
   "main": "index.js",
   "dependencies": {
-    "bluebird": "^2.3.11",
     "faye": "1.2.3",
     "lodash": "4.17.10",
     "mime": "1.4.1",
@@ -36,7 +35,7 @@
   },
   "optionalDependencies": {},
   "engines": {
-    "node": "*"
+    "node": ">= 0.12"
   },
   "bugs": {
     "url": "http://github.com/kevinohara80/nforce/issues"

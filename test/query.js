@@ -39,7 +39,7 @@ describe('query', function(){
         api.getLastRequest().url.should.equal(expected);
         api.getLastRequest().headers.should.have.property('authorization', 'Bearer ' + oauth.access_token);
         done();
-      }).error(function(err){
+      }).catch(function(err){
         should.not.exist(err);
         done();
       });
@@ -56,7 +56,7 @@ describe('query', function(){
       orgSingle.query({ query: testQuery }).then(function(res) {
         api.getLastRequest().url.should.equal(expected);
         done();
-      }).error(function(err){
+      }).catch(function(err){
         should.not.exist(err);
         done();
       });
@@ -88,7 +88,7 @@ describe('query', function(){
         api.getLastRequest().url.should.equal(expected);
         verifyAccessToken();
         done();
-      }).error(function(err){
+      }).catch(function(err){
         should.not.exist(err);
         done();
       });
@@ -107,7 +107,7 @@ describe('query', function(){
         api.getLastRequest().url.should.equal(expected);
         verifyAccessToken();
         done();
-      }).error(function(err){
+      }).catch(function(err){
         should.not.exist(err);
         done();
       });
