@@ -392,9 +392,9 @@ org.authenticate({ username: un, password: pw }).then(function(){
 
 The createConnection method creates an *nforce* salesforce connection object. You need to supply some arguments including oauth information and some optional arguments for version and salesforce environment type.
 
-* `clientId`: (String:Required) This is the OAuth client id
-* `clientSecret`: (String:Required) This is the OAuth client secret
-* `redirectUri`: (String:Required) This is the redirect URI for OAuth callbacks
+* `clientId`: (String:Required) This is the OAuth client id.
+* `clientSecret`: (String:Required) This is the OAuth client secret.
+* `redirectUri`: (String:Required) This is the redirect URI for OAuth callbacks.
 * `apiVersion`: (String|Number:Required) This is a number or string representing a valid REST API version. Default is the latest current api version.
 * `environment`: (String:Optional) Values can be 'production' or 'sandbox'. Default is production.
 * `authEndpoint`: (String:Optional) Used to override the authentication endpoint for production environments.
@@ -405,10 +405,10 @@ The createConnection method creates an *nforce* salesforce connection object. Yo
 * `autoRefresh`: (Boolean:Optional) If set to boolean 'true', *nforce* will auto-refresh your oauth access token if it tries a request and fails due to an expired token. Only works with web oauth and username/password flows.
 * `onRefresh`: (Function:Optional) This is a function that is called when a request going through the connection triggers an auto-refresh. This hook is handy for updating your oauth tokens in a database or other store. The function is passed three arguments `newOauth`, `oldOauth`, and a `callback` function. The callback must be called with either an error or null value.
 * `timeout`: (Number:Optional) Integer containing the number of milliseconds to wait for a request to respond before aborting the request.
-* `username`: (String:Optional) The username to be used for the connection (single-user mode only)
-* `password`: (String:Optional) The password to be used for the connection (single-user mode only)
-* `securityToken`: (String:Optional) The security token to be used for the connection (single-user mode only)
-* `oauth`: (Object:Optional) The oauth object to be used for the connection (single-user mode only)
+* `username`: (String:Optional) The username to be used for the connection (single-user mode only).
+* `password`: (String:Optional) The password to be used for the connection (single-user mode only).
+* `securityToken`: (String:Optional) The security token to be used for the connection (single-user mode only).
+* `oauth`: (Object:Optional) The oauth object to be used for the connection (single-user mode only).
 
 ### createSObject(type, [fieldValues])
 
@@ -418,14 +418,14 @@ This creates an sObject record that you can use to insert, update, upsert, and d
 
 This creates an nforce plugin. Plugins allow you to extend the functionality of nforce. You need to initialize the plugin with a `namespace` or an options hash containing a namespace. Valid options include:
 
-* `namespace`: (String:Required) This sets the namespace for your plugin
+* `namespace`: (String:Required) This sets the namespace for your plugin.
 * `override`: (Boolean:Optional) Override *true* allows you to overwrite an existing plugin. Default is false.
 
 ## Salesforce sObject Methods
 
 ### get(field)
 
-Get the value of a field on the sObject
+Get the value of a field on the sObject.
 
 ### set(field, value) OR set(hash)
 
@@ -433,27 +433,27 @@ Set the value of a single field (field, value) or set multiple fields using a ha
 
 ### getId()
 
-Get the Id of the sObject
+Get the Id of the sObject.
 
 ### setId(id)
 
-Set the Id of the sObject
+Set the Id of the sObject.
 
 ### getType()
 
-Returns the sObject type in lowercase
+Returns the sObject type in lowercase.
 
 ### isType(type)
 
-Checks the type of the sObject and returns true|false
+Checks the type of the sObject and returns true|false.
 
 ### getExternalId()
 
-Returns the external id that is currently set
+Returns the external id that is currently set.
 
 ### getExternalIdField()
 
-Returns the external id field that is currently set
+Returns the external id field that is currently set.
 
 ### setExternalId(field, value)
 
@@ -461,43 +461,43 @@ For upsert methods, you need to specify the External Id field and the value that
 
 ### getAttachment()
 
-Returns the attachment object if set
+Returns the attachment object if set.
 
 ### setAttachment(fileName, body)
 
-Sets the fileName (String) and body (buffer) for an attachment
+Sets the fileName (String) and body (buffer) for an attachment.
 
 ### getFileName()
 
-Returns the file name of the attachment if set
+Returns the file name of the attachment if set.
 
 ### setFileName(fileName)
 
-Sets the file name of the attachment
+Sets the file name of the attachment.
 
 ### getBody
 
-Gets the body of the attachment if set
+Gets the body of the attachment if set.
 
 ### setBody
 
-Sets the body of the attachment
+Sets the body of the attachment.
 
 ### hasChanged(field)
 
-Checks to see if the field has been changed since the last save on the server
+Checks to see if the field has been changed since the last save on the server.
 
 ### changed()
 
-Returns a hash of the changed fields and their current values
+Returns a hash of the changed fields and their current values.
 
 ### previous()
 
-Returns a hash of the previous values for changed fields
+Returns a hash of the previous values for changed fields.
 
 ### toJSON()
 
-Returns a JSON representation of the fields in the sObject
+Returns a JSON representation of the fields in the sObject.
 
 ## Connection Methods
 
@@ -520,12 +520,12 @@ org.insert({ oauth: oauth, sobject: so, headers: headers }, function(err, record
 This is a helper method to build the authentication uri for a authorization code OAuth 2.0 flow. You can optionally pass in an OAuth options argument. The supported options are:
 
 * `responseType`: (String:Optional) Any valid response_type that is supported by Salesforce OAuth 2.0. Default is `code`.
-* `authEndpoint`: (String:Optional) Override the auth endpoint to use for the token request
-* `display`: (String:Optional) Tailors the login page to the user's device type. Currently the only values supported are `page`, `popup`, and `touch`
+* `authEndpoint`: (String:Optional) Override the auth endpoint to use for the token request.
+* `display`: (String:Optional) Tailors the login page to the user's device type. Currently the only values supported are `page`, `popup`, and `touch`.
 * `immediate`: (Boolean:Optional) Avoid interacting with the user. Default is false.
-* `scope`: (Array:Optional) The scope parameter allows you to fine-tune what the client application can access. Supported values are `api`, `chatter_api`, `full`, `id`, `refresh_token`, `visualforce`, and `web`
-* `state`: (String:Optional) Any value that you wish to be sent with the callback
-* `nonce`: (String:Optional) Optional with the openid scope for getting a user ID token
+* `scope`: (Array:Optional) The scope parameter allows you to fine-tune what the client application can access. Supported values are `api`, `chatter_api`, `full`, `id`, `refresh_token`, `visualforce`, and `web`.
+* `state`: (String:Optional) Any value that you wish to be sent with the callback.
+* `nonce`: (String:Optional) Optional with the openid scope for getting a user ID token.
 * `prompt`: (String|Array:Optional) Specifies how the authorization server prompts the user for re-authentication and reapproval. Values are `login`, `consent` or both in the form of an array.
 * `loginHint`: (String:Optional) Provide a valid username value with this parameter to pre-populate the login page with the username.
 * `urlOpts`: (Object:Optional) Specify any other url arguments to include in the request.
@@ -674,8 +674,8 @@ Update a record. NOTE: you must use the setExternalId() method to set the extern
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `sobject`: (Object:Required) An sObject instance
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
+* `sobject`: (Object:Required) An sObject instance.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
 Delete a record.
@@ -684,11 +684,11 @@ Delete a record.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
 * `sobject`: (Object:Optional) An sObject instance.
-* `fields`: (Array:Optional) An array of fields to return
-* `type:`: (String:Optional) A string value sObject type
-* `id`: (String:Optional) A string value for the sObject record id
+* `fields`: (Array:Optional) An array of fields to return.
+* `type:`: (String:Optional) A string value sObject type.
+* `id`: (String:Optional) A string value for the sObject record id.
 * `raw`: (Boolean:Optional) Tells nforce to return the raw response from Salesforce and skip the SObject wrapping. Default is false.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
@@ -698,10 +698,10 @@ Get a single record. You must supply either an `sobject` or `type` and `id`.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
 * `sobject`: (Object:Optional) An sObject instance.
-* `type:`: (String:Optional) A string value sObject type
-* `id`: (String:Optional) A string value for the sObject record id
+* `type:`: (String:Optional) A string value sObject type.
+* `id`: (String:Optional) A string value for the sObject record id.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
 Get the binary data for an attachment, document, or contentversion. You must supply either an `sobject` or `type` and `id`. The `sobject` must be one of those three types.
@@ -710,9 +710,9 @@ Get the binary data for an attachment, document, or contentversion. You must sup
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
 * `sobject`: (Object:Optional) An sObject instance.
-* `id`: (String:Optional) A string value for the sObject record id
+* `id`: (String:Optional) A string value for the sObject record id.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
 Get the binary data for an attachment. You must supply either an `sobject` or an `id`.
@@ -721,9 +721,9 @@ Get the binary data for an attachment. You must supply either an `sobject` or an
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
 * `sobject`: (Object:Optional) An sObject instance.
-* `id`: (String:Optional) A string value for the sObject record id
+* `id`: (String:Optional) A string value for the sObject record id.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
 Get the binary data for a document. You must supply either an `sobject` or an `id`.
@@ -732,9 +732,9 @@ Get the binary data for a document. You must supply either an `sobject` or an `i
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
 * `sobject`: (Object:Optional) An sObject instance.
-* `id`: (String:Optional) A string value for the sObject record id
+* `id`: (String:Optional) A string value for the sObject record id.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
 Get the binary data for a contentversion. You must supply either an `sobject` or an `id`.
@@ -743,8 +743,8 @@ Get the binary data for a contentversion. You must supply either an `sobject` or
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `query`: (String:Required) An query string
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
+* `query`: (String:Required) A query string.
 * `includeDeleted`: (Boolean:Optional) Query also deleted records. Default is false.
 * `raw`: (Boolean:Optional) Tells nforce to return the raw response from Salesforce and skip the SObject wrapping. Default is false.
 * `fetchAll`: (Boolean:Optional) Specifying fetchAll to true tells nforce to recursively query to get all possible returned records. Default is false.
@@ -757,7 +757,7 @@ Execute a SOQL query for records.
 opts:
 
 * `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `query`: (String:Required) An query string
+* `query`: (String:Required) A query string.
 * `raw`: (Boolean:Optional) Tells nforce to return the raw response from Salesforce and skip the SObject wrapping. Default is false.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
@@ -767,8 +767,8 @@ Same as query but includes deleted records.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `search`: (String:Required) An search string
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
+* `search`: (String:Required) A search string.
 * `raw`: (Boolean:Optional) Tells nforce to return the raw response from Salesforce and skip the SObject wrapping. Default is false.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
@@ -778,8 +778,8 @@ Execute a SOSL search for records. `search` should be a SOSL string.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `url`: (String:Required) A url string for an api resource. Should start with a forward slash
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
+* `url`: (String:Required) A url string for an api resource. Should start with a forward slash.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
 GET a REST API resource by its url.
@@ -788,9 +788,9 @@ GET a REST API resource by its url.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `url`: (String:Required) A url string for an api resource. Should start with a forward slash
-* `body`: (Object:Optional) The body for the request
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
+* `url`: (String:Required) A url string for an api resource. Should start with a forward slash.
+* `body`: (Object:Optional) The body for the request.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
 PUT a REST API resource by its url.
@@ -799,9 +799,9 @@ PUT a REST API resource by its url.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `url`: (String:Required) A url string for an api resource. Should start with a forward slash
-* `body`: (Object:Optional) The body for the request
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
+* `url`: (String:Required) A url string for an api resource. Should start with a forward slash.
+* `body`: (Object:Optional) The body for the request.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
 POST a REST API resource by its url.
@@ -810,8 +810,8 @@ POST a REST API resource by its url.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `url`: (String:Required) A url string for an api resource. Should start with a forward slash
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
+* `url`: (String:Required) A url string for an api resource. Should start with a forward slash.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
 DELETE a REST API resource by its url.
@@ -820,9 +820,9 @@ DELETE a REST API resource by its url.
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `timeout`: (Integer:Optional) The timeout in seconds to pass to the Faye client
-* `retry`: (Integer:Optional) The retry interval to pass to the Faye client
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
+* `timeout`: (Integer:Optional) The timeout in seconds to pass to the Faye client.
+* `retry`: (Integer:Optional) The retry interval to pass to the Faye client.
 
 Creates and returns a streaming api client object. See the *Streaming Client* section for more details on the client object that is returned from this method.
 
@@ -830,11 +830,11 @@ Creates and returns a streaming api client object. See the *Streaming Client* se
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `topic`: (String:Required) An string value for the streaming topic
-* `isSystem`: (Boolean:Optional) Specify `true` if the topic to be streamed is a SystemTopic
-* `timeout`: (Integer:Optional) The timeout in seconds to pass to the Faye client
-* `retry`: (Integer:Optional) The retry interval to pass to the Faye client
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
+* `topic`: (String:Required) A string value for the streaming topic.
+* `isSystem`: (Boolean:Optional) Specify `true` if the topic to be streamed is a SystemTopic.
+* `timeout`: (Integer:Optional) The timeout in seconds to pass to the Faye client.
+* `retry`: (Integer:Optional) The retry interval to pass to the Faye client.
 
 Creates and returns a streaming api subscription object. See the *Streaming Subscription* section for more details on the subscription object that is returned from this method.
 
@@ -842,10 +842,10 @@ Creates and returns a streaming api subscription object. See the *Streaming Subs
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `uri`: (String:Required) A string value for endpoint. Should not include '/services/apexrest'
-* `method`: (String:Optional) String method that defaults to GET if not supplied
-* `urlParams`: (Object|String:Optional) A hash or url params to add to the request
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
+* `uri`: (String:Required) A string value for endpoint. Should not include '/services/apexrest'.
+* `method`: (String:Optional) String method that defaults to GET if not supplied.
+* `urlParams`: (Object|String:Optional) A hash or url params to add to the request.
 * `body`: (Object:Optional) The optional JSON body for the request.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
@@ -855,10 +855,10 @@ This method handles integration with salesforce ApexRest [Custom Rest endpoints]
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
-Auto-refresh the current access token. Works with refresh tokens and also if using username/password in single user mode
+Auto-refresh the current access token. Works with refresh tokens and also if using username/password in single user mode.
 
 ## Streaming Client
 
@@ -866,15 +866,15 @@ The streaming Client object represents a streaming client created from the conne
 
 events:
 
-* `connect`: Emits when the clients transport is up
-* `disconnect`: Emits when the clients transport is down
+* `connect`: Emits when the clients transport is up.
+* `disconnect`: Emits when the clients transport is down.
 
 ### subscribe(opts)
 
 opts:
 
-* `topic`: (String:Required) An string value for the streaming topic or Platform Event object (ex: event_name__e)
-* `isSystem`: (Boolean:Optional) Specify `true` if the topic to be streamed is a SystemTopic
+* `topic`: (String:Required) A string value for the streaming topic or Platform Event object (ex: event_name__e).
+* `isSystem`: (Boolean:Optional) Specify `true` if the topic to be streamed is a SystemTopic.
 * `isEvent`: (Boolean:Optional) Specify `true` if you want to subscribe to a Platform Event instead of a push topic.
 
 Creates and returns a streaming api subscription object. See the *Streaming Subscription Methods* section for more details on the subscription object.
