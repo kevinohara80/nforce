@@ -570,7 +570,7 @@ Connection.prototype.getBody = function(data, callback) {
 
 Connection.prototype.getAttachmentBody = function(data, callback) {
   var opts = this._getOpts(data, callback);
-  var id = (opts.sobject) ? sobject.getId() : opts.id;
+  var id = (opts.sobject) ? util.findId(opts.sobject) : opts.id;
   opts.resource = '/sobjects/attachment/' + id + '/body';
   opts.method = 'GET';
   opts.blob = true;
@@ -579,7 +579,7 @@ Connection.prototype.getAttachmentBody = function(data, callback) {
 
 Connection.prototype.getDocumentBody = function(data, callback) {
   var opts = this._getOpts(data, callback);
-  var id = (opts.sobject) ? sobject.getId() : opts.id;
+  var id = (opts.sobject) ? util.findId(opts.sobject) : opts.id;
   opts.resource = '/sobjects/document/' + id + '/body';
   opts.method = 'GET';
   opts.blob = true;
@@ -588,7 +588,7 @@ Connection.prototype.getDocumentBody = function(data, callback) {
 
 Connection.prototype.getContentVersionBody = function(data, callback) {
   var opts = this._getOpts(data, callback);
-  var id = (opts.sobject) ? sobject.getId() : opts.id;
+  var id = (opts.sobject) ? util.findId(opts.sobject) : opts.id;
   opts.resource = '/sobjects/contentversion/' + id + '/body';
   opts.method = 'GET';
   opts.blob = true;
@@ -597,7 +597,7 @@ Connection.prototype.getContentVersionBody = function(data, callback) {
 
 Connection.prototype.getContentVersionData = function(data, callback) {
   var opts = this._getOpts(data, callback);
-  var id = (opts.sobject) ? sobject.getId() : opts.id;
+  var id = (opts.sobject) ? util.findId(opts.sobject) : opts.id;
   opts.resource = '/sobjects/contentversion/' + id + '/versiondata';
   opts.method = 'GET';
   opts.blob = true;
