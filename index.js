@@ -798,7 +798,6 @@ Connection.prototype.subscribe = function(data) {
   var opts = this._getOpts(data, null, {
     singleProp: 'topic',
     defaults: {
-      isSystem: false,
       timeout: null,
       retry: null
     }

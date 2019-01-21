@@ -282,7 +282,7 @@ var org = nforce.createConnection({
 
 ### Force.com Streaming API Support
 
-**nforce** supports the Force.com Streaming API. Connecting to one of your PushTopics is easy using nforce. Here's how you create a streaming client and subscribe to a PushTopic.
+**nforce** supports the Force.com Streaming API. Connecting to one of your channels (PushTopics, Generic Channels, or Platform Events) is easy using nforce. Here's how you create a streaming client and subscribe to a PushTopic.
 
 ```js
 org.authenticate({ username: user, password: pass }, function(err, oauth) {
@@ -831,8 +831,11 @@ Creates and returns a streaming api client object. See the *Streaming Client* se
 opts:
 
 * `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `topic`: (String:Required) An string value for the streaming topic
-* `isSystem`: (Boolean:Optional) Specify `true` if the topic to be streamed is a SystemTopic
+* `topic`: (String:Required) An string value for the streaming topic. This should include the entire topic location 
+  * `/topic/<PushTopicName>` for PushTopic channel
+  * `/systemTopic/<SystemTopicName>` for system PushTopics
+  * `/u/<GenericChannelName>` for Generic Streaming Channels
+  * `/event/<PlatformEventName>` for Platform Events
 * `timeout`: (Integer:Optional) The timeout in seconds to pass to the Faye client
 * `retry`: (Integer:Optional) The retry interval to pass to the Faye client
 * `replayId`: (Integer:Optional) The replayId of the last received event. Special values: -1 for only new messages, -2 for all saved messages.
