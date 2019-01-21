@@ -830,11 +830,12 @@ Creates and returns a streaming api client object. See the *Streaming Client* se
 
 opts:
 
-* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
-* `topic`: (String:Required) A string value for the streaming topic.
-* `isSystem`: (Boolean:Optional) Specify `true` if the topic to be streamed is a SystemTopic.
-* `timeout`: (Integer:Optional) The timeout in seconds to pass to the Faye client.
-* `retry`: (Integer:Optional) The retry interval to pass to the Faye client.
+* `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
+* `topic`: (String:Required) An string value for the streaming topic
+* `isSystem`: (Boolean:Optional) Specify `true` if the topic to be streamed is a SystemTopic
+* `timeout`: (Integer:Optional) The timeout in seconds to pass to the Faye client
+* `retry`: (Integer:Optional) The retry interval to pass to the Faye client
+* `replayId`: (Integer:Optional) The replayId of the last received event. Special values: -1 for only new messages, -2 for all saved messages.
 
 Creates and returns a streaming api subscription object. See the *Streaming Subscription* section for more details on the subscription object that is returned from this method.
 
