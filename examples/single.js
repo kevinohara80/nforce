@@ -12,11 +12,17 @@ var org = nforce.createConnection({
 console.log('starting in mode: ' + org.mode);
 
 org.authenticate({ username: sfuser, password: sfpass}, function(err, res) {
-  if(err) return console.error('unable to authenticate to sfdc');
+  if (err) {
+    console.error('unable to authenticate to sfdc');
+    throw err;
+  }
   console.log('authenticated with mode: ' + org.mode);
   // look ma, no oauth argument!
   org.query({query: 'SELECT Id, FirstName, LastName FROM Lead LIMIT 1' }, function(err, res) {
-    if(err) return console.error(err);
+    if (err) {
+      console.error(err);
+      throw err;
+    }
     else return console.log(res.records[0].toJSON());
   });
   

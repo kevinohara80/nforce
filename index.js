@@ -62,7 +62,6 @@ var Connection = function(opts) {
 
   // validate options
   if(!_.isString(this.clientId)) throw new Error('invalid or missing clientId');
-  if(!_.isString(this.redirectUri)) throw new Error('invalid or missing redirectUri');
   if(!_.isString(this.authEndpoint)) throw new Error('invalid or missing authEndpoint');
   if(!_.isString(this.testAuthEndpoint)) throw new Error('invalid or missing testAuthEndpoint');
   if(!_.isString(this.loginUri)) throw new Error('invalid or missing loginUri');
@@ -73,6 +72,9 @@ var Connection = function(opts) {
   }
   if(!_.isString(this.mode) || _.indexOf(MODES, this.mode) === -1) {
     throw new Error('invalid mode, only ' + MODES.join(' and ') + ' are allowed');
+  }
+  if(!_.isString(this.redirectUri) && this.mode != 'single') {
+    throw new Error('invalid or missing redirectUri');
   }
   if(this.onRefresh && !_.isFunction(this.onRefresh)) throw new Error('onRefresh must be a function');
   if(this.timeout && !_.isNumber(this.timeout)) throw new Error('timeout must be a number');

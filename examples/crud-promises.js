@@ -38,13 +38,9 @@ org.authenticate({ username: sfuser, password: sfpass }).then(function(oauth){
   console.log('deleting lead');
   return org.delete({ sobject: ld });
 
-}).error(function(err) {
+}).catch(function(err) {
 
   console.error('crud failed');
   console.error(err);
-
-}).finally(function() {
-
-  console.log('exiting');
 
 });

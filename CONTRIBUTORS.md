@@ -1,4 +1,4 @@
-## Contributors
+# Contributors
 
 * Kevin O'Hara -> [kevinohara80](https://github.com/kevinohara80)
 * Jeff Douglas -> [jeffdonthemic](https://github.com/jeffdonthemic)

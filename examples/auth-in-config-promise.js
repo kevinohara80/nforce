@@ -13,7 +13,7 @@ var org = nforce.createConnection({
 
 org.authenticate().then(function(res){
   console.log('authenticated! token=' + res.access_token.substr(0,5));
-}).error(function(err) {
+}).catch(function(err) {
   console.error('failed');
   console.error(err);
 });
