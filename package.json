@@ -23,7 +23,7 @@
   },
   "main": "index.js",
   "dependencies": {
-    "faye": "1.2.3",
+    "faye": "^1.2.4",
     "lodash": "4.17.10",
     "mime": "1.4.1",
     "request": "2.87.0"

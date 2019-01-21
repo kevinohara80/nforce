@@ -13,7 +13,7 @@ org.authenticate({ username: process.env.SFUSER, password: process.env.SFPASS}, 
   if(err) return console.log(err);
 
   console.log('connecting to event');
-  var str = org.stream({ topic: 'Test_event__e', oauth: oauth, isEvent:true, apiVersion: 'v39.0' });
+  var str = org.stream({ topic: '/event/Test_event__e', oauth: oauth, apiVersion: 'v39.0' });
 
   str.on('connect', function(){
     console.log('connected to event source');
