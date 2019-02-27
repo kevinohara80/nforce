@@ -877,6 +877,7 @@ opts:
 * `topic`: (String:Required) A string value for the streaming topic or Platform Event object (ex: event_name__e).
 * `isSystem`: (Boolean:Optional) Specify `true` if the topic to be streamed is a SystemTopic.
 * `isEvent`: (Boolean:Optional) Specify `true` if you want to subscribe to a Platform Event instead of a push topic.
+* `isChangeDataCapture`: (Boolean:Optional) Specify `true` if you want to subscribe to a Change Data Capture Event instead of a push topic.
 
 Creates and returns a streaming api subscription object. See the *Streaming Subscription Methods* section for more details on the subscription object.
 
