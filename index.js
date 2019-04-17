@@ -542,6 +542,37 @@ Connection.prototype.getRecord = function(data, callback) {
   return resolver.promise;
 };
 
+Connection.prototype.getRecordByExternalId = function(data, callback) {
+  var opts = this._getOpts(data, callback);
+  var type = (opts.sobject) ? opts.sobject.getType() : opts.type;
+  var extIdField = opts.sobject.getExternalIdField();
+  var extId = opts.sobject.getExternalId();
+  var resolver = promises.createResolver(opts.callback);
+
+  opts.resource = '/sobjects/' + type + '/' + extIdField + '/' + extId;
+  opts.method = 'GET';
+
+  if(opts.fields) {
+    if(_.isString(opts.fields)) {
+      opts.fields = [opts.fields];
+    }
+    opts.resource += '?' + qs.stringify({ fields: opts.fields.join() });
+  }
+
+  this._apiRequest(opts, function(err, resp){
+    if(err) {
+      return resolver.reject(err);
+    }
+    if(!opts.raw) {
+      resp = new Record(resp);
+      resp._reset();
+    }
+    resolver.resolve(resp);
+  });
+
+  return resolver.promise;
+};
+
 /*****************************
  * blob/binary methods
  *****************************/
