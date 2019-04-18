@@ -689,10 +689,12 @@ opts:
 * `fields`: (Array:Optional) An array of fields to return.
 * `type:`: (String:Optional) A string value sObject type.
 * `id`: (String:Optional) A string value for the sObject record id.
+* `externalId`: (String:Optional) A string value for the sObject external id.
+* `externalIdField`: (String:Optional) A string value for the sObject external id field.
 * `raw`: (Boolean:Optional) Tells nforce to return the raw response from Salesforce and skip the SObject wrapping. Default is false.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
-Get a single record. You must supply either an `sobject` or `type` and `id`.
+Get a single record. You must supply either an `sobject`, `type` + `id`, or `type` + `externalId` + `externalIdField`.
 
 ### getBody(opts, [callback])
 
