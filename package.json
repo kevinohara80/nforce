@@ -19,10 +19,10 @@
   },
   "main": "index.js",
   "dependencies": {
-    "faye": "1.2.3",
-    "lodash": "4.17.10",
+    "faye": "^1.2.4",
+    "lodash": "^4.17.11",
     "mime": "1.4.1",
-    "request": "2.87.0"
+    "request": "^2.88.0"
   },
   "devDependencies": {
     "body-parser": "^1.18.3",

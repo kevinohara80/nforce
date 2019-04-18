@@ -516,9 +516,18 @@ Connection.prototype.getRecord = function(data, callback) {
   var opts = this._getOpts(data, callback);
   var type = (opts.sobject) ? opts.sobject.getType() : opts.type;
   var id = (opts.sobject) ? opts.sobject.getId() : opts.id;
+  var externalId = (opts.sobject) ? opts.sobject.getExternalId() : opts.externalId;
+  var externalIdField = (opts.sobject) ? opts.sobject.getExternalIdField() : opts.externalIdField;
   var resolver = promises.createResolver(opts.callback);
 
-  opts.resource = '/sobjects/' + type + '/' + id;
+  if (id) {
+    opts.resource = '/sobjects/' + type + '/' + id;
+  } else if(externalId && externalIdField) {
+    opts.resource = '/sobjects/' + type + '/' + externalIdField + '/' + externalId;
+  } else {
+    return resolver.reject(new Error('Either id, or externalIdField and externalId must be provided'));
+  }
+  
   opts.method = 'GET';
 
   if(opts.fields) {
