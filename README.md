@@ -675,10 +675,14 @@ Update a record. NOTE: you must use the setExternalId() method to set the extern
 opts:
 
 * `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
-* `sobject`: (Object:Required) An sObject instance.
+* `sobject`: (Object:Optional) An sObject instance.
+* `type:`: (String:Optional) A string value sObject type.
+* `id`: (String:Optional) A string value for the sObject record id.
+* `externalId`: (String:Optional) A string value for the sObject external id.
+* `externalIdField`: (String:Optional) A string value for the sObject external id field.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
-Delete a record.
+Deletes a record. You must provide an `sobject` or `type` + `id` or `type` + `externalId` + `externalIdField`
 
 ### getRecord(opts, [callback])
 
@@ -689,10 +693,12 @@ opts:
 * `fields`: (Array:Optional) An array of fields to return.
 * `type:`: (String:Optional) A string value sObject type.
 * `id`: (String:Optional) A string value for the sObject record id.
+* `externalId`: (String:Optional) A string value for the sObject external id.
+* `externalIdField`: (String:Optional) A string value for the sObject external id field.
 * `raw`: (Boolean:Optional) Tells nforce to return the raw response from Salesforce and skip the SObject wrapping. Default is false.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
-Get a single record. You must supply either an `sobject` or `type` and `id`.
+Get a single record. You must supply either an `sobject`, `type` + `id`, or `type` + `externalId` + `externalIdField`.
 
 ### getBody(opts, [callback])
 

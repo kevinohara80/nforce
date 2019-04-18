@@ -1,7 +1,7 @@
 {
   "name": "nforce",
   "description": "nforce is a REST API wrapper for force.com, database.com, and salesforce.com",
-  "version": "1.10.2",
+  "version": "1.12.1",
   "author": {
     "name": "Kevin O'Hara",
     "email": "kevnohara80@gmail.com",
@@ -24,9 +24,9 @@
   "main": "index.js",
   "dependencies": {
     "faye": "^1.2.4",
-    "lodash": "4.17.10",
+    "lodash": "^4.17.11",
     "mime": "1.4.1",
-    "request": "2.87.0"
+    "request": "^2.88.0"
   },
   "devDependencies": {
     "body-parser": "^1.18.3",

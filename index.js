@@ -482,9 +482,18 @@ Connection.prototype.update = function(data, callback) {
   var opts = this._getOpts(data, callback);
   var type = opts.sobject.getType();
   var id = opts.sobject.getId();
-  opts.resource = '/sobjects/' + type + '/' + id;
+  var externalId = opts.sobject.getExternalId();
+  var externalIdField = opts.sobject.getExternalIdField();
+  
+  if (externalId && externalIdField) {
+    opts.resource = '/sobjects/' + type + '/' + externalIdField + '/' + externalId;
+  } else {
+    opts.resource = '/sobjects/' + type + '/' + id;
+  }
+
   opts.method = 'PATCH';
-  if(type === 'document' || type === 'attachment' || type === 'contentversion') {
+  
+  if (type === 'document' || type === 'attachment' || type === 'contentversion') {
     opts.multipart = multipart(opts);
   } else {
     opts.body = JSON.stringify(opts.sobject._getPayload(true));
@@ -495,9 +504,9 @@ Connection.prototype.update = function(data, callback) {
 Connection.prototype.upsert = function(data, callback) {
   var opts = this._getOpts(data, callback);
   var type = opts.sobject.getType();
-  var extIdField = opts.sobject.getExternalIdField();
-  var extId = opts.sobject.getExternalId();
-  opts.resource = '/sobjects/' + type + '/' + extIdField + '/' + extId;
+  var externalIdField = opts.sobject.getExternalIdField();
+  var externalId = opts.sobject.getExternalId();
+  opts.resource = '/sobjects/' + type + '/' + externalIdField + '/' + externalId;
   opts.method = 'PATCH';
   opts.body = JSON.stringify(opts.sobject._getPayload(false));
   return this._apiRequest(opts, opts.callback);
@@ -505,9 +514,17 @@ Connection.prototype.upsert = function(data, callback) {
 
 Connection.prototype.delete = function(data, callback) {
   var opts = this._getOpts(data, callback);
-  var type = opts.sobject.getType();
-  var id = opts.sobject.getId();
-  opts.resource = '/sobjects/' + type + '/' + id;
+  var type = (opts.sobject) ? opts.sobject.getType() : opts.type;
+  var id = (opts.sobject) ? opts.sobject.getId() : opts.id;
+  var externalId = (opts.sobject) ? opts.sobject.getExternalId() : opts.externalId;
+  var externalIdField = (opts.sobject) ? opts.sobject.getExternalIdField() : opts.externalIdField;
+
+  if (externalId && externalIdField) {
+    opts.resource = '/sobjects/' + type + '/' + externalIdField + '/' + externalId;
+  } else {
+    opts.resource = '/sobjects/' + type + '/' + id;
+  }
+
   opts.method = 'DELETE';
   return this._apiRequest(opts, opts.callback);
 };
@@ -516,9 +533,16 @@ Connection.prototype.getRecord = function(data, callback) {
   var opts = this._getOpts(data, callback);
   var type = (opts.sobject) ? opts.sobject.getType() : opts.type;
   var id = (opts.sobject) ? opts.sobject.getId() : opts.id;
+  var externalId = (opts.sobject) ? opts.sobject.getExternalId() : opts.externalId;
+  var externalIdField = (opts.sobject) ? opts.sobject.getExternalIdField() : opts.externalIdField;
   var resolver = promises.createResolver(opts.callback);
 
-  opts.resource = '/sobjects/' + type + '/' + id;
+  if (externalId && externalIdField) {
+    opts.resource = '/sobjects/' + type + '/' + externalIdField + '/' + externalId;
+  } else {
+    opts.resource = '/sobjects/' + type + '/' + id;
+  }
+  
   opts.method = 'GET';
 
   if(opts.fields) {
@@ -727,6 +751,7 @@ Connection.prototype.getUrl = function(data, callback) {
     singleProp: 'url'
   });
   opts.uri = opts.oauth.instance_url + requireForwardSlash(opts.url);
+  console.log('uri ' + opts.uri);
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
 };
@@ -756,6 +781,7 @@ Connection.prototype.deleteUrl = function (data, callback) {
     singleProp: 'url'
   });
   opts.uri = opts.oauth.instance_url + requireForwardSlash(opts.url);
+  console.log('uri ' + opts.uri);
   opts.method = 'DELETE';
   return this._apiRequest(opts, opts.callback);
 };
