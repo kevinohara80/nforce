@@ -675,10 +675,13 @@ Update a record. NOTE: you must use the setExternalId() method to set the extern
 opts:
 
 * `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
-* `sobject`: (Object:Required) An sObject instance.
+* `sobject`: (Object:Optional) An sObject instance.
+* `id`: (String:Optional) A string value for the sObject record id.
+* `externalId`: (String:Optional) A string value for the sObject external id.
+* `externalIdField`: (String:Optional) A string value for the sObject external id field.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
-Delete a record.
+Deletes a record. You must provide an `sobject` or `id` or `externalId` + `externalIdField`
 
 ### getRecord(opts, [callback])
 
