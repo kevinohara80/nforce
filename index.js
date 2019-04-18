@@ -514,7 +514,7 @@ Connection.prototype.upsert = function(data, callback) {
 
 Connection.prototype.delete = function(data, callback) {
   var opts = this._getOpts(data, callback);
-  var type = opts.sobject.getType();
+  var type = (opts.sobject) ? opts.sobject.getType() : opts.type;
   var id = (opts.sobject) ? opts.sobject.getId() : opts.id;
   var externalId = (opts.sobject) ? opts.sobject.getExternalId() : opts.externalId;
   var externalIdField = (opts.sobject) ? opts.sobject.getExternalIdField() : opts.externalIdField;

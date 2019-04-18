@@ -676,12 +676,13 @@ opts:
 
 * `oauth`: (Object:Optional) The oauth object. Required in multi-user mode.
 * `sobject`: (Object:Optional) An sObject instance.
+* `type:`: (String:Optional) A string value sObject type.
 * `id`: (String:Optional) A string value for the sObject record id.
 * `externalId`: (String:Optional) A string value for the sObject external id.
 * `externalIdField`: (String:Optional) A string value for the sObject external id field.
 * `requestOpts`: (Object:Optional) Optional hash of parameters to pass to the underlying request.
 
-Deletes a record. You must provide an `sobject` or `id` or `externalId` + `externalIdField`
+Deletes a record. You must provide an `sobject` or `type` + `id` or `type` + `externalId` + `externalIdField`
 
 ### getRecord(opts, [callback])
 
