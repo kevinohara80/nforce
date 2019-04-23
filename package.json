@@ -21,21 +21,22 @@
     "type": "git",
     "url": "git://github.com/kevinohara80/nforce.git"
   },
-  "main": "index.js",
+  "main": "dist/index.js",
   "dependencies": {
     "faye": "^1.2.4",
     "lodash": "^4.17.11",
-    "mime": "1.4.1",
-    "request": "^2.88.0"
+    "mime": "^2.4.2"
   },
   "devDependencies": {
-    "body-parser": "^1.18.3",
-    "cookie-parser": "^1.4.3",
-    "express": "^4.16.4",
-    "express-session": "^1.15.6",
-    "jade": "^1.11.0",
-    "mocha": "^5.2.0",
-    "should": "3.3.1"
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.6",
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4",
+    "prettier": "^1.17.0",
+    "ts-node": "^8.1.0",
+    "tslint": "^5.16.0",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.4.4"
   },
   "optionalDependencies": {},
   "engines": {
@@ -45,8 +46,14 @@
     "url": "http://github.com/kevinohara80/nforce/issues"
   },
   "scripts": {
+    "build": "rm -rf dist && tsc",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"src/**/*.js\"",
+    "lint": "tslint -p tsconfig.json",
+    "test": "mocha --require ts-node/register ./test/**/*.ts --reporter spec",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
     "preversion": "npm test",
-    "test": "./node_modules/mocha/bin/mocha ./test --reporter spec",
+    "version": "npm run format && git add -A src",
     "postversion": "git push && git push --tags"
   },
   "license": "MIT"

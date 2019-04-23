@@ -1,2 +1,8 @@
 .travis.yml
 examples
+lib
+src
+test
+.prettierrc
+tsconfig.json
+tslint.json

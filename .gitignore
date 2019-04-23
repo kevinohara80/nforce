@@ -21,3 +21,9 @@ examples/leadOut.json
 .DS_Store
 
 env.sh
+
+## typescript output
+dist
+
+## 2.0 conversion
+test.old
