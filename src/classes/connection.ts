@@ -70,8 +70,8 @@ export interface IConnectionOpts {
    */
   autoRefresh?: boolean;
   /**
-   * The timeout value in milliseconds for streaming connections
-   * @default null
+   * The timeout value in milliseconds for api requests
+   * @default null No timeout value set
    */
   timeout?: number;
   /**
@@ -108,7 +108,6 @@ export default class Connection {
    * Creates an instance of an nforce Connection.
    * @param {IConnectionOpts} opts Configuration options for
    * the connection
-   * @memberof Connection
    */
   constructor(opts: IConnectionOpts) {
     this.environment = opts.environment || 'production';
@@ -156,7 +155,6 @@ export default class Connection {
    * Returns the current API version number being used
    * by the connection
    * @returns {number}
-   * @memberof Connection
    */
   public getAPIVersion(): number {
     return parseInt(this.apiVersion, 10);
@@ -166,16 +164,26 @@ export default class Connection {
    * Set the current API version for the connection
    * @param {number} apiVersion The integer value of
    * the API version the connection should use
-   * @memberof Connection
    */
   public setAPIVersion(apiVersion: number): void {
     this.apiVersion = apiVersion.toFixed(0);
   }
 
+  /**
+   * Get the current OAuth data from the connection. If
+   * this value hasn't been set by calling `authenticate()`
+   * or hasn't been explicitly set by calling `setOAuth()`,
+   * this method will return `undefined`
+   * @returns {(IOAuthData | undefined)}
+   */
   public getOAuth(): IOAuthData | undefined {
     return this.oauth;
   }
 
+  /**
+   * Explicitly set the OAuth data for the connection.
+   * @param oauthData
+   */
   public setOAuth(oauthData: IOAuthData) {
     this.oauth = oauthData;
   }

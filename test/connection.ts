@@ -52,7 +52,7 @@ describe('src/classes/connection.ts', () => {
     it('should throw on missing redirectUri', () => {
       const opts = {
         clientId: 'clientId123',
-        clientSecret: 'clientSecret123'
+        clientSecret: 'clientSecret123',
       };
 
       try {
