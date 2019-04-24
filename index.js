@@ -751,7 +751,6 @@ Connection.prototype.getUrl = function(data, callback) {
     singleProp: 'url'
   });
   opts.uri = opts.oauth.instance_url + requireForwardSlash(opts.url);
-  console.log('uri ' + opts.uri);
   opts.method = 'GET';
   return this._apiRequest(opts, opts.callback);
 };
