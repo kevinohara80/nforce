@@ -21,3 +21,5 @@ examples/leadOut.json
 .DS_Store
 
 env.sh
+dist
+test.old
