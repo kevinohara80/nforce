@@ -1,93 +1,11 @@
+import IConnectionOpts from '../contracts/IConnectionOpts';
+import IOAuthData from '../contracts/IOAuthData';
+
 const DEFAULT_AUTH_ENDPOINT = 'https://login.salesforce.com/services/oauth2/authorize';
 const DEFAULT_TEST_AUTH_ENDPOINT = 'https://test.salesforce.com/services/oauth2/authorize';
 const DEFAULT_LOGIN_ENDPOINT = 'https://login.salesforce.com/services/oauth2/token';
 const DEFAULT_TEST_LOGIN_ENDPOINT = 'https://test.salesforce.com/services/oauth2/token';
-
 const DEFAULT_API_VERSION = 44;
-
-export interface IOAuthData {
-  /**
-   * The salesforce oauth access token
-   */
-  access_token: string;
-  /**
-   * The salesforce oauth refresh token
-   */
-  refresh_token?: string;
-  /**
-   * The salesforce instance url
-   */
-  instance_url: string;
-}
-
-export interface IConnectionOpts {
-  /**
-   * The client Id of the connected app.
-   */
-  clientId: string;
-  /**
-   * The client secret of the connected app
-   */
-  clientSecret: string;
-  /**
-   * The client secret of the connected app
-   */
-  redirectUri: string;
-  /**
-   * Specify a particular authEndpoint. Otherwise
-   * this defaults to the production endpoint or the
-   * sandbox endpoint if `environment: sandbox` is set
-   */
-  authEndpoint?: string;
-  /**
-   * Specify a particular loginEndpoint. Otherwise
-   * this defaults to the production endpoint or the
-   * sandbox endpoint if `environment: sandbox` is set
-   */
-  loginEndpoint?: string;
-  /**
-   * The API version of Salesforce used for requests.
-   * This should be an integer value for the API version
-   * you wish to use.
-   * @default https://login.salesforce.com/services/oauth2/token
-   */
-  apiVersion?: number;
-  /**
-   * Specify which environment you wish to connect to.
-   * @default production
-   */
-  environment?: 'production' | 'sandbox';
-  /**
-   * Specify whether or not to use gzip compression when
-   * making API requests to Salesforce
-   * @default false
-   */
-  gzip?: boolean;
-  /**
-   * Configure the connection to attempt an auto-refresh
-   * of expired tokens
-   * @default false
-   */
-  autoRefresh?: boolean;
-  /**
-   * The timeout value in milliseconds for api requests
-   * @default null No timeout value set
-   */
-  timeout?: number;
-  /**
-   * Optionally provide an OAuth data object obtained
-   * from previous authentication.
-   */
-  oauth?: IOAuthData;
-  /**
-   * A callback function that is executed when an autoRefresh flow
-   * has completed. This is useful for caching or storing the
-   * resulting OAuth data that is returned.
-   * @param error An Error object returned during the autoRefresh flow
-   * @param oauth The OAuth data returned from the autoRefresh flow
-   */
-  onRefresh?(error: Error | null, oauth: any): void;
-}
 
 export default class Connection {
   // connection properties
@@ -102,12 +20,16 @@ export default class Connection {
   private gzip: boolean = false;
   private autoRefresh: boolean = false;
   private timeout: number | null = null;
-
   private oauth?: IOAuthData;
+  private username?: string;
+  private password?: string;
+  private securityToken?: string;
+
   /**
    * Creates an instance of an nforce Connection.
    * @param {IConnectionOpts} opts Configuration options for
    * the connection
+   * @memberof Connection
    */
   constructor(opts: IConnectionOpts) {
     this.environment = opts.environment || 'production';
@@ -155,6 +77,7 @@ export default class Connection {
    * Returns the current API version number being used
    * by the connection
    * @returns {number}
+   * @memberof Connection
    */
   public getAPIVersion(): number {
     return parseInt(this.apiVersion, 10);
@@ -164,6 +87,7 @@ export default class Connection {
    * Set the current API version for the connection
    * @param {number} apiVersion The integer value of
    * the API version the connection should use
+   * @memberof Connection
    */
   public setAPIVersion(apiVersion: number): void {
     this.apiVersion = apiVersion.toFixed(0);
@@ -175,6 +99,7 @@ export default class Connection {
    * or hasn't been explicitly set by calling `setOAuth()`,
    * this method will return `undefined`
    * @returns {(IOAuthData | undefined)}
+   * @memberof Connection
    */
   public getOAuth(): IOAuthData | undefined {
     return this.oauth;
@@ -183,6 +108,7 @@ export default class Connection {
   /**
    * Explicitly set the OAuth data for the connection.
    * @param oauthData
+   * @memberof Connection
    */
   public setOAuth(oauthData: IOAuthData) {
     this.oauth = oauthData;
