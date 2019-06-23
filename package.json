@@ -25,12 +25,14 @@
   "dependencies": {
     "faye": "^1.2.4",
     "lodash": "^4.17.11",
-    "mime": "^2.4.2"
+    "mime": "^2.4.2",
+    "request-promise": "^4.2.4"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/mocha": "^5.2.6",
     "@types/node": "^12.0.10",
+    "@types/request-promise": "^4.1.44",
     "chai": "^4.2.0",
     "mocha": "^6.1.4",
     "prettier": "^1.17.0",

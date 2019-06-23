@@ -1,5 +1,7 @@
 import * as qs from 'querystring';
+import * as request from 'request-promise';
 
+import IAuthenticateOpts from '../contracts/IAuthenticateOpts';
 import IConnectionOpts from '../contracts/IConnectionOpts';
 import IGetAuthURIOpts from '../contracts/IGetAuthURIOpts';
 import IOAuthData from '../contracts/IOAuthData';
@@ -180,5 +182,65 @@ export default class Connection {
     }
 
     return `${opts.authEndpoint || this.authEndpoint}?${qs.stringify(urlOpts)}`;
+  }
+
+  /**
+   * This method requests the OAuth access token and
+   * instance information from Salesforce.
+   * This method either requires that you pass in the
+   * authorization code (authorization code flow), username
+   * and password (username/password flow), or a SAML
+   * assertion (SAML Bearer Assertion Flow).
+   * @returns {IOAuthData} The OAuth data returned from Salesforce
+   */
+  public async authenticate(opts: IAuthenticateOpts = {}): Promise<IOAuthData> {
+    opts = {
+      executeOnRefresh: false,
+      ...opts
+    };
+
+    const body: any = {
+      client_id: this.clientId,
+      client_secret: this.clientSecret
+    };
+
+    if (opts.code) {
+      body.grant_type = 'authorization_code';
+      body.code = opts.code;
+      body.redirect_uri = this.redirectUri;
+    } else if (opts.assertion) {
+      body.grant_type = 'assertion';
+      body.assertion_type = 'urn:oasis:names:tc:SAML:2.0:profiles:SSO:browser';
+      body.assertion = opts.assertion;
+    } else if (opts.username || this.username) {
+      body.grant_type = 'password';
+      body.username = opts.username || this.username;
+      body.password = opts.password || this.password;
+      if (opts.securityToken || this.securityToken) {
+        body.password += opts.securityToken || this.securityToken;
+      }
+      this.username = body.username;
+      this.password = body.password;
+      this.securityToken = body.securityToken;
+    }
+
+    const resp = await this.apiAuthRequest({
+      uri: this.loginEndpoint,
+      method: 'POST',
+      body: qs.stringify(body),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+
+    return {} as IOAuthData;
+  }
+
+  private async apiAuthRequest(opts: any): Promise<any> {
+    return 'foo';
+  }
+
+  private async apiRequest(): Promise<any> {
+    return 'foo';
   }
 }
