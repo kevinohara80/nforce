@@ -1,6 +1,44 @@
 {
   "extends": [
-    "tslint:recommended", 
-    "tslint-config-prettier"
-  ]
+    "tslint:recommended"
+  ],
+  "rules": {
+    "member-ordering": [
+      true,
+      {
+        "order": "fields-first"
+      }
+    ],
+    "ordered-imports": [
+      true,
+      {
+        "grouped-imports": true,
+        "module-source-path": "basename"
+      }
+    ],
+    "quotemark": [
+      true,
+      "single",
+      "jsx-double"
+    ],
+    "trailing-comma": [
+      true,
+      "never"
+    ],
+    "jsx-no-multiline-js": [
+      false
+    ],
+    "object-literal-sort-keys": false,
+    "semicolon": [
+      true,
+      "always"
+    ],
+    "variable-name": [
+      true,
+      "ban-keywords",
+      "check-format",
+      "allow-leading-underscore",
+      "allow-pascal-case"
+    ]
+  }
 }
