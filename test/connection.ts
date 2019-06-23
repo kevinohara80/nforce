@@ -1,5 +1,6 @@
 import { expect } from 'chai';
-import Connection from '../src/classes/connection';
+
+import Connection from '../src/classes/Connection';
 
 describe('src/classes/connection.ts', () => {
   describe('#constructor', () => {

@@ -837,7 +837,7 @@ Creates and returns a streaming api client object. See the *Streaming Client* se
 opts:
 
 * `oauth`: (Object:Optional) The oauth object. Required in multi-user mode
-* `topic`: (String:Required) An string value for the streaming topic. This should include the entire topic location 
+* `topic`: (String:Required) An string value for the streaming topic. This should include the entire topic location
   * `/topic/<PushTopicName>` for PushTopic channel
   * `/systemTopic/<SystemTopicName>` for system PushTopics
   * `/u/<GenericChannelName>` for Generic Streaming Channels
