@@ -1,11 +1,16 @@
 import * as qs from 'querystring';
+import { Response } from 'request';
+import { RequestPromise, RequestPromiseOptions } from 'request-promise';
 import * as request from 'request-promise';
+import { StatusCodeError } from 'request-promise/errors';
 
 import IAuthenticateOpts from '../contracts/IAuthenticateOpts';
 import IConnectionOpts from '../contracts/IConnectionOpts';
 import IGetAuthURIOpts from '../contracts/IGetAuthURIOpts';
 import IOAuthData from '../contracts/IOAuthData';
 
+import APIAuthError from './APIAuthError';
+import APIRequestError from './APIRequestError';
 import ConnectionError from './ConnectionError';
 
 const DEFAULT_AUTH_ENDPOINT = 'https://login.salesforce.com/services/oauth2/authorize';
@@ -191,6 +196,7 @@ export default class Connection {
    * authorization code (authorization code flow), username
    * and password (username/password flow), or a SAML
    * assertion (SAML Bearer Assertion Flow).
+   * @param opts Options for authentication
    * @returns {IOAuthData} The OAuth data returned from Salesforce
    */
   public async authenticate(opts: IAuthenticateOpts = {}): Promise<IOAuthData> {
@@ -224,20 +230,37 @@ export default class Connection {
       this.securityToken = body.securityToken;
     }
 
-    const resp = await this.apiAuthRequest({
-      uri: this.loginEndpoint,
+    // WIP from here
+
+    const ropts: RequestPromiseOptions = {
       method: 'POST',
       body: qs.stringify(body),
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       }
-    });
+    };
 
-    return {} as IOAuthData;
+    const resp = await this.apiAuthRequest(this.loginEndpoint, ropts);
+
+    return resp as IOAuthData;
   }
 
-  private async apiAuthRequest(opts: any): Promise<any> {
-    return 'foo';
+  private async apiAuthRequest(uri: string, opts: RequestPromiseOptions): Promise<IOAuthData> {
+    const res: Response = await request(uri, {
+      ...opts,
+      json: true,
+      simple: false,
+      resolveWithFullResponse: true,
+      timeout: this.timeout || void 0
+    });
+
+    if (res.statusCode >= 300) {
+      throw APIAuthError.fromResponse(res);
+    }
+
+    this.oauth = res.body as IOAuthData;
+
+    return this.oauth;
   }
 
   private async apiRequest(): Promise<any> {
