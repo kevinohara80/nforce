@@ -1,6 +1,6 @@
 export default class ConnectionError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'NForceConnectionError';
+    this.name = 'ConnectionError';
   }
 }

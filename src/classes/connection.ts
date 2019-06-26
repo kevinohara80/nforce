@@ -255,7 +255,7 @@ export default class Connection {
     });
 
     if (res.statusCode >= 300) {
-      throw APIAuthError.fromResponse(res);
+      throw new APIAuthError(res);
     }
 
     this.oauth = res.body as IOAuthData;
