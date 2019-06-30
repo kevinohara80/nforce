@@ -26,6 +26,7 @@
     "faye": "^1.2.4",
     "lodash": "^4.17.11",
     "mime": "^2.4.2",
+    "request": "^2.88.0",
     "request-promise": "^4.2.4"
   },
   "devDependencies": {
