@@ -16,8 +16,15 @@
       ]
     }
   },
+  "inlineSourceMap": true,
+  "types": [
+    "node",
+    "mocha",
+    "chai"
+  ],
   "include": [
-    "src/**/*"
+    "./src",
+    "./test"
   ],
   "exclude": [
     "node_modules",

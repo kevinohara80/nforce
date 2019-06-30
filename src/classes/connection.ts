@@ -19,6 +19,8 @@ const DEFAULT_LOGIN_ENDPOINT = 'https://login.salesforce.com/services/oauth2/tok
 const DEFAULT_TEST_LOGIN_ENDPOINT = 'https://test.salesforce.com/services/oauth2/token';
 const DEFAULT_API_VERSION = 44;
 
+type AllowedMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
+
 export default class Connection {
   // connection properties
 
@@ -201,7 +203,7 @@ export default class Connection {
    */
   public async authenticate(opts: IAuthenticateOpts = {}): Promise<IOAuthData> {
     opts = {
-      executeOnRefresh: false,
+      executeOnRefresh: false, // TODO: implment this function
       ...opts
     };
 
@@ -246,7 +248,9 @@ export default class Connection {
   }
 
   private async apiAuthRequest(uri: string, opts: RequestPromiseOptions): Promise<IOAuthData> {
-    const res: Response = await request(uri, {
+    const method = opts.method ? opts.method.toLowerCase() : 'get';
+
+    const res: Response = await request[method as AllowedMethod](uri, {
       ...opts,
       json: true,
       simple: false,

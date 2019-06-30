@@ -40,4 +40,5 @@ describe('src/classes/connection.ts', () => {
     });
 
   });
+
 });
