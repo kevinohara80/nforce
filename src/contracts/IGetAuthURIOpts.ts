@@ -36,7 +36,7 @@ export default interface IGetAuthURIOpts {
    * Specifies how the authorization server prompts the user
    * for re-authentication and reapproval. Values are `login`, `consent` or both in the form of an array.
    */
-  prompt?: ('string' | 'login') | [('login' | 'consent')];
+  prompt?: 'login' | 'consent' | [('login' | 'consent')];
   /**
    * Provide a valid username value with this parameter to
    * pre-populate the login page with the username.

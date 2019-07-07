@@ -38,6 +38,8 @@ export default class Connection {
   private username?: string;
   private password?: string;
   private securityToken?: string;
+  private apiCallsUsed?: number;
+  private apiCallsLimit?: number;
 
   /**
    * Creates an instance of an nforce Connection.
@@ -137,6 +139,24 @@ export default class Connection {
   }
 
   /**
+   * Return the number of API calls used. This value will only be defined
+   * after the first authenticated call to the API.
+   * @memberof Connection
+   */
+  public getAPICalls(): number | undefined {
+    return this.apiCallsUsed;
+  }
+
+  /**
+   * Return the API call limit. This value will only be defined
+   * after the first authenticated call to the API.
+   * @memberof Connection
+   */
+  public getAPICallsLimit(): number | undefined {
+    return this.apiCallsLimit;
+  }
+
+  /**
    * Returns an auth uri based on the connection configuration
    * and supplied options
    * @param opts getAuthURI options
@@ -150,14 +170,15 @@ export default class Connection {
     };
 
     if (opts.display) {
-      urlOpts.display = opts.display.toLowerCase();
+      urlOpts.display = opts.display.trim().toLowerCase();
     }
 
     if (opts.scope) {
       if (Array.isArray(opts.scope)) {
-        urlOpts.scope = opts.scope.join(' ');
+        urlOpts.scope = (opts.scope as string[])
+          .map((o) => o.trim()).join(' ');
       } else {
-        urlOpts.scope = opts.scope;
+        urlOpts.scope = (opts.scope as string).trim();
       }
     }
 
@@ -171,14 +192,15 @@ export default class Connection {
 
     if (opts.prompt) {
       if (Array.isArray(opts.prompt)) {
-        urlOpts.prompt = opts.prompt.join(' ');
+        urlOpts.prompt = (opts.prompt as string[])
+          .map((o) => o.trim()).join(' ');
       } else {
-        urlOpts.prompt = opts.prompt;
+        urlOpts.prompt = opts.prompt.trim();
       }
     }
 
     if (opts.loginHint) {
-      urlOpts.login_hint = opts.loginHint;
+      urlOpts.login_hint = opts.loginHint.trim();
     }
 
     if (opts.urlOpts) {
@@ -247,6 +269,15 @@ export default class Connection {
     return resp as IOAuthData;
   }
 
+  private parseResponseHeaders(res: Response): void {
+    if (res.headers['sforce-limit-info']) {
+      const limitVal = res.headers['sforce-limit-info'] as string;
+      const parts = limitVal.split('=')[1].split('/');
+      this.apiCallsUsed = parseInt(parts[0], 10);
+      this.apiCallsLimit = parseInt(parts[1], 10);
+    }
+  }
+
   private async apiAuthRequest(uri: string, opts: RequestPromiseOptions): Promise<IOAuthData> {
     const method = opts.method ? opts.method.toLowerCase() : 'get';
 
@@ -257,6 +288,8 @@ export default class Connection {
       resolveWithFullResponse: true,
       timeout: this.timeout || void 0
     });
+
+    this.parseResponseHeaders(res);
 
     if (res.statusCode >= 300) {
       throw new APIAuthError(res);

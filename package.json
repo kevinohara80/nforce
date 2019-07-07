@@ -44,8 +44,9 @@
     "sinon-chai": "^3.3.0",
     "source-map-support": "^0.5.12",
     "ts-node": "^8.3.0",
-    "tslint": "^5.16.0",
+    "tslint": "^5.18.0",
     "tslint-config-prettier": "^1.18.0",
+    "tslint-no-unused-expression-chai": "^0.1.4",
     "typescript": "^3.4.4"
   },
   "optionalDependencies": {},
@@ -57,7 +58,7 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"src/**/*.js\"",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
     "test": "mocha './test/**/*.ts'",
     "prepare": "npm run build",
