@@ -1,4 +1,4 @@
-import Connection from '../src/classes/Connection';
+import Connection from '../../src/classes/Connection';
 
 (async () => {
 
