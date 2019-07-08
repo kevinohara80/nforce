@@ -5,4 +5,5 @@ src
 test
 .prettierrc
 tsconfig.json
+tsconfig.pkg.json
 tslint.json
