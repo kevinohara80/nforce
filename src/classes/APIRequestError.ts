@@ -3,7 +3,6 @@ import { Response } from 'request';
 import APIError from './APIError';
 
 export default class APIRequestError extends APIError {
-
   public errorCode: string;
   public fields?: string[];
 

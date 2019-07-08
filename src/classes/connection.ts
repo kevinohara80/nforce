@@ -162,11 +162,10 @@ export default class Connection {
    * @param opts getAuthURI options
    */
   public getAuthUri(opts: IGetAuthURIOpts = {}): string {
-
     let urlOpts: any = {
       response_type: opts.responseType || 'code',
       client_id: this.clientId,
-      redirect_uri: this.redirectUri
+      redirect_uri: this.redirectUri,
     };
 
     if (opts.display) {
@@ -175,8 +174,7 @@ export default class Connection {
 
     if (opts.scope) {
       if (Array.isArray(opts.scope)) {
-        urlOpts.scope = (opts.scope as string[])
-          .map((o) => o.trim()).join(' ');
+        urlOpts.scope = (opts.scope as string[]).map(o => o.trim()).join(' ');
       } else {
         urlOpts.scope = (opts.scope as string).trim();
       }
@@ -192,8 +190,7 @@ export default class Connection {
 
     if (opts.prompt) {
       if (Array.isArray(opts.prompt)) {
-        urlOpts.prompt = (opts.prompt as string[])
-          .map((o) => o.trim()).join(' ');
+        urlOpts.prompt = (opts.prompt as string[]).map(o => o.trim()).join(' ');
       } else {
         urlOpts.prompt = opts.prompt.trim();
       }
@@ -206,7 +203,7 @@ export default class Connection {
     if (opts.urlOpts) {
       urlOpts = {
         ...urlOpts,
-        ...opts.urlOpts
+        ...opts.urlOpts,
       };
     }
 
@@ -226,12 +223,12 @@ export default class Connection {
   public async authenticate(opts: IAuthenticateOpts = {}): Promise<IOAuthData> {
     opts = {
       executeOnRefresh: false, // TODO: implment this function
-      ...opts
+      ...opts,
     };
 
     const body: any = {
       client_id: this.clientId,
-      client_secret: this.clientSecret
+      client_secret: this.clientSecret,
     };
 
     if (opts.code) {
@@ -260,8 +257,8 @@ export default class Connection {
       method: 'POST',
       body: qs.stringify(body),
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
     };
 
     const resp = await this.apiAuthRequest(this.loginEndpoint, ropts);
@@ -286,7 +283,7 @@ export default class Connection {
       json: true,
       simple: false,
       resolveWithFullResponse: true,
-      timeout: this.timeout || void 0
+      timeout: this.timeout || void 0,
     });
 
     this.parseResponseHeaders(res);

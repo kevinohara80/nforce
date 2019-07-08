@@ -13,10 +13,4 @@ export function createConnection(opts: IConnectionOpts) {
   return new Connection(opts);
 }
 
-export {
-  APIAuthError,
-  APIError,
-  APIRequestError,
-  Connection,
-  IConnectionOpts
-};
+export { APIAuthError, APIError, APIRequestError, Connection, IConnectionOpts };

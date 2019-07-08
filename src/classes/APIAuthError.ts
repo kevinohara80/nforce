@@ -3,7 +3,6 @@ import { Response } from 'request';
 import APIError from './APIError';
 
 export default class APIAuthError extends APIError {
-
   public error: string;
   public errorDescription?: string;
 

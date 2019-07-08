@@ -7,7 +7,6 @@ import IGetAuthURIOpts from '../src/contracts/IGetAuthURIOpts';
 
 describe('src/classes/connection.ts', () => {
   describe('#getAuthUri', () => {
-
     it('should return an auth uri', () => {
       const opts: IConnectionOpts = {
         clientId: 'clientId123',
@@ -29,7 +28,7 @@ describe('src/classes/connection.ts', () => {
         clientId: 'clientId123',
         clientSecret: 'clientSecret123',
         redirectUri: 'https://my.redirect.com/redirect',
-        environment: 'sandbox'
+        environment: 'sandbox',
       };
 
       const conn = new Connection(opts);
@@ -46,7 +45,7 @@ describe('src/classes/connection.ts', () => {
         clientId: 'clientId123',
         clientSecret: 'clientSecret123',
         redirectUri: 'https://my.redirect.com/redirect',
-        environment: 'sandbox'
+        environment: 'sandbox',
       };
 
       const conn = new Connection(opts);
@@ -55,7 +54,7 @@ describe('src/classes/connection.ts', () => {
         display: '         none',
         prompt: 'consent ',
         loginHint: '   hint    ',
-        scope: ['api ', ' chatter_api ']
+        scope: ['api ', ' chatter_api '],
       } as any);
 
       const parsed = new URL(uri);
@@ -65,7 +64,5 @@ describe('src/classes/connection.ts', () => {
       expect(parsed.searchParams.get('prompt')).to.equal('consent');
       expect(parsed.searchParams.get('scope')).to.equal('api chatter_api');
     });
-
   });
-
 });

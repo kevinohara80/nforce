@@ -6,6 +6,6 @@ export default interface IAuthenticateOpts {
   assertion?: string;
   executeOnRefresh?: boolean;
   requestOpts?: {
-    [key: string]: string | number | boolean
+    [key: string]: string | number | boolean;
   };
 }

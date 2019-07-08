@@ -47,6 +47,6 @@ export default interface IGetAuthURIOpts {
    * request.
    */
   urlOpts?: {
-    [key: string]: string | number | boolean
+    [key: string]: string | number | boolean;
   };
 }
