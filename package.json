@@ -57,7 +57,9 @@
     "url": "http://github.com/kevinohara80/nforce/issues"
   },
   "scripts": {
-    "build": "rm -rf dist && tsc",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "build": "tsc -p tsconfig.pkg.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
     "test": "mocha './test/**/*.ts'",

@@ -16,7 +16,4 @@ import Connection from '../src/classes/Connection';
   // tslint:disable-next-line:no-console
   console.log(resp);
 
-  // tslint:disable-next-line:no-console
-  console.log(conn.getAPICalls());
-
 })();
