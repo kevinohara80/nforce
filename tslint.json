@@ -19,8 +19,7 @@
     ],
     "quotemark": [
       true,
-      "single",
-      "jsx-double"
+      "single"
     ],
     "trailing-comma": [
       true,

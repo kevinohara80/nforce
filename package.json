@@ -39,13 +39,11 @@
     "@types/sinon-chai": "^3.2.2",
     "chai": "^4.2.0",
     "mocha": "^6.1.4",
-    "prettier": "^1.17.0",
     "sinon": "^7.3.2",
     "sinon-chai": "^3.3.0",
     "source-map-support": "^0.5.12",
     "ts-node": "^8.3.0",
     "tslint": "^5.18.0",
-    "tslint-config-prettier": "^1.18.0",
     "tslint-no-unused-expression-chai": "^0.1.4",
     "typescript": "^3.4.4"
   },
