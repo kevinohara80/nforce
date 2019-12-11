@@ -2,6 +2,7 @@
 examples
 lib
 src
+docs
 test
 .prettierrc
 tsconfig.json

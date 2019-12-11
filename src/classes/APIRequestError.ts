@@ -2,6 +2,9 @@ import { Response } from 'request';
 
 import APIError from './APIError';
 
+/**
+ * @category Errors
+ */
 export default class APIRequestError extends APIError {
   public errorCode: string;
   public fields?: string[];

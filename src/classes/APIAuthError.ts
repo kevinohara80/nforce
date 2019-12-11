@@ -2,6 +2,9 @@ import { Response } from 'request';
 
 import APIError from './APIError';
 
+/**
+ * @category Errors
+ */
 export default class APIAuthError extends APIError {
   public error: string;
   public errorDescription?: string;

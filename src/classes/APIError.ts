@@ -1,3 +1,6 @@
+/**
+ * @category Errors
+ */
 export default class APIError extends Error {
   public statusCode: number;
 

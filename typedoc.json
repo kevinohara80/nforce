@@ -1,0 +1,9 @@
+{
+  "name": "nforce",
+  "mode": "modules",
+  "categorizeByGroup": true,
+  "out": "docs",
+  "readme": "none",
+  "theme": "default",
+  "excludePrivate": true
+}

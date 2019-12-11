@@ -56,12 +56,13 @@
     "url": "http://github.com/kevinohara80/nforce/issues"
   },
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist docs",
     "prebuild": "npm run clean",
     "build": "tsc -p tsconfig.pkg.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "tslint -p tsconfig.json",
     "test": "mocha './test/**/*.ts'",
+    "docs": "rm -rf docs && typedoc --options typedoc.json src",
     "prepare": "npm run build",
     "prepublishOnly": "npm test && npm run lint",
     "preversion": "npm test",
