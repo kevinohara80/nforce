@@ -4,6 +4,9 @@ import { RequestPromise, RequestPromiseOptions } from 'request-promise';
 import * as request from 'request-promise';
 import { StatusCodeError } from 'request-promise/errors';
 
+import { AllowedMethod } from '../contracts/AllowedMethod';
+import IAPIAuthRequestOpts from '../contracts/IAPIAuthRequestOpts';
+import IAPIRequestOpts from '../contracts/IAPIRequestOpts';
 import IAuthenticateOpts from '../contracts/IAuthenticateOpts';
 import IConnectionOpts from '../contracts/IConnectionOpts';
 import IGetAuthURIOpts from '../contracts/IGetAuthURIOpts';
@@ -22,8 +25,6 @@ const DEFAULT_LOGIN_ENDPOINT =
 const DEFAULT_TEST_LOGIN_ENDPOINT =
   'https://test.salesforce.com/services/oauth2/token';
 const DEFAULT_API_VERSION = 44;
-
-type AllowedMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 export default class Connection {
   // connection properties
@@ -264,15 +265,16 @@ export default class Connection {
 
     // WIP from here
 
-    const ropts: RequestPromiseOptions = {
-      method: 'POST',
+    const ropts: IAPIAuthRequestOpts = {
+      uri: this.loginEndpoint,
+      method: 'post',
       body: qs.stringify(body),
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       }
     };
 
-    const resp = await this.apiAuthRequest(this.loginEndpoint, ropts);
+    const resp = await this.apiAuthRequest(ropts);
 
     return resp as IOAuthData;
   }
@@ -286,13 +288,11 @@ export default class Connection {
     }
   }
 
-  private async apiAuthRequest(
-    uri: string,
-    opts: RequestPromiseOptions
-  ): Promise<IOAuthData> {
+  private async apiAuthRequest(opts: IAPIAuthRequestOpts): Promise<IOAuthData> {
+    // default to get
     const method = opts.method ? opts.method.toLowerCase() : 'get';
 
-    const res: Response = await request[method as AllowedMethod](uri, {
+    const res: Response = await request[method as AllowedMethod](opts.uri, {
       ...opts,
       json: true,
       simple: false,
@@ -311,7 +311,7 @@ export default class Connection {
     return this.oauth;
   }
 
-  private async apiRequest(): Promise<any> {
+  private async apiRequest(uri: string, opts: IAPIRequestOpts): Promise<any> {
     return 'foo';
   }
 }

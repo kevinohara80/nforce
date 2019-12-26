@@ -22,4 +22,10 @@ export function createConnection(opts: IConnectionOpts) {
   return new Connection(opts);
 }
 
+/**
+ * nforce version
+ */
+// tslint:disable-next-line:no-var-requires
+export const version = require('../package.json').version;
+
 export { APIAuthError, APIError, APIRequestError, Connection, IConnectionOpts };
