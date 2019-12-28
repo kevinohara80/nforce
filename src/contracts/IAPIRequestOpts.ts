@@ -1,9 +1,9 @@
-import { AllowedMethod } from './AllowedMethod';
+import { Method } from 'axios';
 
 export default interface IAPIRequestOpts {
   resource?: string;
   body?: any;
-  method: AllowedMethod;
+  method: Method;
   headers?: {
     [key: string]: string;
   };

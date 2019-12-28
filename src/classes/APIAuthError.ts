@@ -1,3 +1,4 @@
+import { AxiosResponse } from 'axios';
 import { Response } from 'request';
 
 import APIError from './APIError';
@@ -9,10 +10,10 @@ export default class APIAuthError extends APIError {
   public error: string;
   public errorDescription?: string;
 
-  constructor(res: Response) {
-    super(res.body.error, res.statusCode);
-    this.error = res.body.error;
-    this.errorDescription = res.body.error_description;
+  constructor(res: AxiosResponse) {
+    super(res.data.error, res.status);
+    this.error = res.data.error;
+    this.errorDescription = res.data.error_description;
     this.name = 'APIAuthError';
   }
 }

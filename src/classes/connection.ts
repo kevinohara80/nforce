@@ -1,7 +1,5 @@
+import axios, { AxiosError, AxiosResponse } from 'axios';
 import * as qs from 'querystring';
-import { Response } from 'request';
-import { RequestPromise, RequestPromiseOptions } from 'request-promise';
-import * as request from 'request-promise';
 import { StatusCodeError } from 'request-promise/errors';
 
 import { AllowedMethod } from '../contracts/AllowedMethod';
@@ -263,8 +261,6 @@ export default class Connection {
       this.securityToken = body.securityToken;
     }
 
-    // WIP from here
-
     const ropts: IAPIAuthRequestOpts = {
       uri: this.loginEndpoint,
       method: 'post',
@@ -279,7 +275,7 @@ export default class Connection {
     return resp as IOAuthData;
   }
 
-  private parseResponseHeaders(res: Response): void {
+  private parseResponseHeaders(res: AxiosResponse): void {
     if (res.headers['sforce-limit-info']) {
       const limitVal = res.headers['sforce-limit-info'] as string;
       const parts = limitVal.split('=')[1].split('/');
@@ -290,23 +286,27 @@ export default class Connection {
 
   private async apiAuthRequest(opts: IAPIAuthRequestOpts): Promise<IOAuthData> {
     // default to get
-    const method = opts.method ? opts.method.toLowerCase() : 'get';
+    const method = opts.method || 'get';
 
-    const res: Response = await request[method as AllowedMethod](opts.uri, {
-      ...opts,
-      json: true,
-      simple: false,
-      resolveWithFullResponse: true,
-      timeout: this.timeout || void 0
-    });
+    let res;
+
+    try {
+      res = await axios.request<IOAuthData>({
+        url: opts.uri,
+        headers: opts.headers,
+        method,
+        data: opts.body,
+        timeout: this.timeout || undefined
+      });
+    } catch (err) {
+      throw new APIAuthError(err.response);
+    }
 
     this.parseResponseHeaders(res);
 
-    if (res.statusCode >= 300) {
-      throw new APIAuthError(res);
-    }
+    this.oauth = res.data;
 
-    this.oauth = res.body as IOAuthData;
+    // TODO: autorefresh logic
 
     return this.oauth;
   }
