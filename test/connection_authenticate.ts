@@ -3,12 +3,12 @@ import * as request from 'request-promise';
 import * as sinon from 'sinon';
 
 import Connection from '../src/classes/Connection';
-import IConnectionOpts from '../src/contracts/IConnectionOpts';
+import IConnectionOpts from '../src/contracts/ConnectOptions';
 
 const DEFAULT_CONNECTION_OPTS: IConnectionOpts = {
   clientId: 'testclientid',
   clientSecret: 'testclientsecret',
-  redirectUri: 'https://my.redirect.uri',
+  redirectUri: 'https://my.redirect.uri'
 };
 
 let connection: Connection = new Connection(DEFAULT_CONNECTION_OPTS);
@@ -31,18 +31,18 @@ describe('src/classes/connection.ts', () => {
     it('should allow for username/password auth', async () => {
       postStub.resolves({
         headers: {
-          'content-type': 'application/json',
+          'content-type': 'application/json'
         },
         statusCode: 200,
         body: {
-          access_token: 'accesstoken1234',
-        },
+          access_token: 'accesstoken1234'
+        }
       });
 
       const resp = await connection.authenticate({
         username: 'myusername@test.com',
         password: 'somePassword',
-        securityToken: 'abc2343',
+        securityToken: 'abc2343'
       });
 
       expect(getStub).to.not.have.been.called;
@@ -55,18 +55,18 @@ describe('src/classes/connection.ts', () => {
     it('should cache OAuth data after successful auth', async () => {
       postStub.resolves({
         headers: {
-          'content-type': 'application/json',
+          'content-type': 'application/json'
         },
         statusCode: 200,
         body: {
-          access_token: 'accesstoken1234',
-        },
+          access_token: 'accesstoken1234'
+        }
       });
 
       const resp = await connection.authenticate({
         username: 'myusername@test.com',
         password: 'somePassword',
-        securityToken: 'abc2343',
+        securityToken: 'abc2343'
       });
 
       expect(postStub).to.have.been.calledOnce;
@@ -78,19 +78,19 @@ describe('src/classes/connection.ts', () => {
     it('should throw APIAuthError for non-2xx status codes', async () => {
       postStub.resolves({
         headers: {
-          'content-type': 'application/json',
+          'content-type': 'application/json'
         },
         statusCode: 401,
         body: {
-          error: 'Unauthorized',
-        },
+          error: 'Unauthorized'
+        }
       });
 
       try {
         await connection.authenticate({
           username: 'myusername@test.com',
           password: 'somePassword',
-          securityToken: 'abc2343',
+          securityToken: 'abc2343'
         });
         assert(false, 'expected authenticate to throw');
       } catch (err) {
@@ -107,18 +107,18 @@ describe('src/classes/connection.ts', () => {
       postStub.resolves({
         headers: {
           'content-type': 'application/json',
-          'sforce-limit-info': 'api-usage=1/100',
+          'sforce-limit-info': 'api-usage=1/100'
         },
         statusCode: 200,
         body: {
-          access_token: 'accesstoken1234',
-        },
+          access_token: 'accesstoken1234'
+        }
       });
 
       const resp = await connection.authenticate({
         username: 'myusername@test.com',
         password: 'somePassword',
-        securityToken: 'abc2343',
+        securityToken: 'abc2343'
       });
 
       expect(postStub).to.have.been.calledOnce;

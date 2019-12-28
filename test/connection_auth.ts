@@ -2,16 +2,16 @@ import { expect } from 'chai';
 import { URL } from 'url';
 
 import Connection from '../src/classes/Connection';
-import IConnectionOpts from '../src/contracts/IConnectionOpts';
-import IGetAuthURIOpts from '../src/contracts/IGetAuthURIOpts';
+import ConnectionOpts from '../src/contracts/ConnectOptions';
+import GetAuthURIOpts from '../src/contracts/GetAuthURIOptions';
 
 describe('src/classes/connection.ts', () => {
   describe('#getAuthUri', () => {
     it('should return an auth uri', () => {
-      const opts: IConnectionOpts = {
+      const opts: ConnectionOpts = {
         clientId: 'clientId123',
         clientSecret: 'clientSecret123',
-        redirectUri: 'https://my.redirect.com/redirect',
+        redirectUri: 'https://my.redirect.com/redirect'
       };
 
       const conn = new Connection(opts);
@@ -24,11 +24,11 @@ describe('src/classes/connection.ts', () => {
     });
 
     it('should switch to test endpoints for sandbox environment', () => {
-      const opts: IConnectionOpts = {
+      const opts: ConnectionOpts = {
         clientId: 'clientId123',
         clientSecret: 'clientSecret123',
         redirectUri: 'https://my.redirect.com/redirect',
-        environment: 'sandbox',
+        environment: 'sandbox'
       };
 
       const conn = new Connection(opts);
@@ -41,11 +41,11 @@ describe('src/classes/connection.ts', () => {
     });
 
     it('should trim whitespace from values', () => {
-      const opts: IConnectionOpts = {
+      const opts: ConnectionOpts = {
         clientId: 'clientId123',
         clientSecret: 'clientSecret123',
         redirectUri: 'https://my.redirect.com/redirect',
-        environment: 'sandbox',
+        environment: 'sandbox'
       };
 
       const conn = new Connection(opts);
@@ -54,7 +54,7 @@ describe('src/classes/connection.ts', () => {
         display: '         none',
         prompt: 'consent ',
         loginHint: '   hint    ',
-        scope: ['api ', ' chatter_api '],
+        scope: ['api ', ' chatter_api ']
       } as any);
 
       const parsed = new URL(uri);

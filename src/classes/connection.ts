@@ -1,18 +1,18 @@
-import axios, { AxiosError, AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import * as qs from 'querystring';
-import { StatusCodeError } from 'request-promise/errors';
 
-import { AllowedMethod } from '../contracts/AllowedMethod';
-import IAPIAuthRequestOpts from '../contracts/IAPIAuthRequestOpts';
-import IAPIRequestOpts from '../contracts/IAPIRequestOpts';
-import IAuthenticateOpts from '../contracts/IAuthenticateOpts';
-import IConnectionOpts from '../contracts/IConnectionOpts';
-import IGetAuthURIOpts from '../contracts/IGetAuthURIOpts';
-import IOAuthData from '../contracts/IOAuthData';
+import APIAuthRequestOpts from '../contracts/APIAuthRequestOpts';
+import APIRequestOpts from '../contracts/APIRequestOptions';
+import AuthenticateOpts from '../contracts/AuthenticateOptions';
+import ConnectionOpts from '../contracts/ConnectOptions';
+import GetAuthURIOpts from '../contracts/GetAuthURIOptions';
+import OAuthData from '../contracts/OAuthData';
 
 import APIAuthError from './APIAuthError';
 import APIRequestError from './APIRequestError';
 import ConnectionError from './ConnectionError';
+import UrlOptions from '../contracts/URLOptions';
+import BodyOptions from '../contracts/BodyOptions';
 
 const DEFAULT_AUTH_ENDPOINT =
   'https://login.salesforce.com/services/oauth2/authorize';
@@ -33,11 +33,11 @@ export default class Connection {
   private authEndpoint: string;
   private loginEndpoint: string;
   private apiVersion: string = DEFAULT_API_VERSION.toFixed(0);
-  private environment: string = 'production';
-  private gzip: boolean = false;
-  private autoRefresh: boolean = false;
+  private environment = 'production';
+  private gzip = false;
+  private autoRefresh = false;
   private timeout: number | null = null;
-  private oauth?: IOAuthData;
+  private oauth?: OAuthData;
   private username?: string;
   private password?: string;
   private securityToken?: string;
@@ -46,11 +46,11 @@ export default class Connection {
 
   /**
    * Creates an instance of an nforce Connection.
-   * @param {IConnectionOpts} opts Configuration options for
+   * @param {ConnectionOpts} opts Configuration options for
    * the connection
    * @memberof Connection
    */
-  constructor(opts: IConnectionOpts) {
+  constructor(opts: ConnectionOpts) {
     this.environment = opts.environment || 'production';
 
     if (!opts.clientId) {
@@ -132,10 +132,10 @@ export default class Connection {
    * this value hasn't been set by calling `authenticate()`
    * or hasn't been explicitly set by calling `setOAuth()`,
    * this method will return `undefined`
-   * @returns {(IOAuthData | undefined)}
+   * @returns {(OAuthData | undefined)}
    * @memberof Connection
    */
-  public getOAuth(): IOAuthData | undefined {
+  public getOAuth(): OAuthData | undefined {
     return this.oauth;
   }
 
@@ -144,7 +144,7 @@ export default class Connection {
    * @param oauthData
    * @memberof Connection
    */
-  public setOAuth(oauthData: IOAuthData) {
+  public setOAuth(oauthData: OAuthData): void {
     this.oauth = oauthData;
   }
 
@@ -171,8 +171,9 @@ export default class Connection {
    * and supplied options
    * @param opts getAuthURI options
    */
-  public getAuthUri(opts: IGetAuthURIOpts = {}): string {
-    let urlOpts: any = {
+
+  public getAuthUri(opts: GetAuthURIOpts = {}): string {
+    let urlOpts: UrlOptions = {
       response_type: opts.responseType || 'code',
       client_id: this.clientId,
       redirect_uri: this.redirectUri
@@ -184,7 +185,7 @@ export default class Connection {
 
     if (opts.scope) {
       if (Array.isArray(opts.scope)) {
-        urlOpts.scope = (opts.scope as string[]).map((o) => o.trim()).join(' ');
+        urlOpts.scope = (opts.scope as string[]).map(o => o.trim()).join(' ');
       } else {
         urlOpts.scope = (opts.scope as string).trim();
       }
@@ -200,7 +201,7 @@ export default class Connection {
 
     if (opts.prompt) {
       if (Array.isArray(opts.prompt)) {
-        urlOpts.prompt = (opts.prompt as string[]).map((o) => o.trim()).join(' ');
+        urlOpts.prompt = (opts.prompt as string[]).map(o => o.trim()).join(' ');
       } else {
         urlOpts.prompt = opts.prompt.trim();
       }
@@ -228,15 +229,15 @@ export default class Connection {
    * and password (username/password flow), or a SAML
    * assertion (SAML Bearer Assertion Flow).
    * @param opts Options for authentication
-   * @returns {IOAuthData} The OAuth data returned from Salesforce
+   * @returns {OAuthData} The OAuth data returned from Salesforce
    */
-  public async authenticate(opts: IAuthenticateOpts = {}): Promise<IOAuthData> {
+  public async authenticate(opts: AuthenticateOpts = {}): Promise<OAuthData> {
     opts = {
       executeOnRefresh: false, // TODO: implment this function
       ...opts
     };
 
-    const body: any = {
+    const body: BodyOptions = {
       client_id: this.clientId,
       client_secret: this.clientSecret
     };
@@ -253,15 +254,15 @@ export default class Connection {
       body.grant_type = 'password';
       body.username = opts.username || this.username;
       body.password = opts.password || this.password;
-      if (opts.securityToken || this.securityToken) {
+      if (body.password && (opts.securityToken || this.securityToken)) {
         body.password += opts.securityToken || this.securityToken;
       }
       this.username = body.username;
       this.password = body.password;
-      this.securityToken = body.securityToken;
+      this.securityToken = opts.securityToken || this.securityToken;
     }
 
-    const ropts: IAPIAuthRequestOpts = {
+    const ropts: APIAuthRequestOpts = {
       uri: this.loginEndpoint,
       method: 'post',
       body: qs.stringify(body),
@@ -272,7 +273,7 @@ export default class Connection {
 
     const resp = await this.apiAuthRequest(ropts);
 
-    return resp as IOAuthData;
+    return resp as OAuthData;
   }
 
   private parseResponseHeaders(res: AxiosResponse): void {
@@ -284,14 +285,14 @@ export default class Connection {
     }
   }
 
-  private async apiAuthRequest(opts: IAPIAuthRequestOpts): Promise<IOAuthData> {
+  private async apiAuthRequest(opts: APIAuthRequestOpts): Promise<OAuthData> {
     // default to get
     const method = opts.method || 'get';
 
     let res;
 
     try {
-      res = await axios.request<IOAuthData>({
+      res = await axios.request<OAuthData>({
         url: opts.uri,
         headers: opts.headers,
         method,
@@ -311,7 +312,7 @@ export default class Connection {
     return this.oauth;
   }
 
-  private async apiRequest(uri: string, opts: IAPIRequestOpts): Promise<any> {
+  private async apiRequest(uri: string, opts: APIRequestOpts): Promise<any> {
     return 'foo';
   }
 }

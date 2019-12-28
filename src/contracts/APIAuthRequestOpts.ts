@@ -1,6 +1,6 @@
 import { Method } from 'axios';
 
-export default interface IAPIAuthRequestOpts {
+export default interface APIAuthRequestOpts {
   uri: string;
   body?: string;
   method?: Method;

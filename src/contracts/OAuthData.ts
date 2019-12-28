@@ -1,4 +1,4 @@
-export default interface IOAuthData {
+export default interface OAuthData {
   /**
    * The salesforce oauth access token
    */

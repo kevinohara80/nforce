@@ -1,5 +1,4 @@
 import { AxiosResponse } from 'axios';
-import { Response } from 'request';
 
 import APIError from './APIError';
 

@@ -1,6 +1,6 @@
-import IOAuthData from './IOAuthData';
+import IOAuthData from './OAuthData';
 
-export default interface IConnectionOpts {
+export default interface ConnectionOptions {
   /**
    * The client Id of the connected app.
    */

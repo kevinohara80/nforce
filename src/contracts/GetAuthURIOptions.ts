@@ -1,6 +1,6 @@
 import StandardAPIScopes from './StandardAPIScopes';
 
-export default interface IGetAuthURIOpts {
+export default interface GetAuthURIOptions {
   /**
    * Any valid response_type that is supported by Salesforce
    * OAuth 2.0. Default is `code`
@@ -36,7 +36,7 @@ export default interface IGetAuthURIOpts {
    * Specifies how the authorization server prompts the user
    * for re-authentication and reapproval. Values are `login`, `consent` or both in the form of an array.
    */
-  prompt?: 'login' | 'consent' | [('login' | 'consent')];
+  prompt?: 'login' | 'consent' | ['login' | 'consent'];
   /**
    * Provide a valid username value with this parameter to
    * pre-populate the login page with the username.
