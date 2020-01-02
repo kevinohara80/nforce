@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import * as qs from 'querystring';
 
-import APIAuthRequestOpts from '../contracts/APIAuthRequestOpts';
+//import APIAuthRequestOpts from '../contracts/APIAuthRequestOpts';
 // import APIRequestOpts from '../contracts/APIRequestOptions';
 import AuthenticateOpts from '../contracts/AuthenticateOptions';
 import ConnectionOpts from '../contracts/ConnectOptions';
@@ -11,8 +11,8 @@ import OAuthData from '../contracts/OAuthData';
 import APIAuthError from './APIAuthError';
 // import APIRequestError from './APIRequestError';
 import ConnectionError from './ConnectionError';
-import UrlOptions from '../contracts/URLOptions';
-import BodyOptions from '../contracts/BodyOptions';
+import AuthURLOptions from '../contracts/AuthURLOptions';
+import AuthBodyOptions from '../contracts/AuthBodyOptions';
 
 const DEFAULT_AUTH_ENDPOINT =
   'https://login.salesforce.com/services/oauth2/authorize';
@@ -23,6 +23,7 @@ const DEFAULT_LOGIN_ENDPOINT =
 const DEFAULT_TEST_LOGIN_ENDPOINT =
   'https://test.salesforce.com/services/oauth2/token';
 const DEFAULT_API_VERSION = 44;
+const SAML_ASSERTION_URN = 'urn:oasis:names:tc:SAML:2.0:profiles:SSO:browser';
 
 export default class Connection {
   // connection properties
@@ -36,10 +37,11 @@ export default class Connection {
   private environment = 'production';
   private gzip = false;
   private autoRefresh = false;
-  private timeout: number | null = null;
+  private timeout = 0;
   private oauth?: OAuthData;
   private username?: string;
   private password?: string;
+  private assertion?: string;
   private securityToken?: string;
   private apiCallsUsed?: number;
   private apiCallsLimit?: number;
@@ -91,7 +93,7 @@ export default class Connection {
 
     this.gzip = opts.gzip || false;
     this.autoRefresh = opts.autoRefresh || false;
-    this.timeout = opts.timeout ? Math.floor(opts.timeout) : null;
+    this.timeout = opts.timeout ? Math.floor(opts.timeout) : 0;
     this.oauth = opts.oauth;
     this.username = opts.username;
     this.password = opts.password;
@@ -173,7 +175,7 @@ export default class Connection {
    */
 
   public getAuthUri(opts: GetAuthURIOpts = {}): string {
-    let urlOpts: UrlOptions = {
+    let urlOpts: AuthURLOptions = {
       response_type: opts.responseType || 'code',
       client_id: this.clientId,
       redirect_uri: this.redirectUri
@@ -232,48 +234,61 @@ export default class Connection {
    * @returns {OAuthData} The OAuth data returned from Salesforce
    */
   public async authenticate(opts: AuthenticateOpts = {}): Promise<OAuthData> {
-    opts = {
-      executeOnRefresh: false, // TODO: implment this function
-      ...opts
-    };
-
-    const body: BodyOptions = {
+    const body: AuthBodyOptions = {
+      grant_type: 'authorization_code',
       client_id: this.clientId,
       client_secret: this.clientSecret
     };
+
+    this.username = opts.username || this.username;
+    this.password = opts.password || this.password;
+    this.securityToken = opts.securityToken || this.securityToken;
+    this.assertion = opts.assertion || this.assertion;
+
+    const refreshToken =
+      opts.refreshToken || (this.oauth && this.oauth.refresh_token);
 
     if (opts.code) {
       body.grant_type = 'authorization_code';
       body.code = opts.code;
       body.redirect_uri = this.redirectUri;
-    } else if (opts.assertion) {
+    } else if (refreshToken) {
+      body.grant_type = 'refresh_token';
+      body.refresh_token = refreshToken;
+    } else if (this.assertion) {
       body.grant_type = 'assertion';
-      body.assertion_type = 'urn:oasis:names:tc:SAML:2.0:profiles:SSO:browser';
-      body.assertion = opts.assertion;
-    } else if (opts.username || this.username) {
+      body.assertion_type = SAML_ASSERTION_URN;
+      body.assertion = this.assertion;
+    } else if (this.username) {
       body.grant_type = 'password';
-      body.username = opts.username || this.username;
-      body.password = opts.password || this.password;
-      if (body.password && (opts.securityToken || this.securityToken)) {
-        body.password += opts.securityToken || this.securityToken;
+      body.username = this.username;
+      body.password = this.password || '';
+      if (this.securityToken) {
+        body.password += this.securityToken;
       }
-      this.username = body.username;
-      this.password = body.password;
-      this.securityToken = opts.securityToken || this.securityToken;
     }
 
-    const ropts: APIAuthRequestOpts = {
-      uri: this.loginEndpoint,
-      method: 'post',
-      body: qs.stringify(body),
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    };
+    let resp;
 
-    const resp = await this.apiAuthRequest(ropts);
+    try {
+      resp = await axios.request<OAuthData>({
+        url: this.loginEndpoint,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: qs.stringify(body),
+        timeout: this.timeout
+      });
+    } catch (err) {
+      throw new APIAuthError(err.response as AxiosResponse);
+    }
 
-    return resp as OAuthData;
+    this.parseResponseHeaders(resp);
+
+    this.oauth = resp.data;
+
+    return resp.data;
   }
 
   private parseResponseHeaders(res: AxiosResponse): void {
@@ -285,31 +300,23 @@ export default class Connection {
     }
   }
 
-  private async apiAuthRequest(opts: APIAuthRequestOpts): Promise<OAuthData> {
-    // default to get
-    const method = opts.method || 'get';
-
-    let res;
-
-    try {
-      res = await axios.request<OAuthData>({
-        url: opts.uri,
-        headers: opts.headers,
-        method,
-        data: opts.body,
-        timeout: this.timeout || undefined
-      });
-    } catch (err) {
-      throw new APIAuthError(err.response as AxiosResponse);
+  /**
+   * Refresh token
+   * @param executeOnRefresh Optionally run the refresh token function
+   */
+  public async refreshToken(executeOnRefresh = true): Promise<OAuthData> {
+    if (!this.oauth) {
+      throw new Error(
+        'No oauth data found for connection, cannot refresh token'
+      );
     }
 
-    this.parseResponseHeaders(res);
+    const oauth = await this.authenticate();
 
-    this.oauth = res.data;
+    if (executeOnRefresh) {
+    }
 
-    // TODO: autorefresh logic
-
-    return res.data;
+    return oauth;
   }
 
   // private async apiRequest(uri: string, opts: APIRequestOpts): Promise<any> {

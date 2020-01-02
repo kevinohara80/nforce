@@ -1,6 +1,6 @@
 import Connection from '../../src/classes/Connection';
 
-(async () => {
+(async (): Promise<void> => {
   const conn = new Connection({
     clientId:
       '3MVG9rFJvQRVOvk5nd6A4swCyck.4BFLnjFuASqNZmmxzpQSFWSTe6lWQxtF3L5soyVLfjV3yBKkjcePAsPzi',

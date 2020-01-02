@@ -72,6 +72,10 @@ export default interface ConnectionOptions {
    */
   securityToken?: string;
   /**
+   * SAML assertion string
+   */
+  assertion?: string;
+  /**
    * A callback function that is executed when an autoRefresh flow
    * has completed. This is useful for caching or storing the
    * resulting OAuth data that is returned.
