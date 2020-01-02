@@ -66,6 +66,7 @@
     "lint:fix": "eslint --fix {src,test}/**/*.ts",
     "test": "mocha './test/**/*.ts'",
     "docs": "rm -rf docs && typedoc --options typedoc.json src",
+    "docs:open": "npm run docs && open ./docs/index.html",
     "prepare": "npm run build",
     "prepublishOnly": "npm test && npm run lint",
     "preversion": "npm test",
