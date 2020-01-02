@@ -229,7 +229,9 @@ export default class Connection {
    * This method either requires that you pass in the
    * authorization code (authorization code flow), username
    * and password (username/password flow), or a SAML
-   * assertion (SAML Bearer Assertion Flow).
+   * assertion (SAML Bearer Assertion Flow). If you've previously
+   * authenticated, it will attempt to refresh your token using either
+   * stored credentials or a refresh_token on the OAuth data object.
    * @param opts Options for authentication
    * @returns {OAuthData} The OAuth data returned from Salesforce
    */
