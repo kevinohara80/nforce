@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 
 import Connection from '../src/classes/Connection';
+import ConnectionOptions from '../src/contracts/ConnectOptions';
 
 describe('src/classes/connection.ts', () => {
   describe('#constructor', () => {
@@ -12,7 +13,7 @@ describe('src/classes/connection.ts', () => {
       const opts = {
         clientId: 'clientId123',
         clientSecret: 'clientSecret123',
-        redirectUri: 'https://my.redirect.com/redirect',
+        redirectUri: 'https://my.redirect.com/redirect'
       };
 
       const conn = new Connection(opts);
@@ -23,12 +24,11 @@ describe('src/classes/connection.ts', () => {
     it('should throw on missing clientId', () => {
       const opts = {
         clientSecret: 'clientSecret123',
-        redirectUri: 'https://my.redirect.com/redirect',
+        redirectUri: 'https://my.redirect.com/redirect'
       };
 
       try {
-        // @ts-ignore
-        const conn = new Connection(opts);
+        new Connection(opts as ConnectionOptions);
         throw new Error('expected constructor to throw');
       } catch (err) {
         expect(err.message).to.equal('invalid or missing clientId');
@@ -38,12 +38,11 @@ describe('src/classes/connection.ts', () => {
     it('should throw on missing clientSecret', () => {
       const opts = {
         clientId: 'clientId123',
-        redirectUri: 'https://my.redirect.com/redirect',
+        redirectUri: 'https://my.redirect.com/redirect'
       };
 
       try {
-        // @ts-ignore
-        const conn = new Connection(opts);
+        new Connection(opts as ConnectionOptions);
         throw new Error('expected constructor to throw');
       } catch (err) {
         expect(err.message).to.equal('invalid or missing clientSecret');
@@ -53,12 +52,11 @@ describe('src/classes/connection.ts', () => {
     it('should throw on missing redirectUri', () => {
       const opts = {
         clientId: 'clientId123',
-        clientSecret: 'clientSecret123',
+        clientSecret: 'clientSecret123'
       };
 
       try {
-        // @ts-ignore
-        const conn = new Connection(opts);
+        new Connection(opts as ConnectionOptions);
         throw new Error('expected constructor to throw');
       } catch (err) {
         expect(err.message).to.equal('invalid or missing redirectUri');

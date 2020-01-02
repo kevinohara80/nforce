@@ -2,13 +2,13 @@ import { expect } from 'chai';
 import { URL } from 'url';
 
 import Connection from '../src/classes/Connection';
-import ConnectionOpts from '../src/contracts/ConnectOptions';
-import GetAuthURIOpts from '../src/contracts/GetAuthURIOptions';
+import ConnectionOptions from '../src/contracts/ConnectOptions';
+import GetAuthURIOptions from '../src/contracts/GetAuthURIOptions';
 
 describe('src/classes/connection.ts', () => {
   describe('#getAuthUri', () => {
     it('should return an auth uri', () => {
-      const opts: ConnectionOpts = {
+      const opts: ConnectionOptions = {
         clientId: 'clientId123',
         clientSecret: 'clientSecret123',
         redirectUri: 'https://my.redirect.com/redirect'
@@ -24,7 +24,7 @@ describe('src/classes/connection.ts', () => {
     });
 
     it('should switch to test endpoints for sandbox environment', () => {
-      const opts: ConnectionOpts = {
+      const opts: ConnectionOptions = {
         clientId: 'clientId123',
         clientSecret: 'clientSecret123',
         redirectUri: 'https://my.redirect.com/redirect',
@@ -41,7 +41,7 @@ describe('src/classes/connection.ts', () => {
     });
 
     it('should trim whitespace from values', () => {
-      const opts: ConnectionOpts = {
+      const opts: ConnectionOptions = {
         clientId: 'clientId123',
         clientSecret: 'clientSecret123',
         redirectUri: 'https://my.redirect.com/redirect',
@@ -50,12 +50,12 @@ describe('src/classes/connection.ts', () => {
 
       const conn = new Connection(opts);
 
-      const uri = conn.getAuthUri({
+      const uri = conn.getAuthUri(({
         display: '         none',
         prompt: 'consent ',
         loginHint: '   hint    ',
         scope: ['api ', ' chatter_api ']
-      } as any);
+      } as unknown) as GetAuthURIOptions);
 
       const parsed = new URL(uri);
 

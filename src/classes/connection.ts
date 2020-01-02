@@ -2,14 +2,14 @@ import axios, { AxiosResponse } from 'axios';
 import * as qs from 'querystring';
 
 import APIAuthRequestOpts from '../contracts/APIAuthRequestOpts';
-import APIRequestOpts from '../contracts/APIRequestOptions';
+// import APIRequestOpts from '../contracts/APIRequestOptions';
 import AuthenticateOpts from '../contracts/AuthenticateOptions';
 import ConnectionOpts from '../contracts/ConnectOptions';
 import GetAuthURIOpts from '../contracts/GetAuthURIOptions';
 import OAuthData from '../contracts/OAuthData';
 
 import APIAuthError from './APIAuthError';
-import APIRequestError from './APIRequestError';
+// import APIRequestError from './APIRequestError';
 import ConnectionError from './ConnectionError';
 import UrlOptions from '../contracts/URLOptions';
 import BodyOptions from '../contracts/BodyOptions';
@@ -300,7 +300,7 @@ export default class Connection {
         timeout: this.timeout || undefined
       });
     } catch (err) {
-      throw new APIAuthError(err.response);
+      throw new APIAuthError(err.response as AxiosResponse);
     }
 
     this.parseResponseHeaders(res);
@@ -312,7 +312,7 @@ export default class Connection {
     return this.oauth;
   }
 
-  private async apiRequest(uri: string, opts: APIRequestOpts): Promise<any> {
-    return 'foo';
-  }
+  // private async apiRequest(uri: string, opts: APIRequestOpts): Promise<any> {
+  //   return 'foo';
+  // }
 }

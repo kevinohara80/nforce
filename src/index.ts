@@ -18,7 +18,7 @@ import IConnectionOpts from './contracts/ConnectOptions';
  * @param opts Options for the connection
  * @returns Connection object
  */
-export function createConnection(opts: IConnectionOpts) {
+export function createConnection(opts: IConnectionOpts): Connection {
   return new Connection(opts);
 }
 
