@@ -11,22 +11,11 @@
     "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
-      "*": [
-        "node_modules/*"
-      ]
+      "*": ["node_modules/*"]
     }
   },
   "inlineSourceMap": true,
-  "types": [
-    "node",
-    "mocha",
-    "chai"
-  ],
-  "include": [
-    "./src",
-    "./test"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "types": ["node", "mocha", "chai"],
+  "include": ["./src", "./test"],
+  "exclude": ["node_modules"]
 }

@@ -3,7 +3,5 @@
   "compilerOptions": {
     "baseUrl": "./src"
   },
-  "exclude": [
-    "./test"
-  ]
+  "exclude": ["./test"]
 }
