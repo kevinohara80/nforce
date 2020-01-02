@@ -26,7 +26,7 @@ env.sh
 dist
 
 ## 2.0 conversion
-test.old
+v1
 
 ## vscode
 .vscode

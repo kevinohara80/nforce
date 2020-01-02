@@ -1,5 +1,6 @@
-examples.old
 node_modules
-test.old
 dist
 docs
+
+# can remove after ts refactor
+v1
