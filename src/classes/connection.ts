@@ -309,7 +309,7 @@ export default class Connection {
 
     // TODO: autorefresh logic
 
-    return this.oauth;
+    return res.data;
   }
 
   // private async apiRequest(uri: string, opts: APIRequestOpts): Promise<any> {
