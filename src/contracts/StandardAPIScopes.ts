@@ -9,7 +9,7 @@ enum APIScopes {
   openid,
   refresh_token,
   visualforce,
-  web,
+  web
 }
 
 export default APIScopes;

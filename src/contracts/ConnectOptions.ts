@@ -1,4 +1,4 @@
-import IOAuthData from './OAuthData';
+import OAuthData from './OAuthData';
 
 export default interface ConnectionOptions {
   /**
@@ -58,7 +58,7 @@ export default interface ConnectionOptions {
    * Optionally provide an OAuth data object obtained
    * from previous authentication.
    */
-  oauth?: IOAuthData;
+  oauth?: OAuthData;
   /**
    * The username for password-based authentication
    */
@@ -78,5 +78,5 @@ export default interface ConnectionOptions {
    * @param error An Error object returned during the autoRefresh flow
    * @param oauth The OAuth data returned from the autoRefresh flow
    */
-  onRefresh?(error: Error | null, oauth: any): void;
+  onRefresh?(error: Error | null, oauth: OAuthData): void;
 }
