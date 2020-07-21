@@ -20,15 +20,17 @@ describe('api-mock-crud', function() {
   describe('#insert', function() {
 
     it('should create a proper request on insert', function(done) {
-      var obj = nforce.createSObject('Account', {
+      var fields = {
         Name: 'Test Account',
         Test_Field__c: 'blah'
-      });
+      };
+      var obj = nforce.createSObject('Account', fields);
       var hs = {
         'sforce-auto-assign': '1'
       };
       org.insert({ sobject: obj, oauth: oauth, headers: hs }, function(err, res) {
         if(err) throw err;
+        fields.should.not.have.property('attributes');
         var body = JSON.parse(api.getLastRequest().body);
         should.exist(body.name);
         should.exist(body.test_field__c);

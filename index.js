@@ -1189,7 +1189,7 @@ module.exports.createConnection = function(opts) {
 };
 
 module.exports.createSObject = function(type, fields) {
-  var data = fields || {};
+  var data = Object.assign({}, fields);
   data.attributes = {
     type: type
   };
