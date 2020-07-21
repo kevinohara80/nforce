@@ -397,6 +397,7 @@ The createConnection method creates an *nforce* salesforce connection object. Yo
 * `redirectUri`: (String:Required) This is the redirect URI for OAuth callbacks.
 * `apiVersion`: (String|Number:Required) This is a number or string representing a valid REST API version. Default is the latest current api version.
 * `environment`: (String:Optional) Values can be 'production' or 'sandbox'. Default is production.
+* `mode`: (String:Optional) If set to 'single', then access token is accessible in `oauth.access_token` of the connection object. Values can be 'single' or 'multi'. Default is multi.
 * `authEndpoint`: (String:Optional) Used to override the authentication endpoint for production environments.
 * `testAuthEndpoint`: (String:Optional) Used to override the authentication endpoint for production environments.
 * `loginUri`: (String:Optional) Used to override the login URI if needed.
