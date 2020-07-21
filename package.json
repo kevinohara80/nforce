@@ -35,7 +35,7 @@
   },
   "optionalDependencies": {},
   "engines": {
-    "node": ">= 0.12"
+    "node": ">=8.0.0"
   },
   "bugs": {
     "url": "http://github.com/kevinohara80/nforce/issues"
