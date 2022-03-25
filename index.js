@@ -1053,9 +1053,11 @@ Connection.prototype._apiRequest = function(opts, callback) {
       // attempt to parse the json now
       if(util.isJsonResponse(res)) {
         if(body) {
+          console.log(body);
           try {
             body = JSON.parse(body);
           } catch (e) {
+            console.log(e);
             return resolver.reject(errors.invalidJson());
           }
         }
