@@ -449,6 +449,8 @@ Connection.prototype.getDescribe = function(data, callback) {
   });
   opts.resource = '/sobjects/' + opts.type + '/describe';
   opts.method = 'GET';
+  console.log('$$$ Connection.prototype.getDescribe');
+  console.log(opts);
   return this._apiRequest(opts, opts.callback);
 };
 
@@ -1032,7 +1034,8 @@ Connection.prototype._apiRequest = function(opts, callback) {
   if(this.timeout) {
     ropts.timeout = this.timeout;
   }
-
+  console.log('@@@@ request(ropts');
+  console.log(ropts);
   // initiate the request
   request(ropts, function(err, res, body) {
 
