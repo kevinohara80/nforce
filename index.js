@@ -1050,13 +1050,19 @@ Connection.prototype._apiRequest = function(opts, callback) {
     }
 
     function processResponse() {
+      console.log('### processResponse');
+      console.log(body);
       // attempt to parse the json now
       if(util.isJsonResponse(res)) {
+        console.log('### util.isJsonResponse(res)');
+        console.log(body);
         if(body) {
+          console.log('### if(body)');
           console.log(body);
           try {
             body = JSON.parse(body);
           } catch (e) {
+            console.log('### catch (e)');
             console.log(e);
             return resolver.reject(errors.invalidJson());
           }
