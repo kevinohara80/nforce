@@ -936,6 +936,25 @@ Connection.prototype._apiAuthRequest = function(opts, callback) {
   return resolver.promise;
 };
 
+function findValueForKeyInObject(obj, key, depth, maxDepth = 5) {
+    if (depth > maxDepth) {
+        return undefined;
+    }
+
+    let result;
+    _.some(obj, function(value, k) {
+        if (k === key) {
+            result = value;
+            return true;
+        }
+        if (_.isObject(value)) {
+            result = findValueForKeyInObject(value, key, depth + 1, maxDepth);
+            if(result !== undefined) return true;
+        }
+    });
+    return result;
+}
+
 Connection.prototype._apiRequest = function(opts, callback) {
 
   /**
@@ -1091,6 +1110,10 @@ Connection.prototype._apiRequest = function(opts, callback) {
         e = new Error(body);
         e.errorCode = body;
         e.body = body;
+      } else if (_.isObject(body) && findValueForKeyInObject(body, 'message', 0, 5) && findValueForKeyInObject(body, 'errorCode', 0, 5)) {
+          e = new Error(findValueForKeyInObject(body, 'message'));
+          e.body = findValueForKeyInObject(body, 'message');
+          e.errorCode = findValueForKeyInObject(body, 'errorCode');
       } else {
         e = new Error('Salesforce returned an unrecognized error ' + res.statusCode);
         e.body = body;
