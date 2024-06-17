@@ -1,3 +1,12 @@
+# THIS REPOSITORY HAS BEEN ARCHIVED
+`nforce` has been archived and is no longer being maintained. Thank you for all of the 
+support and contributions over the years. 
+
+It's highly recommended that you migrate to another npm package for Salesforce 
+API integration (like [jsforce](https://github.com/jsforce/jsforce))
+
+--------------------
+
 # nforce :: node.js salesforce REST API wrapper
 
 [![Build Status](https://secure.travis-ci.org/kevinohara80/nforce.png)](http://travis-ci.org/kevinohara80/nforce)
